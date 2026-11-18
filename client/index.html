@@ -52,7 +52,7 @@ svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:
   #list{border-right:0}
   #app:not(.panel-docked) #panel{width:100%}
   .search .kbd{display:none} .search input{padding-right:13px}
-  .acts{top:auto;bottom:100%;right:13px}
+  #app .acts{top:auto;bottom:100%;right:13px}
   .msg{padding:2px 13px} .day,.newline{margin-left:13px;margin-right:13px} .sys{margin-left:55px} #comp{padding:0 13px 13px} .typing{padding-left:55px}
   #app .icon{width:42px;height:42px} #comp #send{width:42px;height:42px} #app .acts .icon{width:34px;height:34px}
 }
@@ -235,6 +235,23 @@ svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:
 .tabs{overflow-x:auto;scrollbar-width:none} .tabs button{white-space:nowrap}
 :root[data-contrast="1"]{--ink2:var(--ink);--ink3:color-mix(in srgb,var(--ink) 78%,var(--bg));--line:color-mix(in srgb,var(--ink) 55%,var(--bg))}
 .ri:focus-visible{outline-offset:-2px}
+
+/* phase 1, batch two */
+#room{position:relative}
+#toEnd{position:absolute;right:21px;bottom:89px;z-index:3;box-shadow:var(--shadow)}
+#drop{position:absolute;inset:55px 0 0;z-index:4;display:grid;place-items:center;background:color-mix(in srgb,var(--bg) 86%,transparent);border:2px dashed var(--accent);border-radius:13px;margin:13px;font-weight:650;font-size:17px;color:var(--accent);pointer-events:none}
+.undec{color:var(--ink3);font-style:italic}
+.ed{cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px}
+.rcpt{display:flex;justify-content:flex-end;align-items:center;gap:2px;padding:0 21px 2px;color:var(--ink3);font-size:11px}
+.rcpt button{display:flex;align-items:center;gap:2px} .rcpt .av{box-shadow:0 0 0 2px var(--bg)} .rcpt .av+.av{margin-left:-8px}
+.file{display:flex;align-items:center;gap:8px;padding:8px 13px;border:1px solid var(--line);border-radius:8px;background:var(--raise);max-width:321px;margin:2px 0;color:inherit;text-decoration:none}
+.file b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .file small{color:var(--ink3)} .file>span{min-width:0}
+.body+.media,video.media,audio.media{display:block;max-width:min(321px,100%);margin:2px 0;border-radius:8px}
+.pv{display:flex;align-items:center;gap:8px;padding:5px 0;color:var(--ink)} .pv img{width:55px;height:55px;object-fit:cover;border-radius:8px;flex:none} .pv .ph{width:55px;height:55px;border-radius:8px;background:var(--panel);display:grid;place-items:center;flex:none;color:var(--ink3)}
+.pv>span{flex:1;min-width:0} .pv b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .pv small{color:var(--ink3)}
+.ro{padding:13px;border:1px solid var(--line);border-radius:13px;color:var(--ink2);text-align:center;background:var(--panel)}
+.inv .who{cursor:pointer}
+@media (min-width:768px){#app.nolist{grid-template-columns:0 minmax(0,1fr)} #app.nolist.panel-docked{grid-template-columns:0 minmax(0,1fr) 340px} #app.nolist #list{display:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
@@ -283,6 +300,7 @@ const I = {
   clock: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
   gear: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg>',
   wifi: '<svg viewBox="0 0 24 24"><path d="M3 9a14 14 0 0 1 18 0M6.5 12.5a9 9 0 0 1 11 0M10 16a4 4 0 0 1 4 0M12 19.5v.5"/></svg>',
+  more: '<svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>',
   out: '<svg viewBox="0 0 24 24"><path d="M10 5H5v14h5M14 8l4 4-4 4M18 12H9"/></svg>'
 };
 const EMOJI = [["👍","thumbs up yes"],["❤️","heart love"],["😂","joy laugh"],["🎉","party tada"],["🙏","thanks pray"],["👀","eyes look"],["🔥","fire"],["✅","check done"],["😊","smile"],["🤔","thinking"],["😅","sweat"],["🙌","hands hooray"],["💯","hundred"],["🚀","rocket ship"],["☕","coffee"],["👋","wave hello"],["😢","sad cry"],["😮","wow surprised"],["🤝","deal handshake"],["⭐","star"],["🌱","seedling"],["📎","clip"],["📌","pin"],["💡","idea bulb"]];
@@ -355,7 +373,7 @@ const dayKey = t => { const d = new Date(t); return d.getFullYear() * 400 + d.ge
 const dayName = t => { const k = dayKey(t), n = dayKey(Date.now()); if (k === n) return "Today"; if (k === dayKey(Date.now() - D)) return "Yesterday";
   return new Date(t).toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" }); };
 const listTime = t => dayKey(t) === dayKey(Date.now()) ? clock(t) : dayKey(t) === dayKey(Date.now() - D) ? "Yesterday" : new Date(t).toLocaleDateString(undefined, { day: "numeric", month: "short" });
-const last = r => r.ev[r.ev.length - 1];
+const last = r => { for (let k = r.ev.length - 1; k > 0; k--) if (!r.ev[k].del) return r.ev[k]; return r.ev[0]; };   // the newest event still shown
 const mentionsMe = e => e.t === "m" && e.from !== "me" && new RegExp("@" + first("me") + "\\b").test(e.body);
 /* Costs follow what changed: these walk back only over events newer than the read point, and the list of shown events grows by appending. */
 const unread = r => { if (r.invite) return 0; let n = 0; for (let k = r.ev.length - 1; k >= 0 && r.ev[k].ts > r.lastRead; k--) { const e = r.ev[k]; if (e.t === "m" && e.from !== "me" && !e.del) n++; } return n; };
@@ -483,6 +501,8 @@ function drawBanner() {
 }
 /* Rows are keyed by a hash of everything that shows, standing in for the event's content address.
    A row whose key is unchanged keeps its DOM node, and only the last WIN rows of a room are built. */
+let rowMedia = () => "", rowAfter = () => null;   // filled in by the media and receipts code below
+const UNDEC = '<span class="undec">This message cannot be shown: this device did not receive its key.</span>';
 const WIN = 80, MAXW = 240, tpl = document.createElement("template");
 const keyOf = s => { let h = 5381; for (let i = 0; i < s.length; i++) h = (h * 33 ^ s.charCodeAt(i)) >>> 0; return h.toString(36) + s.length.toString(36); };
 function drawTimeline(toEnd) {
@@ -514,23 +534,24 @@ function drawTimeline(toEnd) {
     const q = e.reply && r.ev.find(x => x.id === e.reply);
     const rxs = Object.entries(e.rx).filter(([, v]) => v.length);
     let key = e._k;   // the key is kept on the event and worked out again only when the event or its place changed
-    if (!key || e._f !== firstOf || e._l !== lastOwn || e._e !== S.epoch) { e._f = firstOf; e._l = lastOwn; e._e = S.epoch; key = e._k = "m" + e.id + keyOf([e.body, e.edited ? 1 : 0, e.status, firstOf ? 1 : 0, lastOwn ? 1 : 0, JSON.stringify(e.rx), q ? q.body : "", e.img ? e.img.length : 0, mod ? 1 : 0, U[e.from].n].join("\u0001")); }
+    if (!key || e._f !== firstOf || e._l !== lastOwn || e._e !== S.epoch) { e._f = firstOf; e._l = lastOwn; e._e = S.epoch; key = e._k = "m" + e.id + keyOf([e.body, e.edited ? 1 : 0, e.status, firstOf ? 1 : 0, lastOwn ? 1 : 0, JSON.stringify(e.rx), q ? q.body : "", e.img ? e.img.length : 0, e.file ? e.file.name + e.file.kind : "", e.hist ? e.hist.length : 0, mod ? 1 : 0, U[e.from].n].join("\u0001")); }
     prev = e;
     items.push([key, () => { const can = a => messageAction(a, own, true, mod, failed);
       return `<div class="msg${firstOf ? " first" : ""}${mentionsMe(e) ? " hl" : ""}" data-id="${e.id}">
       ${firstOf ? av(U[e.from].n) : `<span class="gut">${clock(e.ts)}</span>`}
       <div>${firstOf ? `<div class="hd"><button class="nm" data-user="${e.from}">${esc(own ? "You" : U[e.from].n)}</button><span class="ts">${clock(e.ts)}</span></div>` : ""}
       ${q ? `<button class="quote" data-jump="${q.id}">${I.reply}<span><b>${esc(q.from === "me" ? "You" : first(q.from))}</b> ${esc(q.body)}</span></button>` : ""}
-      ${e.img ? `<button class="img" data-view="${e.id}" aria-label="Open image"><img src="${e.img}" alt="${esc(e.name || "image")}"></button>` : ""}<div class="body${emojiOnly(e.body) ? " big" : ""}">${rich(e.body, r)}${e.edited ? '<span class="ed">edited</span>' : ""}</div>
+      ${e.img ? `<button class="img" data-view="${e.id}" aria-label="Open image"><img src="${e.img}" alt="${esc(e.name || "image")}"></button>` : ""}${rowMedia(e)}<div class="body${emojiOnly(e.body) ? " big" : ""}">${e.undec ? UNDEC : rich(e.body, r)}${e.edited ? '<span class="ed">edited</span>' : ""}</div>
       ${rxs.length ? `<div class="rx">${rxs.map(([k, v]) => `<button class="${v.includes("me") ? "mine" : ""}" data-rx="${k}" aria-label="${v.length} reacted ${k}">${k}<span>${v.length}</span></button>`).join("")}</div>` : ""}
-      ${failed ? `<div class="st failed">Not sent. <button data-retry>Try again</button></div>` : e.status === "queued" ? `<div class="st">${I.clock}Waiting for a connection</div>`
+      ${failed ? `<div class="st failed">Not sent. <button data-retry>Try again</button> · <button data-rmfail>Remove</button></div>` : e.status === "queued" ? `<div class="st">${I.clock}Waiting for a connection</div>`
         : e.status === "sending" ? `<div class="st">${I.clock}Sending</div>` : lastOwn ? `<div class="st${e.status === "read" ? " read" : ""}">${e.status === "read" ? I.read + "Read" : I.check + "Sent"}</div>` : ""}</div>
       <div class="acts" role="toolbar" aria-label="Message actions">
         ${can("react") ? `<button class="icon" data-act="react" aria-label="React" title="React">${I.smile}</button>` : ""}
         ${can("reply") ? `<button class="icon" data-act="reply" aria-label="Reply" title="Reply">${I.reply}</button>` : ""}
         ${can("edit") ? `<button class="icon" data-act="edit" aria-label="Edit" title="Edit">${I.edit}</button>` : ""}
-        <button class="icon" data-act="copy" aria-label="Copy text" title="Copy text">${I.copy}</button>
+        <button class="icon" data-act="copy" aria-label="Copy text" title="Copy text">${I.copy}</button><button class="icon" data-act="more" aria-label="More" title="More">${I.more}</button>
         ${can("remove") ? `<button class="icon" data-act="remove" aria-label="Delete" title="Delete">${I.trash}</button>` : ""}</div></div>`; }]);
+    const after = rowAfter(e, r); if (after) items.push(after);
   }
   flush();
   if (end < all.length) items.push(["latest", `<div class="sys" style="text-align:center;margin:13px 21px"><button data-latest>Jump to latest</button></div>`]);
@@ -566,7 +587,7 @@ function drawCtx() {
 function send() {
   const ta = $("#ta"), text = ta.value.trim(), r = R(S.cur); if (!text) return;
   const t0 = performance.now();       // Composer.sendable
-  if (S.mode && S.mode.type === "edit") { const e = r.ev.find(x => x.id === S.mode.id); if (e.body !== text) { e.body = text; e.edited = true; e._k = null; S.epoch++; } }
+  if (S.mode && S.mode.type === "edit") { const e = r.ev.find(x => x.id === S.mode.id); if (e.body !== text) { (e.hist = e.hist || []).push({ body: e.body, ts: Date.now() }); e.body = text; e.edited = true; e._k = null; S.epoch++; } }
   else { const e = m("me", 0, text, { ts: Date.now(), status: S.offline ? "queued" : "sending", reply: S.mode ? S.mode.id : null }); r.ev.push(e); if (!S.offline) deliver(r, e); }
   S.mode = null; ta.value = ""; delete S.drafts[r.id]; r.lastRead = Date.now(); r.seenLine = 0;
   grow(); drawCtx(); drawTimeline(true); drawList(); drawBanner();
@@ -1208,6 +1229,176 @@ const supported = !!(window.CSS && CSS.supports && CSS.supports("display", "grid
 if (!supported) stage(`<h2>This browser is too old.</h2><p>Holo Messenger needs a current version of Chrome, Edge, Firefox or Safari.</p><button class="btn primary" onclick="location.reload()">Try again</button>`);
 else if (!ID.created) onboard(0);
 else { const ui = store.get("hm-ui", null); if (ui && R(ui.cur) && panes(innerWidth) > 1) { openRoom(ui.cur); if (ui.panel) { S.panel = true; drawPanel(); } } }
+</script>
+<script>
+"use strict";
+/* ===== Phase 1 screens, batch two: receipts, files and media, message menu, history, link safety, and more. Sample data. ===== */
+const fmtSize = n => n < 1024 ? n + " B" : n < 1048576 ? (n / 1024).toFixed(0) + " KB" : (n / 1048576).toFixed(1) + " MB";
+const fileIcon = '<svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7zM14 3v4h4"/></svg>';
+
+/* sample events that show the cases the timeline must handle */
+(() => { const r3 = R("r3"), r5 = R("r5"); if (!r3 || !r5) return;
+  r3.ev.push(m("sofia", 5 * H, "The full write-up is in [the lab notes](https://example.org/lab/notes-7)."), m("omar", 20 * H, "", { undec: true }));
+  r3.ev.sort((a, b) => a.ts - b.ts); r3._lv = null; r5.sendPower = 50; })();
+
+/* ---------- read receipts: who has read up to where (shown in rooms; a direct chat shows Read) ---------- */
+const readers = (r, e) => r.members.filter(id => id !== "me" && id !== e.from);
+rowAfter = (e, r) => { if (!S.set.showReceipts || r.dm || e.id !== r._rp) return null; const who = readers(r, e); if (!who.length) return null;
+  return ["rc" + e.id + who.join(""), `<div class="rcpt"><button data-rcpt="${e.id}" aria-label="Read by ${who.length}">${who.slice(0, 3).map(id => av(U[id].n, "s")).join("")}${who.length > 3 ? `<span>+${who.length - 3}</span>` : ""}</button></div>`]; };
+rowMedia = e => { const f = e.file; if (!f) return "";
+  return f.kind === "video" ? `<video class="media" controls preload="metadata" src="${f.url}"></video>` : f.kind === "audio" ? `<audio class="media" controls preload="metadata" src="${f.url}"></audio>`
+    : `<a class="file" href="${f.url}" download="${esc(f.name)}">${fileIcon}<span><b>${esc(f.name)}</b><small>${fmtSize(f.size)}</small></span></a>`; };
+const _drawTimeline = drawTimeline;
+drawTimeline = function (toEnd) {
+  const r = R(S.cur);
+  if (r) { r._rp = null; const cut = Date.now() - 10 * M; for (let k = r.ev.length - 1; k >= 0 && r.ev.length - k < 400; k--) { const e = r.ev[k]; if (e.t === "m" && !e.del && e.ts <= cut) { r._rp = e.id; break; } } }
+  _drawTimeline(toEnd);
+  const intro = $("#tl .intro"); if (intro && r && !r.dm && !intro.querySelector("[data-invite]")) intro.insertAdjacentHTML("beforeend", '<button class="btn small" data-invite>Invite people</button>');
+  syncEnd();
+};
+function syncEnd() { const tl = $("#tl"), b = $("#toEnd"), r = R(S.cur); if (!tl || !b || !r) return; b.hidden = r.hi == null && tl.scrollHeight - tl.scrollTop - tl.clientHeight < 144; }
+const _drawRoom2 = drawRoom;
+drawRoom = function () {
+  _drawRoom2(); const r = R(S.cur), room = $("#room"); if (!r) return;
+  room.insertAdjacentHTML("beforeend", '<button id="toEnd" class="btn" hidden>Jump to latest</button><div id="drop" hidden>Drop to send</div>');
+  $("#tl").addEventListener("scroll", syncEnd, { passive: true });
+  if (myPower(r) < (r.sendPower || 0)) $("#comp").innerHTML = '<div class="ro">Only moderators can send messages in this room.</div>';   // the composer says why it is off
+  syncEnd();
+};
+
+/* ---------- sending files: choose, preview with a caption, then send ---------- */
+const mkInput = attrs => { const i = Object.assign(document.createElement("input"), { type: "file", hidden: true }, attrs); document.body.append(i); i.onchange = () => { const fs = [...i.files]; i.value = ""; if (fs.length) previewSend(fs); }; return i; };
+const inMedia = mkInput({ accept: "image/*,video/*", multiple: true }), inCam = mkInput({ accept: "image/*" }), inAny = mkInput({ multiple: true });
+inCam.setAttribute("capture", "environment");
+function attachMenu(anchor) {
+  closeOverlay(); lastFocus = anchor; const mn = document.createElement("div"); mn.id = "menu";
+  mn.innerHTML = `<button data-a="media">${I.copy}Photo or video</button><button data-a="cam">${I.smile}Take a photo</button><button data-a="any">${fileIcon}File</button>`;
+  document.body.append(mn); const b = anchor.getBoundingClientRect(); mn.style.left = b.left + "px"; mn.style.top = b.top - mn.offsetHeight - 5 + "px";
+  mn.onclick = e => { const x = e.target.closest("[data-a]"); if (!x) return; closeOverlay(); ({ media: inMedia, cam: inCam, any: inAny })[x.dataset.a].click(); };
+}
+const kindOf = f => /^image\//.test(f.type) ? "image" : /^video\//.test(f.type) ? "video" : /^audio\//.test(f.type) ? "audio" : "file";
+function previewSend(files) {
+  const r = R(S.cur); if (!r || myPower(r) < (r.sendPower || 0)) return;
+  let list = files.filter(f => f.size <= 26214400).map(f => ({ f, kind: kindOf(f), url: URL.createObjectURL(f) })); const tooBig = files.length - list.length;
+  const draw = () => dialog(`<header><h3>Send ${list.length === 1 ? "this" : "these " + list.length}?</h3><button class="icon" data-close aria-label="Close">${I.x}</button></header><div class="c">
+    ${list.map((x, i) => `<div class="pv">${x.kind === "image" ? `<img src="${x.url}" alt="">` : `<span class="ph">${fileIcon}</span>`}<span><b>${esc(x.f.name)}</b><small>${fmtSize(x.f.size)}</small></span><button class="icon" data-drop="${i}" aria-label="Remove ${esc(x.f.name)}">${I.x}</button></div>`).join("") || '<div class="empty">Nothing left to send.</div>'}
+    ${tooBig ? `<p style="margin:0;color:var(--warn);font-weight:600">${tooBig} file${tooBig > 1 ? "s were" : " was"} left out: over 25 MB.</p>` : ""}
+    <label>Caption<input type="text" id="cap" maxlength="500" placeholder="Optional" ${list.length ? "autofocus" : ""}></label></div>
+    <footer><button class="btn" data-close>Cancel</button><button class="btn primary" id="sf" ${list.length ? "" : "disabled"}>Send${list.length > 1 ? " " + list.length : ""}</button></footer>`, sc => {
+    sc.addEventListener("click", e => { const b = e.target.closest("[data-drop]"); if (b) { const cap = $("#cap", sc).value; list.splice(+b.dataset.drop, 1); draw(); $("#cap").value = cap; } });
+    const go = () => { const cap = $("#cap", sc).value.trim(); list.forEach((x, i) => { const body = i === list.length - 1 ? cap : "";
+        const ev = m("me", 0, body, Object.assign({ ts: Date.now() + i, status: S.offline ? "queued" : "sending", name: x.f.name }, x.kind === "image" ? { img: x.url } : { file: { name: x.f.name, size: x.f.size, kind: x.kind, url: x.url } }));
+        r.ev.push(ev); if (!S.offline) deliver(r, ev); });
+      closeOverlay(); r.lastRead = Date.now(); drawTimeline(true); drawList(); drawBanner(); };
+    $("#sf", sc).onclick = go; $("#cap", sc).onkeydown = e => { if (e.key === "Enter" && list.length) go(); };
+  });
+  draw();
+}
+document.addEventListener("paste", e => { const fs = [...(e.clipboardData ? e.clipboardData.files : [])]; if (fs.length && S.cur && !$("#scrim")) { e.preventDefault(); previewSend(fs); } });
+const hasFiles = e => e.dataTransfer && [...e.dataTransfer.types].includes("Files");
+document.addEventListener("dragover", e => { const r = R(S.cur); if (!hasFiles(e) || !r || $("#scrim")) return; e.preventDefault(); const d = $("#drop"); if (d && myPower(r) >= (r.sendPower || 0)) d.hidden = false; });   // Render.dropOverlay
+document.addEventListener("dragleave", e => { if (!e.relatedTarget) { const d = $("#drop"); if (d) d.hidden = true; } });
+document.addEventListener("drop", e => { const d = $("#drop"); if (d) d.hidden = true; if (!hasFiles(e) || !S.cur) return; e.preventDefault(); previewSend([...e.dataTransfer.files]); });
+
+/* ---------- image viewer: zoom, rotate, download ---------- */
+viewer = function (id) {
+  const e = R(S.cur).ev.find(x => x.id === id); let z = 1, rot = 0;
+  dialog(`<header><h3 style="font-size:13px;font-weight:600">${esc(e.from === "me" ? "You" : U[e.from].n)} · ${listTime(e.ts)}</h3><button class="icon" id="zo" aria-label="Zoom out" title="Zoom out"><b>−</b></button><button class="icon" id="zi" aria-label="Zoom in" title="Zoom in"><b>+</b></button>
+    <button class="icon" id="ro" aria-label="Rotate" title="Rotate">${I.reply}</button><a class="icon" href="${e.img}" download="${esc(e.name || "image")}" aria-label="Download" title="Download">${I.send.replace("M5 12h13M13 6l6 6-6 6", "M12 4v13M6 12l6 6 6-6M5 21h14")}</a><button class="icon" data-close aria-label="Close">${I.x}</button></header>
+    <div class="c" style="align-items:center;overflow:auto"><img id="vi" src="${e.img}" alt="${esc(e.name || "")}" style="max-width:100%;max-height:44vh;border-radius:8px;transition:transform .12s"></div>`, sc => {
+    const up = () => { $("#vi", sc).style.transform = `scale(${z}) rotate(${rot}deg)`; };
+    $("#zi", sc).onclick = () => { z = Math.min(4, z * 1.25); up(); }; $("#zo", sc).onclick = () => { z = Math.max(.5, z / 1.25); up(); }; $("#ro", sc).onclick = () => { rot += 90; up(); };
+  });
+};
+
+/* ---------- message menu, who reacted, edit history, delete with a reason, failed sends ---------- */
+const evOf = el => { const r = R(S.cur); return r && r.ev.find(x => x.id === el.dataset.id); };
+function msgMenu(el, x, y) {
+  closeOverlay(); const r = R(S.cur), ev = evOf(el), has = a => !!el.querySelector(`[data-act="${a}"]`), mn = document.createElement("div"); mn.id = "menu";
+  mn.innerHTML = `${has("reply") ? `<button data-g="reply">${I.reply}Reply</button>` : ""}${has("edit") ? `<button data-g="edit">${I.edit}Edit</button>` : ""}<button data-g="copy">${I.copy}Copy text</button><button data-g="link">${I.send}Copy link</button>
+    ${Object.values(ev.rx).some(v => v.length) ? `<button data-g="rx">${I.smile}Reactions</button>` : ""}${ev.hist ? `<button data-g="hist">${I.clock}Edit history</button>` : ""}${has("remove") ? `<hr><button data-g="remove" style="color:var(--bad)">${I.trash}Delete</button>` : ""}`;
+  document.body.append(mn); mn.style.left = Math.max(8, Math.min(x, innerWidth - 245)) + "px"; mn.style.top = Math.max(8, Math.min(y, innerHeight - mn.offsetHeight - 8)) + "px";
+  mn.onclick = e => { const b = e.target.closest("[data-g]"); if (!b) return; const g = b.dataset.g; closeOverlay();
+    if (g === "rx") whoReacted(ev); else if (g === "hist") histDlg(ev); else if (g === "remove") deleteDlg(r, ev);
+    else if (g === "link") { if (navigator.clipboard) navigator.clipboard.writeText(location.origin + location.pathname + "#m-" + ev.id).then(() => toastMsg("Link copied", "It opens this message for people in the room.", [], 3000)).catch(() => {}); }
+    else el.querySelector(`[data-act="${g}"]`).click(); };
+}
+function whoReacted(ev) { dialog(`<header><h3>Reactions</h3><button class="icon" data-close aria-label="Close">${I.x}</button></header><div class="c">${Object.entries(ev.rx).filter(([, v]) => v.length).map(([k, v]) => `<div class="grp"><h4>${k} ${v.length}</h4>${v.map(id => `<div class="mem">${av(U[id].n)}<span>${esc(id === "me" ? "You" : U[id].n)}</span></div>`).join("")}</div>`).join("")}</div>`); }
+function histDlg(ev) { dialog(`<header><h3>Edit history</h3><button class="icon" data-close aria-label="Close">${I.x}</button></header><div class="c"><div class="grp"><h4>Now</h4><div style="color:var(--ink)">${esc(ev.body)}</div></div>${[...ev.hist].reverse().map(h => `<div class="grp"><h4>Before ${clock(h.ts)}</h4><div>${esc(h.body)}</div></div>`).join("")}</div>`); }
+function deleteDlg(r, ev) {
+  dialog(`<header><h3>Delete this message?</h3></header><div class="c"><p style="margin:0">Why this asks: deleting cannot be undone.</p><p style="margin:0">What happens: the message is removed for everyone in ${esc(r.name)}.</p><label>Reason<input type="text" id="dr" maxlength="140" placeholder="Optional, shown to moderators"></label></div>
+    <footer><button class="btn" data-close autofocus>Cancel</button><button class="btn danger" id="dd">Delete</button></footer>`, sc => { $("#dd", sc).onclick = () => { ev.del = true; ev.reason = $("#dr", sc).value.trim(); r.delN = (r.delN || 0) + 1; closeOverlay(); drawTimeline(); drawList(); }; });
+}
+let failNext = false;
+const _deliver = deliver;
+deliver = function (r, e) { if (!failNext) return _deliver(r, e); failNext = false; setTimeout(() => { e._k = null; e.status = "failed"; if (S.cur === r.id) drawTimeline(); }, 400); };
+const _userMenu = userMenu;
+userMenu = function (a) { _userMenu(a); const at = $('#menu [data-m="stress"]'); if (!at) return; const b = document.createElement("button"); b.innerHTML = I.x + "A message that fails to send";
+  b.onclick = e => { e.stopPropagation(); closeOverlay(); failNext = true; toastMsg("The next message will fail", "Send one to see the retry and remove choices.", [], 4000); }; at.before(b); };
+
+/* ---------- links whose text hides where they go (Timeline.asksBeforeOpening) ---------- */
+const _rich = rich;
+rich = function (text, r) {
+  const links = [], t2 = text.replace(/\[([^\]\n]{1,80})\]\((https?:\/\/[^\s)]+)\)/g, (all, label, url) => { links.push([label, url]); return "\u0002" + (links.length - 1) + "\u0003"; });
+  return _rich(t2, r).replace(/\u0002(\d+)\u0003/g, (all, i) => { const [label, url] = links[+i]; return schemeAllowed(url) ? `<a href="${esc(url)}" data-ask="1" target="_blank" rel="noopener noreferrer">${esc(label)}</a>` : esc(label); });
+};
+
+/* ---------- emoji picker with search and recents ---------- */
+picker = function (anchor, onPick) {
+  closeOverlay(); lastFocus = anchor; const rec = store.get("hm-emoji", []), p = document.createElement("div"); p.id = "picker";
+  const grid = l => l.map(([e, n]) => `<button data-e="${e}" title="${n.split(" ")[0]}" aria-label="${n.split(" ")[0]}">${e}</button>`).join("");
+  p.innerHTML = `<input type="text" id="eq" placeholder="Search emoji" aria-label="Search emoji" style="width:100%;height:28px;border:1px solid var(--line);border-radius:5px;background:var(--bg);padding:0 8px;margin-bottom:5px">
+    ${rec.length ? `<div class="sect" style="padding:2px 0">Recent</div><div class="emo">${grid(EMOJI.filter(x => rec.includes(x[0])))}</div><div class="sect" style="padding:5px 0 2px">All</div>` : ""}<div class="emo" id="eg">${grid(EMOJI)}</div>`;
+  document.body.append(p); const b = anchor.getBoundingClientRect();
+  p.style.left = Math.max(8, Math.min(innerWidth - 304, b.right - 296)) + "px"; p.style.top = (b.top > p.offsetHeight + 13 ? b.top - p.offsetHeight - 5 : b.bottom + 5) + "px";
+  $("#eq", p).oninput = e => { const q = e.target.value.trim().toLowerCase(); $("#eg", p).innerHTML = grid(EMOJI.filter(([, n]) => n.includes(q))) || '<div class="empty" style="grid-column:1/-1">No emoji match.</div>'; };
+  p.onclick = e => { const x = e.target.closest("[data-e]"); if (!x) return; const k = x.dataset.e; store.set("hm-emoji", [k, ...rec.filter(y => y !== k)].slice(0, 8)); closeOverlay(); onPick(k); };
+  if (!touch) $("#eq", p).focus();
+};
+
+/* ---------- room settings and the invitation preview ---------- */
+editRoom = function () {
+  const r = R(S.cur); const seg = () => ["all", "mentions", "mute"].map((v, i) => `<button data-rlevel="${v}" aria-pressed="${r.level === v}">${["Everything", "Mentions", "Nothing"][i]}</button>`).join("");
+  dialog(`<header><h3>Room settings</h3><button class="icon" data-close aria-label="Close">${I.x}</button></header><div class="c"><label>Name<input type="text" id="en" value="${esc(r.name)}" maxlength="60" autofocus></label><label>Topic<input type="text" id="et" value="${esc(r.topic || "")}" maxlength="140"></label>
+    <div class="grp"><h4>Notify me about</h4><div class="seg" id="rl">${seg()}</div></div></div><footer><button class="btn" data-close>Cancel</button><button class="btn primary" id="es">Save</button></footer>`, sc => {
+    sc.addEventListener("click", e => { const b = e.target.closest("[data-rlevel]"); if (b) { r.level = b.dataset.rlevel; $("#rl", sc).innerHTML = seg(); } });
+    $("#es", sc).onclick = () => { const n = $("#en", sc).value.trim(); if (!n) { $("#en", sc).focus(); return; } r.name = n; r.topic = $("#et", sc).value.trim(); saveDraft(); closeOverlay(); drawAll(); };
+  });
+};
+function previewRoom(id) {
+  const r = R(id);
+  dialog(`<header><span class="grow"></span><button class="icon" data-close aria-label="Close">${I.x}</button></header><div class="c" style="align-items:center;text-align:center">${rav(r, "l")}<div><div style="font-size:17px;font-weight:650;color:var(--ink)">${esc(r.name)}</div><div>${esc(first(r.invite))} invited you · ${r.members.length} people</div></div>${r.topic ? `<p style="margin:0">${esc(r.topic)}</p>` : ""}
+    <div class="note" style="text-align:left;align-self:stretch">${I.lock}<span>Encrypted. You can read messages sent after you join.</span></div></div><footer><button class="btn" id="pd">Decline</button><button class="btn primary" id="pj" autofocus>Join</button></footer>`, sc => {
+    $("#pj", sc).onclick = () => { closeOverlay(); $(`[data-accept="${id}"]`).click(); }; $("#pd", sc).onclick = () => { closeOverlay(); $(`[data-decline="${id}"]`).click(); }; });
+}
+
+/* ---------- clicks ---------- */
+document.addEventListener("click", e => {   // before the base handlers: the attach menu and delete take over
+  const a = e.target.closest("[data-attach]"), d = e.target.closest('[data-act="remove"]');
+  if (a) { e.stopPropagation(); attachMenu(a); } else if (d) { e.stopPropagation(); deleteDlg(R(S.cur), evOf(d.closest(".msg"))); }
+}, true);
+document.addEventListener("click", e => {
+  const q = s => e.target.closest(s); let b;
+  if ((b = q('[data-act="more"]'))) { const bx = b.getBoundingClientRect(); msgMenu(b.closest(".msg"), bx.right - 233, bx.bottom + 5); }
+  else if ((b = q(".ed"))) histDlg(evOf(b.closest(".msg")));
+  else if ((b = q("[data-rmfail]"))) { const r = R(S.cur), ev = evOf(b.closest(".msg")); ev.del = true; r.delN = (r.delN || 0) + 1; drawTimeline(); drawList(); }
+  else if ((b = q("[data-rcpt]"))) { const r = R(S.cur), ev = r.ev.find(x => x.id === b.dataset.rcpt); dialog(`<header><h3>Read by</h3><button class="icon" data-close aria-label="Close">${I.x}</button></header><div class="c">${readers(r, ev).map(id => `<div class="mem">${av(U[id].n)}<span>${esc(U[id].n)}</span></div>`).join("")}</div>`); }
+  else if (q("#toEnd")) drawTimeline(true);
+  else if ((b = q("a[data-ask]"))) { e.preventDefault(); const url = b.getAttribute("href"); let host = url; try { host = new URL(url).host; } catch (x) {}
+    dialog(`<header><h3>Open this link?</h3></header><div class="c"><p style="margin:0">Why this asks: the text shown is not the address it goes to.</p><p style="margin:0">It says: <b style="color:var(--ink)">${esc(b.textContent)}</b></p><div class="addr">${esc(url)}</div><p style="margin:0">It goes to <b style="color:var(--ink)">${esc(host)}</b>.</p></div>
+      <footer><button class="btn" data-close autofocus>Cancel</button><a class="btn primary" style="display:grid;place-items:center;text-decoration:none" href="${esc(url)}" target="_blank" rel="noopener noreferrer" data-close>Open</a></footer>`); }
+  else if ((b = q(".inv .who"))) { const acc = b.parentElement.querySelector("[data-accept]"); if (acc) previewRoom(acc.dataset.accept); }
+});
+document.addEventListener("contextmenu", e => { const el = e.target.closest(".msg[data-id]"); if (!el || e.target.closest("a,input,textarea")) return; e.preventDefault(); msgMenu(el, e.clientX, e.clientY); });
+document.addEventListener("keydown", e => { if ((isMac ? e.metaKey : e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "l" && !$("#scrim")) { e.preventDefault(); $("#app").classList.toggle("nolist"); drawPanel(); } });
+
+/* ---------- drag a message sideways to reply (Timeline.startsReply: 64 px) ---------- */
+let sw = null;
+document.addEventListener("touchstart", e => { const el = e.target.closest(".msg[data-id]"); sw = el && e.touches.length === 1 ? { el, x: e.touches[0].clientX, y: e.touches[0].clientY, dx: 0 } : null; }, { passive: true });
+document.addEventListener("touchmove", e => { if (!sw) return; const dx = e.touches[0].clientX - sw.x, dy = e.touches[0].clientY - sw.y; if (Math.abs(dy) > 34) { sw.el.style.transform = ""; sw = null; return; } sw.dx = Math.max(0, Math.min(89, dx)); sw.el.style.transform = sw.dx ? `translateX(${sw.dx}px)` : ""; }, { passive: true });
+document.addEventListener("touchend", () => { if (!sw) return; sw.el.style.transform = ""; if (sw.dx >= 64) { const b = sw.el.querySelector('[data-act="reply"]'); if (b) b.click(); } sw = null; });
+
+S.epoch++; saveDraft(); drawRoom(); drawList();
 </script>
 </body>
 </html>
