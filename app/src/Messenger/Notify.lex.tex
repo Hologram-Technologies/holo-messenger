@@ -4,6 +4,55 @@
 \title{Boolean}
 \begin{semanticmodule}
 definition{
+  name: levelNone,
+  parameters: [],
+  result: Nat,
+  body: 0
+}
+
+definition{
+  name: levelBadge,
+  parameters: [],
+  result: Nat,
+  body: 1
+}
+
+definition{
+  name: levelNotify,
+  parameters: [],
+  result: Nat,
+  body: 2
+}
+
+definition{
+  name: levelHighlight,
+  parameters: [],
+  result: Nat,
+  body: 3
+}
+
+definition{
+  name: modeAll,
+  parameters: [],
+  result: Nat,
+  body: 0
+}
+
+definition{
+  name: modeMentions,
+  parameters: [],
+  result: Nat,
+  body: 1
+}
+
+definition{
+  name: modeMuted,
+  parameters: [],
+  result: Nat,
+  body: 2
+}
+
+definition{
   name: combine,
   parameters: [x : Nat, y : Nat],
   result: Nat,
@@ -118,6 +167,14 @@ theorem{
   statement: ((plays sound 1) = 0),
   proof: linear_arithmetic{definitions: [plays]},
   axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: namedValuesMatch,
+  parameters: [],
+  statement: ((((levelNone) =? 0) && (((levelBadge) =? 1) && (((levelNotify) =? 2) && (((levelHighlight) =? 3) && (((modeAll) =? 0) && (((modeMentions) =? 1) && (((modeMuted) =? 2) && (((notifyLevel 1 (modeAll) 0 0 0) =? 2) && (((notifyLevel 1 (modeMentions) 0 0 0) =? 0) && ((notifyLevel 0 (modeAll) 1 0 0) =? 1)))))))))) = true),
+  proof: reflexivity{},
+  axioms: []
 }
 \end{semanticmodule}
 \end{lexlean}

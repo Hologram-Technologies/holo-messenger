@@ -4,6 +4,48 @@
 \title{Boolean}
 \begin{semanticmodule}
 definition{
+  name: enterSend,
+  parameters: [],
+  result: Nat,
+  body: 1
+}
+
+definition{
+  name: enterNewLine,
+  parameters: [],
+  result: Nat,
+  body: 2
+}
+
+definition{
+  name: enterComplete,
+  parameters: [],
+  result: Nat,
+  body: 3
+}
+
+definition{
+  name: modePlain,
+  parameters: [],
+  result: Nat,
+  body: 0
+}
+
+definition{
+  name: modeReply,
+  parameters: [],
+  result: Nat,
+  body: 1
+}
+
+definition{
+  name: modeEdit,
+  parameters: [],
+  result: Nat,
+  body: 2
+}
+
+definition{
   name: enterAction,
   parameters: [shift : Nat, modifier : Nat, requireModifier : Nat, popupOpen : Nat],
   result: Nat,
@@ -106,6 +148,14 @@ theorem{
   name: emptyPlainDraftDropped,
   parameters: [],
   statement: ((draftKept 0 0) = false),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: namedValuesMatch,
+  parameters: [],
+  statement: ((((enterSend) =? 1) && (((enterNewLine) =? 2) && (((enterComplete) =? 3) && (((modePlain) =? 0) && (((modeReply) =? 1) && (((modeEdit) =? 2) && (((enterAction 0 1 1 0) =? 1) && ((upEditsPrevious 1 0 1) =? 1)))))))) = true),
   proof: reflexivity{},
   axioms: []
 }

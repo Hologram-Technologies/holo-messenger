@@ -4,6 +4,104 @@
 \title{Boolean}
 \begin{semanticmodule}
 definition{
+  name: viewLoading,
+  parameters: [],
+  result: Nat,
+  body: 0
+}
+
+definition{
+  name: viewOnboarding,
+  parameters: [],
+  result: Nat,
+  body: 1
+}
+
+definition{
+  name: viewMain,
+  parameters: [],
+  result: Nat,
+  body: 2
+}
+
+definition{
+  name: viewMoved,
+  parameters: [],
+  result: Nat,
+  body: 3
+}
+
+definition{
+  name: viewFatal,
+  parameters: [],
+  result: Nat,
+  body: 4
+}
+
+definition{
+  name: lockFree,
+  parameters: [],
+  result: Nat,
+  body: 0
+}
+
+definition{
+  name: lockHeld,
+  parameters: [],
+  result: Nat,
+  body: 1
+}
+
+definition{
+  name: lockAsking,
+  parameters: [],
+  result: Nat,
+  body: 2
+}
+
+definition{
+  name: lockMoved,
+  parameters: [],
+  result: Nat,
+  body: 3
+}
+
+definition{
+  name: sigAcquire,
+  parameters: [],
+  result: Nat,
+  body: 0
+}
+
+definition{
+  name: sigFoundHeld,
+  parameters: [],
+  result: Nat,
+  body: 1
+}
+
+definition{
+  name: sigConfirm,
+  parameters: [],
+  result: Nat,
+  body: 2
+}
+
+definition{
+  name: sigTakenElsewhere,
+  parameters: [],
+  result: Nat,
+  body: 3
+}
+
+definition{
+  name: sigCancel,
+  parameters: [],
+  result: Nat,
+  body: 4
+}
+
+definition{
   name: rootView,
   parameters: [supported : Nat, started : Nat, hasIdentity : Nat, holdsLock : Nat],
   result: Nat,
@@ -92,6 +190,14 @@ theorem{
   name: noWipeWithoutConfirm,
   parameters: [],
   statement: ((wipeAllowed 0) = false),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: namedValuesMatch,
+  parameters: [],
+  statement: ((((viewLoading) =? 0) && (((viewOnboarding) =? 1) && (((viewMain) =? 2) && (((viewMoved) =? 3) && (((viewFatal) =? 4) && (((lockFree) =? 0) && (((lockHeld) =? 1) && (((lockAsking) =? 2) && (((lockMoved) =? 3) && (((sigAcquire) =? 0) && (((sigFoundHeld) =? 1) && (((sigConfirm) =? 2) && (((sigTakenElsewhere) =? 3) && (((sigCancel) =? 4) && (((lockStep (lockFree) (sigAcquire)) =? 1) && (((lockStep (lockFree) (sigFoundHeld)) =? 2) && (((lockStep (lockAsking) (sigCancel)) =? 0) && (((rootView 1 1 1 1) =? 2) && ((rootView 1 1 0 1) =? 1))))))))))))))))))) = true),
   proof: reflexivity{},
   axioms: []
 }

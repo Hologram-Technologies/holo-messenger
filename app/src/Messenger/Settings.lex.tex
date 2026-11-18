@@ -4,6 +4,76 @@
 \title{Boolean}
 \begin{semanticmodule}
 definition{
+  name: themeSystem,
+  parameters: [],
+  result: Nat,
+  body: 0
+}
+
+definition{
+  name: themeLight,
+  parameters: [],
+  result: Nat,
+  body: 1
+}
+
+definition{
+  name: themeDark,
+  parameters: [],
+  result: Nat,
+  body: 2
+}
+
+definition{
+  name: changeIdle,
+  parameters: [],
+  result: Nat,
+  body: 0
+}
+
+definition{
+  name: changeSaving,
+  parameters: [],
+  result: Nat,
+  body: 1
+}
+
+definition{
+  name: changeSaved,
+  parameters: [],
+  result: Nat,
+  body: 2
+}
+
+definition{
+  name: changeFailed,
+  parameters: [],
+  result: Nat,
+  body: 3
+}
+
+definition{
+  name: sigChange,
+  parameters: [],
+  result: Nat,
+  body: 0
+}
+
+definition{
+  name: sigAccepted,
+  parameters: [],
+  result: Nat,
+  body: 1
+}
+
+definition{
+  name: sigRejected,
+  parameters: [],
+  result: Nat,
+  body: 2
+}
+
+definition{
   name: resolvesDark,
   parameters: [choice : Nat, systemDark : Nat],
   result: Nat,
@@ -108,6 +178,14 @@ theorem{
   statement: ((activates 0 reopened) = 0),
   proof: linear_arithmetic{definitions: [activates]},
   axioms: [propext]
+}
+
+theorem{
+  name: namedValuesMatch,
+  parameters: [],
+  statement: ((((themeSystem) =? 0) && (((themeLight) =? 1) && (((themeDark) =? 2) && (((changeIdle) =? 0) && (((changeSaving) =? 1) && (((changeSaved) =? 2) && (((changeFailed) =? 3) && (((sigChange) =? 0) && (((sigAccepted) =? 1) && (((sigRejected) =? 2) && (((changeStep (changeSaving) (sigAccepted)) =? 2) && (((changeStep (changeSaving) (sigRejected)) =? 3) && (((resolvesDark (themeSystem) 1) =? 1) && ((fontSize 16) =? 16)))))))))))))) = true),
+  proof: reflexivity{},
+  axioms: []
 }
 \end{semanticmodule}
 \end{lexlean}

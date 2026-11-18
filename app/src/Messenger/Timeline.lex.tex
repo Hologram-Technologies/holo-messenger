@@ -4,6 +4,27 @@
 \title{Boolean}
 \begin{semanticmodule}
 definition{
+  name: barQuiet,
+  parameters: [],
+  result: Nat,
+  body: 0
+}
+
+definition{
+  name: barOffline,
+  parameters: [],
+  result: Nat,
+  body: 1
+}
+
+definition{
+  name: barUnsent,
+  parameters: [],
+  result: Nat,
+  body: 2
+}
+
+definition{
   name: shown,
   parameters: [deleted : Nat, ignoredSender : Nat, known : Nat, showDeleted : Nat],
   result: Nat,
@@ -137,6 +158,14 @@ theorem{
   name: shortDragNeverReplies,
   parameters: [],
   statement: ((startsReply 63) = false),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: namedValuesMatch,
+  parameters: [],
+  statement: ((((barQuiet) =? 0) && (((barOffline) =? 1) && (((barUnsent) =? 2) && (((statusBar 1 3) =? 2) && (((shown 0 0 1 0) =? 1) && (((collapses 2 2 1) =? 1) && ((asksBeforeOpening 1 0) =? 1))))))) = true),
   proof: reflexivity{},
   axioms: []
 }

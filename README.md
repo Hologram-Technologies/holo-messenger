@@ -21,15 +21,14 @@ uor-comms has proved rules but no engine a browser can call. Items that need it 
 
 ## What is proved
 
-Lean accepted all 79 theorems in the ten modules on the hosted LexLean verifier on 2026-11-18, attestation `c593c546a61ac9e2c15a4fb945b582878929e061aebfbaa2a2037dcc85a1ad9f`.
+Lean accepted all 88 theorems in the ten modules on the hosted LexLean verifier on 2026-11-18, attestation `31c50fb2fcc2db588fa252ebbd4c84d7af6ce756f2e1f043ce73155323ee43a0`.
 
 A proof shows a definition has the stated property. It does not show the property is the right behaviour.
 
 ## Known limits
 
 - Thresholds and budgets in the modules are placeholders awaiting a decision.
-- States are bare numbers with no legend yet.
-- Membership status numbers are not checked against the uor-comms rule.
+- Membership status numbers match `Comms.Rules` on the uor-comms `phase-1-room-core` branch by inspection; nothing imports that module yet.
 - 97 client-side Phase 1 items have no formal rule yet.
 - `app/` is a hand-written LexLean project scaffolded by `prism-code init`; `lexlean.toml` still carries the scaffold's project name. How these modules reach a Prism app build is undecided.
 - Inventory parity calls were made from names and one-line descriptions, and web and mobile rows were paired by name.

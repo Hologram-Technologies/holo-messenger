@@ -4,6 +4,76 @@
 \title{Boolean}
 \begin{semanticmodule}
 definition{
+  name: searchIdle,
+  parameters: [],
+  result: Nat,
+  body: 0
+}
+
+definition{
+  name: searchRunning,
+  parameters: [],
+  result: Nat,
+  body: 1
+}
+
+definition{
+  name: searchResults,
+  parameters: [],
+  result: Nat,
+  body: 2
+}
+
+definition{
+  name: searchEmpty,
+  parameters: [],
+  result: Nat,
+  body: 3
+}
+
+definition{
+  name: searchFailed,
+  parameters: [],
+  result: Nat,
+  body: 4
+}
+
+definition{
+  name: sigQuery,
+  parameters: [],
+  result: Nat,
+  body: 0
+}
+
+definition{
+  name: sigClear,
+  parameters: [],
+  result: Nat,
+  body: 1
+}
+
+definition{
+  name: sigFound,
+  parameters: [],
+  result: Nat,
+  body: 2
+}
+
+definition{
+  name: sigNothing,
+  parameters: [],
+  result: Nat,
+  body: 3
+}
+
+definition{
+  name: sigError,
+  parameters: [],
+  result: Nat,
+  body: 4
+}
+
+definition{
   name: searchStep,
   parameters: [state : Nat, signal : Nat],
   result: Nat,
@@ -55,6 +125,14 @@ theorem{
   statement: ((switcherShows 0 0 matches) = 0),
   proof: linear_arithmetic{definitions: [switcherShows]},
   axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: namedValuesMatch,
+  parameters: [],
+  statement: ((((searchIdle) =? 0) && (((searchRunning) =? 1) && (((searchResults) =? 2) && (((searchEmpty) =? 3) && (((searchFailed) =? 4) && (((sigQuery) =? 0) && (((sigClear) =? 1) && (((sigFound) =? 2) && (((sigNothing) =? 3) && (((sigError) =? 4) && (((searchStep (searchRunning) (sigFound)) =? 2) && (((searchStep (searchRunning) (sigNothing)) =? 3) && ((searchStep (searchRunning) (sigError)) =? 4))))))))))))) = true),
+  proof: reflexivity{},
+  axioms: []
 }
 \end{semanticmodule}
 \end{lexlean}

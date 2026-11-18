@@ -4,6 +4,125 @@
 \title{Boolean}
 \begin{semanticmodule}
 definition{
+  name: keyK,
+  parameters: [],
+  result: Nat,
+  body: 0
+}
+
+definition{
+  name: keyF,
+  parameters: [],
+  result: Nat,
+  body: 1
+}
+
+definition{
+  name: keyPeriod,
+  parameters: [],
+  result: Nat,
+  body: 2
+}
+
+definition{
+  name: keyBacktick,
+  parameters: [],
+  result: Nat,
+  body: 3
+}
+
+definition{
+  name: keyU,
+  parameters: [],
+  result: Nat,
+  body: 4
+}
+
+definition{
+  name: keyUp,
+  parameters: [],
+  result: Nat,
+  body: 5
+}
+
+definition{
+  name: keyDown,
+  parameters: [],
+  result: Nat,
+  body: 6
+}
+
+definition{
+  name: actNone,
+  parameters: [],
+  result: Nat,
+  body: 0
+}
+
+definition{
+  name: actQuickSwitcher,
+  parameters: [],
+  result: Nat,
+  body: 1
+}
+
+definition{
+  name: actRoomSearch,
+  parameters: [],
+  result: Nat,
+  body: 2
+}
+
+definition{
+  name: actRightPanel,
+  parameters: [],
+  result: Nat,
+  body: 3
+}
+
+definition{
+  name: actUserMenu,
+  parameters: [],
+  result: Nat,
+  body: 4
+}
+
+definition{
+  name: actUpload,
+  parameters: [],
+  result: Nat,
+  body: 5
+}
+
+definition{
+  name: actPreviousRoom,
+  parameters: [],
+  result: Nat,
+  body: 6
+}
+
+definition{
+  name: actNextRoom,
+  parameters: [],
+  result: Nat,
+  body: 7
+}
+
+definition{
+  name: actPreviousUnread,
+  parameters: [],
+  result: Nat,
+  body: 8
+}
+
+definition{
+  name: actNextUnread,
+  parameters: [],
+  result: Nat,
+  body: 9
+}
+
+definition{
   name: globalAction,
   parameters: [key : Nat, modifier : Nat, shift : Nat, alt : Nat],
   result: Nat,
@@ -40,6 +159,14 @@ theorem{
   statement: (((globalAction key modifier shift alt) <=? 9) = true),
   proof: linear_arithmetic{definitions: [globalAction]},
   axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: namedValuesMatch,
+  parameters: [],
+  statement: ((((keyK) =? 0) && (((keyF) =? 1) && (((keyPeriod) =? 2) && (((keyBacktick) =? 3) && (((keyU) =? 4) && (((keyUp) =? 5) && (((keyDown) =? 6) && (((actNone) =? 0) && (((actQuickSwitcher) =? 1) && (((actRoomSearch) =? 2) && (((actRightPanel) =? 3) && (((actUserMenu) =? 4) && (((actUpload) =? 5) && (((actPreviousRoom) =? 6) && (((actNextRoom) =? 7) && (((actPreviousUnread) =? 8) && (((actNextUnread) =? 9) && (((globalAction (keyF) 1 0 0) =? 2) && (((globalAction (keyPeriod) 1 0 0) =? 3) && (((globalAction (keyBacktick) 1 0 0) =? 4) && (((globalAction (keyU) 1 1 0) =? 5) && (((globalAction (keyUp) 0 0 1) =? 6) && (((globalAction (keyDown) 0 0 1) =? 7) && (((globalAction (keyUp) 0 1 1) =? 8) && ((globalAction (keyDown) 0 1 1) =? 9))))))))))))))))))))))))) = true),
+  proof: reflexivity{},
+  axioms: []
 }
 \end{semanticmodule}
 \end{lexlean}

@@ -4,6 +4,27 @@
 \title{Boolean}
 \begin{semanticmodule}
 definition{
+  name: panelHidden,
+  parameters: [],
+  result: Nat,
+  body: 0
+}
+
+definition{
+  name: panelOverlay,
+  parameters: [],
+  result: Nat,
+  body: 1
+}
+
+definition{
+  name: panelDocked,
+  parameters: [],
+  result: Nat,
+  body: 2
+}
+
+definition{
   name: panes,
   parameters: [width : Nat],
   result: Nat,
@@ -115,6 +136,14 @@ theorem{
   statement: ((listed isSpace 1) = 0),
   proof: linear_arithmetic{definitions: [listed]},
   axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: namedValuesMatch,
+  parameters: [],
+  statement: ((((panelHidden) =? 0) && (((panelOverlay) =? 1) && (((panelDocked) =? 2) && (((rightPanelMode 1024 1) =? 1) && (((rightPanelMode 1440 1) =? 2) && (((panes 1024) =? 2) && ((panes 1440) =? 3))))))) = true),
+  proof: reflexivity{},
+  axioms: []
 }
 \end{semanticmodule}
 \end{lexlean}
