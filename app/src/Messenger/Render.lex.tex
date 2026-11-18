@@ -1,0 +1,201 @@
+\begin{lexlean}{Messenger.Render}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Boolean}
+\begin{semanticmodule}
+definition{
+  name: markupAllowed,
+  parameters: [kind : Nat],
+  result: Nat,
+  body: (if (kind <=? 3) then 1 else 0)
+}
+
+definition{
+  name: schemeAllowed,
+  parameters: [scheme : Nat],
+  result: Nat,
+  body: (if (scheme <=? 2) then 1 else 0)
+}
+
+definition{
+  name: viewerMode,
+  parameters: [kind : Nat],
+  result: Nat,
+  body: (if (kind <=? 3) then 1 else 2)
+}
+
+definition{
+  name: dropOverlay,
+  parameters: [dragging : Nat, hasFiles : Nat, status : Nat],
+  result: Nat,
+  body: (if (status =? 2) then (if (1 <=? dragging) then (if (1 <=? hasFiles) then 1 else 0) else 0) else 0)
+}
+
+definition{
+  name: removeAvatarOffered,
+  parameters: [hasAvatar : Nat],
+  result: Nat,
+  body: (if (1 <=? hasAvatar) then 1 else 0)
+}
+
+definition{
+  name: avatarFallback,
+  parameters: [hasImage : Nat, loaded : Nat],
+  result: Nat,
+  body: (if (1 <=? hasImage) then (if (1 <=? loaded) then 0 else 1) else 1)
+}
+
+definition{
+  name: markupText,
+  parameters: [],
+  result: Nat,
+  body: 0
+}
+
+definition{
+  name: markupLink,
+  parameters: [],
+  result: Nat,
+  body: 1
+}
+
+definition{
+  name: markupCode,
+  parameters: [],
+  result: Nat,
+  body: 2
+}
+
+definition{
+  name: markupEmphasis,
+  parameters: [],
+  result: Nat,
+  body: 3
+}
+
+definition{
+  name: markupScript,
+  parameters: [],
+  result: Nat,
+  body: 4
+}
+
+definition{
+  name: markupStyle,
+  parameters: [],
+  result: Nat,
+  body: 5
+}
+
+definition{
+  name: schemeHttps,
+  parameters: [],
+  result: Nat,
+  body: 0
+}
+
+definition{
+  name: schemeHttp,
+  parameters: [],
+  result: Nat,
+  body: 1
+}
+
+definition{
+  name: schemeMailto,
+  parameters: [],
+  result: Nat,
+  body: 2
+}
+
+definition{
+  name: schemeJavascript,
+  parameters: [],
+  result: Nat,
+  body: 3
+}
+
+definition{
+  name: schemeData,
+  parameters: [],
+  result: Nat,
+  body: 4
+}
+
+definition{
+  name: fileImage,
+  parameters: [],
+  result: Nat,
+  body: 0
+}
+
+definition{
+  name: fileVideo,
+  parameters: [],
+  result: Nat,
+  body: 1
+}
+
+definition{
+  name: fileAudio,
+  parameters: [],
+  result: Nat,
+  body: 2
+}
+
+definition{
+  name: filePdf,
+  parameters: [],
+  result: Nat,
+  body: 3
+}
+
+theorem{
+  name: unknownMarkupNeverRenders,
+  parameters: [kind : Nat],
+  statement: (((4 <=? kind) && (1 <=? (markupAllowed kind))) = false),
+  proof: linear_arithmetic{definitions: [markupAllowed]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unsafeSchemeNeverOpens,
+  parameters: [scheme : Nat],
+  statement: (((3 <=? scheme) && (1 <=? (schemeAllowed scheme))) = false),
+  proof: linear_arithmetic{definitions: [schemeAllowed]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unknownFileNeverOpensInline,
+  parameters: [kind : Nat],
+  statement: (((4 <=? kind) && ((viewerMode kind) =? 1)) = false),
+  proof: linear_arithmetic{definitions: [viewerMode]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: nonMemberSeesNoDropOverlay,
+  parameters: [dragging : Nat, hasFiles : Nat, status : Nat],
+  statement: ((((status <? 2) || (2 <? status)) && (1 <=? (dropOverlay dragging hasFiles status))) = false),
+  proof: linear_arithmetic{definitions: [dropOverlay]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: missingImageFallsBack,
+  parameters: [hasImage : Nat, loaded : Nat],
+  statement: (((hasImage =? 0) && ((avatarFallback hasImage loaded) =? 0)) = false),
+  proof: linear_arithmetic{definitions: [avatarFallback]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: renderExamples,
+  parameters: [],
+  statement: ((((markupAllowed (markupScript)) =? 0) && (((markupAllowed (markupStyle)) =? 0) && (((schemeAllowed (schemeJavascript)) =? 0) && (((schemeAllowed (schemeData)) =? 0) && (((viewerMode (filePdf)) =? 1) && ((removeAvatarOffered 0) =? 0)))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

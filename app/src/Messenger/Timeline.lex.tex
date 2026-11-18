@@ -169,5 +169,66 @@ theorem{
   proof: reflexivity{},
   axioms: []
 }
+
+definition{
+  name: hourShown,
+  parameters: [hour : Nat, twelveHour : Nat],
+  result: Nat,
+  body: (if (twelveHour =? 0) then hour else (if (hour =? 0) then 12 else (if (hour =? 13) then 1 else (if (hour =? 14) then 2 else (if (hour =? 15) then 3 else (if (hour =? 16) then 4 else (if (hour =? 17) then 5 else (if (hour =? 18) then 6 else (if (hour =? 19) then 7 else (if (hour =? 20) then 8 else (if (hour =? 21) then 9 else (if (hour =? 22) then 10 else (if (hour =? 23) then 11 else hour)))))))))))))
+}
+
+definition{
+  name: timestampShown,
+  parameters: [always : Nat, hovered : Nat, startsGroup : Nat],
+  result: Nat,
+  body: (if (1 <=? always) then 1 else (if (1 <=? hovered) then 1 else (if (1 <=? startsGroup) then 1 else 0)))
+}
+
+definition{
+  name: tapAction,
+  parameters: [target : Nat],
+  result: Nat,
+  body: (if (target <=? 4) then (target + 1) else 0)
+}
+
+theorem{
+  name: twelveHourClockInRange,
+  parameters: [hour : Nat, twelveHour : Nat],
+  statement: (((hour <=? 23) && ((1 <=? twelveHour) && (((hourShown hour twelveHour) <? 1) || (12 <? (hourShown hour twelveHour))))) = false),
+  proof: linear_arithmetic{definitions: [hourShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: twentyFourHourClockUnchanged,
+  parameters: [hour : Nat],
+  statement: ((hourShown hour 0) = hour),
+  proof: linear_arithmetic{definitions: [hourShown]},
+  axioms: [propext]
+}
+
+theorem{
+  name: alwaysSettingShowsTimestamp,
+  parameters: [always : Nat, hovered : Nat, startsGroup : Nat],
+  statement: (((1 <=? always) && ((timestampShown always hovered startsGroup) =? 0)) = false),
+  proof: linear_arithmetic{definitions: [timestampShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unknownTapDoesNothing,
+  parameters: [target : Nat],
+  statement: (((4 <? target) && (1 <=? (tapAction target))) = false),
+  proof: linear_arithmetic{definitions: [tapAction]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: clockExamples,
+  parameters: [],
+  statement: ((((hourShown 0 1) =? 12) && (((hourShown 13 1) =? 1) && (((hourShown 12 1) =? 12) && ((timestampShown 0 0 0) =? 0)))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
 \end{semanticmodule}
 \end{lexlean}

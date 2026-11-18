@@ -206,5 +206,43 @@ theorem{
   proof: reflexivity{},
   axioms: []
 }
+
+definition{
+  name: mayEdit,
+  parameters: [status : Nat, power : Nat, required : Nat],
+  result: Nat,
+  body: (if (status =? 2) then (if (required <=? power) then 1 else 0) else 0)
+}
+
+definition{
+  name: roleLabel,
+  parameters: [power : Nat],
+  result: Nat,
+  body: (if (100 <=? power) then 2 else (if (50 <=? power) then 1 else 0))
+}
+
+theorem{
+  name: belowRequiredNeverEdits,
+  parameters: [status : Nat, power : Nat, required : Nat],
+  statement: (((power <? required) && (1 <=? (mayEdit status power required))) = false),
+  proof: linear_arithmetic{definitions: [mayEdit]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: nonMemberNeverEdits,
+  parameters: [status : Nat, power : Nat, required : Nat],
+  statement: ((((status <? 2) || (2 <? status)) && (1 <=? (mayEdit status power required))) = false),
+  proof: linear_arithmetic{definitions: [mayEdit]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: roleNeverDropsWithPower,
+  parameters: [low : Nat, high : Nat],
+  statement: (((low <=? high) && ((roleLabel high) <? (roleLabel low))) = false),
+  proof: linear_arithmetic{definitions: [roleLabel]},
+  axioms: [Quot.sound, propext]
+}
 \end{semanticmodule}
 \end{lexlean}

@@ -1,0 +1,152 @@
+\begin{lexlean}{Messenger.Invite}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Boolean}
+\begin{semanticmodule}
+definition{
+  name: inviteIdle,
+  parameters: [],
+  result: Nat,
+  body: 0
+}
+
+definition{
+  name: inviteSending,
+  parameters: [],
+  result: Nat,
+  body: 1
+}
+
+definition{
+  name: inviteDone,
+  parameters: [],
+  result: Nat,
+  body: 2
+}
+
+definition{
+  name: invitePartial,
+  parameters: [],
+  result: Nat,
+  body: 3
+}
+
+definition{
+  name: roomPlaceholder,
+  parameters: [],
+  result: Nat,
+  body: 0
+}
+
+definition{
+  name: roomCreating,
+  parameters: [],
+  result: Nat,
+  body: 1
+}
+
+definition{
+  name: roomReal,
+  parameters: [],
+  result: Nat,
+  body: 2
+}
+
+definition{
+  name: roomFailed,
+  parameters: [],
+  result: Nat,
+  body: 3
+}
+
+definition{
+  name: sigFirstSend,
+  parameters: [],
+  result: Nat,
+  body: 0
+}
+
+definition{
+  name: sigCreated,
+  parameters: [],
+  result: Nat,
+  body: 1
+}
+
+definition{
+  name: sigCreateFailed,
+  parameters: [],
+  result: Nat,
+  body: 2
+}
+
+definition{
+  name: sigRetry,
+  parameters: [],
+  result: Nat,
+  body: 3
+}
+
+definition{
+  name: inviteOutcome,
+  parameters: [sent : Nat, failed : Nat],
+  result: Nat,
+  body: (if ((sent + failed) =? 0) then 0 else (if (failed =? 0) then 2 else 3))
+}
+
+definition{
+  name: placeholderStep,
+  parameters: [state : Nat, signal : Nat],
+  result: Nat,
+  body: (if (state =? 2) then 2 else (if (state =? 0) then (if (signal =? 0) then 1 else 0) else (if (state =? 1) then (if (signal =? 1) then 2 else (if (signal =? 2) then 3 else 1)) else (if (signal =? 3) then 1 else 3))))
+}
+
+theorem{
+  name: realRoomStaysReal,
+  parameters: [signal : Nat],
+  statement: ((placeholderStep 2 signal) = 2),
+  proof: linear_arithmetic{definitions: [placeholderStep]},
+  axioms: [propext]
+}
+
+theorem{
+  name: realOnlyAfterCreated,
+  parameters: [state : Nat, signal : Nat],
+  statement: ((((placeholderStep state signal) =? 2) && (((state <? 2) || (2 <? state)) && ((signal <? 1) || (1 <? signal)))) = false),
+  proof: linear_arithmetic{definitions: [placeholderStep]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: placeholderInRange,
+  parameters: [state : Nat, signal : Nat],
+  statement: (((placeholderStep state signal) <=? 3) = true),
+  proof: linear_arithmetic{definitions: [placeholderStep]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: doneMeansNoFailures,
+  parameters: [sent : Nat, failed : Nat],
+  statement: (((1 <=? failed) && ((inviteOutcome sent failed) =? 2)) = false),
+  proof: linear_arithmetic{definitions: [inviteOutcome]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: anyFailureIsListed,
+  parameters: [sent : Nat, failed : Nat],
+  statement: (((1 <=? failed) && (((inviteOutcome sent failed) <? 3) || (3 <? (inviteOutcome sent failed)))) = false),
+  proof: linear_arithmetic{definitions: [inviteOutcome]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: inviteExamples,
+  parameters: [],
+  statement: ((((placeholderStep (roomPlaceholder) (sigFirstSend)) =? 1) && (((placeholderStep (roomCreating) (sigCreated)) =? 2) && (((placeholderStep (roomFailed) (sigRetry)) =? 1) && (((inviteOutcome 2 1) =? (invitePartial)) && ((inviteOutcome 3 0) =? (inviteDone)))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

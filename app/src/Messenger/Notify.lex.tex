@@ -176,5 +176,28 @@ theorem{
   proof: reflexivity{},
   axioms: []
 }
+
+definition{
+  name: promptShown,
+  parameters: [permission : Nat, dismissed : Nat],
+  result: Nat,
+  body: (if (permission =? 0) then (if (dismissed =? 0) then 1 else 0) else 0)
+}
+
+theorem{
+  name: decidedPermissionNeverPrompts,
+  parameters: [permission : Nat, dismissed : Nat],
+  statement: (((1 <=? permission) && (1 <=? (promptShown permission dismissed))) = false),
+  proof: linear_arithmetic{definitions: [promptShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: dismissedPromptStaysHidden,
+  parameters: [permission : Nat, dismissed : Nat],
+  statement: (((1 <=? dismissed) && (1 <=? (promptShown permission dismissed))) = false),
+  proof: linear_arithmetic{definitions: [promptShown]},
+  axioms: [Quot.sound, propext]
+}
 \end{semanticmodule}
 \end{lexlean}

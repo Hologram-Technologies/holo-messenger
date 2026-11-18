@@ -134,5 +134,129 @@ theorem{
   proof: reflexivity{},
   axioms: []
 }
+
+definition{
+  name: indexOff,
+  parameters: [],
+  result: Nat,
+  body: 0
+}
+
+definition{
+  name: indexBuilding,
+  parameters: [],
+  result: Nat,
+  body: 1
+}
+
+definition{
+  name: indexReady,
+  parameters: [],
+  result: Nat,
+  body: 2
+}
+
+definition{
+  name: indexPaused,
+  parameters: [],
+  result: Nat,
+  body: 3
+}
+
+definition{
+  name: sigEnable,
+  parameters: [],
+  result: Nat,
+  body: 0
+}
+
+definition{
+  name: sigBuilt,
+  parameters: [],
+  result: Nat,
+  body: 1
+}
+
+definition{
+  name: sigPause,
+  parameters: [],
+  result: Nat,
+  body: 2
+}
+
+definition{
+  name: sigResume,
+  parameters: [],
+  result: Nat,
+  body: 3
+}
+
+definition{
+  name: sigReset,
+  parameters: [],
+  result: Nat,
+  body: 4
+}
+
+definition{
+  name: sigDisable,
+  parameters: [],
+  result: Nat,
+  body: 5
+}
+
+definition{
+  name: indexStep,
+  parameters: [state : Nat, signal : Nat],
+  result: Nat,
+  body: (if (signal =? 5) then 0 else (if (state =? 0) then (if (signal =? 0) then 1 else 0) else (if (signal =? 4) then 1 else (if (state =? 1) then (if (signal =? 1) then 2 else (if (signal =? 2) then 3 else 1)) else (if (state =? 3) then (if (signal =? 3) then 1 else 3) else (if (3 <? state) then 0 else 2))))))
+}
+
+definition{
+  name: indexSearchable,
+  parameters: [state : Nat],
+  result: Nat,
+  body: (if (state =? 2) then 1 else 0)
+}
+
+theorem{
+  name: disableAlwaysTurnsOff,
+  parameters: [state : Nat],
+  statement: ((indexStep state 5) = 0),
+  proof: linear_arithmetic{definitions: [indexStep]},
+  axioms: [propext]
+}
+
+theorem{
+  name: offStaysOffUntilEnabled,
+  parameters: [signal : Nat],
+  statement: (((1 <=? signal) && (1 <=? (indexStep 0 signal))) = false),
+  proof: linear_arithmetic{definitions: [indexStep]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: resetRebuilds,
+  parameters: [state : Nat],
+  statement: (((1 <=? state) && ((state <=? 3) && (((indexStep state 4) <? 1) || (1 <? (indexStep state 4))))) = false),
+  proof: linear_arithmetic{definitions: [indexStep]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: indexStateInRange,
+  parameters: [state : Nat, signal : Nat],
+  statement: (((indexStep state signal) <=? 3) = true),
+  proof: linear_arithmetic{definitions: [indexStep]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: indexExamples,
+  parameters: [],
+  statement: ((((indexStep (indexOff) (sigEnable)) =? 1) && (((indexStep (indexBuilding) (sigBuilt)) =? 2) && (((indexStep (indexReady) (sigPause)) =? 2) && (((indexSearchable (indexBuilding)) =? 0) && ((indexSearchable (indexReady)) =? 1))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
 \end{semanticmodule}
 \end{lexlean}

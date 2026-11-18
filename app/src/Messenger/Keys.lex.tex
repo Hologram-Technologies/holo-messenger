@@ -168,5 +168,121 @@ theorem{
   proof: reflexivity{},
   axioms: []
 }
+
+definition{
+  name: keyPageUp,
+  parameters: [],
+  result: Nat,
+  body: 7
+}
+
+definition{
+  name: keyPageDown,
+  parameters: [],
+  result: Nat,
+  body: 8
+}
+
+definition{
+  name: keyHome,
+  parameters: [],
+  result: Nat,
+  body: 9
+}
+
+definition{
+  name: keyEnd,
+  parameters: [],
+  result: Nat,
+  body: 10
+}
+
+definition{
+  name: keyEscape,
+  parameters: [],
+  result: Nat,
+  body: 11
+}
+
+definition{
+  name: keyB,
+  parameters: [],
+  result: Nat,
+  body: 12
+}
+
+definition{
+  name: keyI,
+  parameters: [],
+  result: Nat,
+  body: 13
+}
+
+definition{
+  name: keyE,
+  parameters: [],
+  result: Nat,
+  body: 14
+}
+
+definition{
+  name: keyZ,
+  parameters: [],
+  result: Nat,
+  body: 15
+}
+
+definition{
+  name: keyY,
+  parameters: [],
+  result: Nat,
+  body: 16
+}
+
+definition{
+  name: timelineKey,
+  parameters: [key : Nat, modifier : Nat, shift : Nat],
+  result: Nat,
+  body: (if (key =? 7) then (if (1 <=? shift) then 5 else 1) else (if (key =? 8) then 2 else (if (key =? 9) then (if (1 <=? modifier) then 3 else 0) else (if (key =? 10) then (if (1 <=? modifier) then 4 else 0) else (if (key =? 11) then 6 else 0)))))
+}
+
+definition{
+  name: composerKey,
+  parameters: [key : Nat, modifier : Nat, shift : Nat],
+  result: Nat,
+  body: (if (modifier =? 0) then 0 else (if (key =? 12) then 1 else (if (key =? 13) then 2 else (if (key =? 14) then 3 else (if (key =? 15) then (if (1 <=? shift) then 5 else 4) else (if (key =? 16) then 5 else (if (key =? 9) then 6 else (if (key =? 10) then 7 else 0))))))))
+}
+
+theorem{
+  name: timelineKeyInRange,
+  parameters: [key : Nat, modifier : Nat, shift : Nat],
+  statement: (((timelineKey key modifier shift) <=? 6) = true),
+  proof: linear_arithmetic{definitions: [timelineKey]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: plainKeyNeverFormats,
+  parameters: [key : Nat, shift : Nat],
+  statement: ((composerKey key 0 shift) = 0),
+  proof: linear_arithmetic{definitions: [composerKey]},
+  axioms: [propext]
+}
+
+theorem{
+  name: composerKeyInRange,
+  parameters: [key : Nat, modifier : Nat, shift : Nat],
+  statement: (((composerKey key modifier shift) <=? 7) = true),
+  proof: linear_arithmetic{definitions: [composerKey]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: contextKeyExamples,
+  parameters: [],
+  statement: ((((timelineKey (keyHome) 0 0) =? 0) && (((timelineKey (keyHome) 1 0) =? 3) && (((timelineKey (keyPageUp) 0 1) =? 5) && (((timelineKey (keyEscape) 0 0) =? 6) && (((composerKey (keyZ) 1 0) =? 4) && (((composerKey (keyZ) 1 1) =? 5) && ((composerKey (keyB) 1 0) =? 1))))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
 \end{semanticmodule}
 \end{lexlean}

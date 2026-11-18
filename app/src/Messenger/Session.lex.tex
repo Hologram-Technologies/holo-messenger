@@ -201,5 +201,87 @@ theorem{
   proof: reflexivity{},
   axioms: []
 }
+
+definition{
+  name: startOnboarding,
+  parameters: [],
+  result: Nat,
+  body: 0
+}
+
+definition{
+  name: startResume,
+  parameters: [],
+  result: Nat,
+  body: 1
+}
+
+definition{
+  name: startRestoreError,
+  parameters: [],
+  result: Nat,
+  body: 2
+}
+
+definition{
+  name: startEvicted,
+  parameters: [],
+  result: Nat,
+  body: 3
+}
+
+definition{
+  name: startOutcome,
+  parameters: [hasStored : Nat, evicted : Nat, loads : Nat],
+  result: Nat,
+  body: (if (1 <=? evicted) then 3 else (if (hasStored =? 0) then 0 else (if (loads =? 0) then 2 else 1)))
+}
+
+definition{
+  name: recoveryBanner,
+  parameters: [recoverySet : Nat, dismissed : Nat],
+  result: Nat,
+  body: (if (recoverySet =? 0) then (if (dismissed =? 0) then 1 else 0) else 0)
+}
+
+theorem{
+  name: resumeNeedsStoredState,
+  parameters: [evicted : Nat, loads : Nat],
+  statement: (((startOutcome 0 evicted loads) =? 1) = false),
+  proof: linear_arithmetic{definitions: [startOutcome]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: resumeNeedsCleanLoad,
+  parameters: [hasStored : Nat, evicted : Nat],
+  statement: (((startOutcome hasStored evicted 0) =? 1) = false),
+  proof: linear_arithmetic{definitions: [startOutcome]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: evictionAlwaysExplained,
+  parameters: [hasStored : Nat, evicted : Nat, loads : Nat],
+  statement: (((1 <=? evicted) && (((startOutcome hasStored evicted loads) <? 3) || (3 <? (startOutcome hasStored evicted loads)))) = false),
+  proof: linear_arithmetic{definitions: [startOutcome]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: dismissedBannerStaysHidden,
+  parameters: [recoverySet : Nat, dismissed : Nat],
+  statement: (((1 <=? dismissed) && (1 <=? (recoveryBanner recoverySet dismissed))) = false),
+  proof: linear_arithmetic{definitions: [recoveryBanner]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: startExamples,
+  parameters: [],
+  statement: ((((startOutcome 1 0 1) =? (startResume)) && (((startOutcome 1 0 0) =? (startRestoreError)) && ((recoveryBanner 0 0) =? 1))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
 \end{semanticmodule}
 \end{lexlean}

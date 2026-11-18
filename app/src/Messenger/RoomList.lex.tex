@@ -1,0 +1,134 @@
+\begin{lexlean}{Messenger.RoomList}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Boolean}
+\begin{semanticmodule}
+definition{
+  name: listLoading,
+  parameters: [],
+  result: Nat,
+  body: 0
+}
+
+definition{
+  name: listEmpty,
+  parameters: [],
+  result: Nat,
+  body: 1
+}
+
+definition{
+  name: listReady,
+  parameters: [],
+  result: Nat,
+  body: 2
+}
+
+definition{
+  name: sortsBefore,
+  parameters: [inviteA : Nat, activityA : Nat, inviteB : Nat, activityB : Nat],
+  result: Nat,
+  body: (if (1 <=? inviteA) then (if (1 <=? inviteB) then (if (activityB <? activityA) then 1 else 0) else 1) else (if (1 <=? inviteB) then 0 else (if (activityB <? activityA) then 1 else 0)))
+}
+
+definition{
+  name: previewShown,
+  parameters: [setting : Nat, hasMessage : Nat, isInvite : Nat],
+  result: Nat,
+  body: (if (1 <=? isInvite) then 0 else (if (setting =? 0) then 0 else (if (1 <=? hasMessage) then 1 else 0)))
+}
+
+definition{
+  name: itemBadge,
+  parameters: [level : Nat, muted : Nat],
+  result: Nat,
+  body: (if (1 <=? muted) then 0 else level)
+}
+
+definition{
+  name: filterMatch,
+  parameters: [queryLength : Nat, matches : Nat],
+  result: Nat,
+  body: (if (queryLength =? 0) then 1 else (if (1 <=? matches) then 1 else 0))
+}
+
+definition{
+  name: listState,
+  parameters: [loading : Nat, count : Nat],
+  result: Nat,
+  body: (if (1 <=? loading) then 0 else (if (count =? 0) then 1 else 2))
+}
+
+theorem{
+  name: neverSortsBeforeItself,
+  parameters: [invite : Nat, activity : Nat],
+  statement: ((sortsBefore invite activity invite activity) = 0),
+  proof: linear_arithmetic{definitions: [sortsBefore]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: neverBothSortFirst,
+  parameters: [inviteA : Nat, activityA : Nat, inviteB : Nat, activityB : Nat],
+  statement: ((((sortsBefore inviteA activityA inviteB activityB) + (sortsBefore inviteB activityB inviteA activityA)) <=? 1) = true),
+  proof: linear_arithmetic{definitions: [sortsBefore]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: invitesSortFirst,
+  parameters: [inviteA : Nat, activityA : Nat, inviteB : Nat, activityB : Nat],
+  statement: (((1 <=? inviteA) && ((inviteB =? 0) && ((sortsBefore inviteA activityA inviteB activityB) =? 0))) = false),
+  proof: linear_arithmetic{definitions: [sortsBefore]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: differentActivityAlwaysOrders,
+  parameters: [activityA : Nat, activityB : Nat],
+  statement: ((((activityA <? activityB) || (activityB <? activityA)) && (((sortsBefore 0 activityA 0 activityB) + (sortsBefore 0 activityB 0 activityA)) =? 0)) = false),
+  proof: linear_arithmetic{definitions: [sortsBefore]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: inviteShowsNoPreview,
+  parameters: [setting : Nat, hasMessage : Nat, isInvite : Nat],
+  statement: (((1 <=? isInvite) && (1 <=? (previewShown setting hasMessage isInvite))) = false),
+  proof: linear_arithmetic{definitions: [previewShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: mutedRoomShowsNoBadge,
+  parameters: [level : Nat, muted : Nat],
+  statement: (((1 <=? muted) && (1 <=? (itemBadge level muted))) = false),
+  proof: linear_arithmetic{definitions: [itemBadge]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: emptyQueryShowsEveryRoom,
+  parameters: [matches : Nat],
+  statement: ((filterMatch 0 matches) = 1),
+  proof: linear_arithmetic{definitions: [filterMatch]},
+  axioms: [propext]
+}
+
+theorem{
+  name: listStateInRange,
+  parameters: [loading : Nat, count : Nat],
+  statement: (((listState loading count) <=? 2) = true),
+  proof: linear_arithmetic{definitions: [listState]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: roomListExamples,
+  parameters: [],
+  statement: ((((sortsBefore 0 9 0 4) =? 1) && (((previewShown 1 1 0) =? 1) && (((listState 0 0) =? (listEmpty)) && ((filterMatch 3 0) =? 0)))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}
