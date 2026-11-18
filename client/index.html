@@ -215,6 +215,26 @@ svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:
 .steps{display:flex;gap:5px} .steps i{height:3px;flex:1;border-radius:2px;background:var(--line)} .steps i.on{background:var(--accent)}
 .home{flex:1;display:grid;place-items:center;color:var(--ink3);text-align:center;padding:21px}
 .back{display:none} @media (max-width:767px){.back{display:grid}}
+
+/* phase 1 additions */
+#scrim{z-index:90} #menu,#picker{z-index:95} #toasts{z-index:96}
+#lock{position:fixed;inset:0;background:var(--bg);z-index:100;display:grid;place-items:center;padding:21px}
+.kitmsg{min-height:18px;font-size:12px;color:var(--ink3)} .kitmsg.ok{color:var(--ok)} .kitmsg.bad{color:var(--bad)}
+.okmark{width:55px;height:55px;border-radius:50%;display:grid;place-items:center;background:var(--sel);color:var(--ok)} .okmark svg{width:34px;height:34px}
+.tacts{display:flex!important;gap:8px;margin-top:8px}
+.toast{cursor:default} .toast span span{white-space:normal}
+.row{display:flex;align-items:center;gap:13px;color:var(--ink)} .row>div:first-child{flex:1;min-width:0} .row small{display:block;color:var(--ink3)}
+.emo7{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;text-align:center} .emo7 b{display:block;font-size:28px;font-weight:400} .emo7 span{font-size:11px;color:var(--ink2)}
+@media (max-width:480px){.emo7{grid-template-columns:repeat(4,1fr)}}
+.qr{width:144px;height:144px;margin:0 auto;display:grid;grid-template-columns:repeat(12,1fr);background:#fff;padding:8px;border-radius:8px} .qr i{background:#111} .qr i.o{background:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:5px} .chip{display:flex;align-items:center;gap:5px;height:26px;padding:0 8px;border-radius:13px;background:var(--sel);color:var(--accent);font-weight:600;font-size:12px}
+.trust{width:13px;height:13px;color:var(--ok);margin-left:5px;flex:none}
+.stamps .msg .gut{opacity:1}
+.home .btn{margin:5px}
+.meimg{width:34px;height:34px;border-radius:50%;object-fit:cover;display:block;box-shadow:0 0 0 2px var(--panel)} .meimg.l{width:55px;height:55px}
+.tabs{overflow-x:auto;scrollbar-width:none} .tabs button{white-space:nowrap}
+:root[data-contrast="1"]{--ink2:var(--ink);--ink3:color-mix(in srgb,var(--ink) 78%,var(--bg));--line:color-mix(in srgb,var(--ink) 55%,var(--bg))}
+.ri:focus-visible{outline-offset:-2px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
@@ -329,7 +349,8 @@ const hue = t => { let h = 0; for (const c of t) h = (h * 31 + c.charCodeAt(0)) 
 const av = (name, cls = "") => `<span class="av ${cls}" style="background:hsl(${hue(name)} 42% 44%)" aria-hidden="true">${esc(name.trim()[0].toUpperCase())}</span>`;
 const rav = (r, cls = "") => av(r.name, cls + (r.dm ? "" : " sq"));
 const pad = n => String(n).padStart(2, "0");
-const clock = t => { const d = new Date(t); return pad(d.getHours()) + ":" + pad(d.getMinutes()); };
+const clock = t => { const d = new Date(t), h = d.getHours();   // Timeline.hourShown
+  return S.set.h12 ? ((h % 12) || 12) + ":" + pad(d.getMinutes()) + (h < 12 ? " am" : " pm") : pad(h) + ":" + pad(d.getMinutes()); };
 const dayKey = t => { const d = new Date(t); return d.getFullYear() * 400 + d.getMonth() * 32 + d.getDate(); };
 const dayName = t => { const k = dayKey(t), n = dayKey(Date.now()); if (k === n) return "Today"; if (k === dayKey(Date.now() - D)) return "Yesterday";
   return new Date(t).toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" }); };
@@ -340,6 +361,8 @@ const mentionsMe = e => e.t === "m" && e.from !== "me" && new RegExp("@" + first
 const unread = r => { if (r.invite) return 0; let n = 0; for (let k = r.ev.length - 1; k >= 0 && r.ev[k].ts > r.lastRead; k--) { const e = r.ev[k]; if (e.t === "m" && e.from !== "me" && !e.del) n++; } return n; };
 const highlight = r => { for (let k = r.ev.length - 1; k >= 0 && r.ev[k].ts > r.lastRead; k--) if (!r.ev[k].del && mentionsMe(r.ev[k])) return true; return false; };
 const live = r => { const d = r.delN || 0; if (!r._lv || r._ld !== d) r._lv = r.ev.filter(e => !e.del); else for (let k = r._ll; k < r.ev.length; k++) if (!r.ev[k].del) r._lv.push(r.ev[k]); r._ll = r.ev.length; r._ld = d; return r._lv; };
+const BLOCKED = [];   // people whose messages are hidden (Timeline.shown)
+const shownEv = r => BLOCKED.length ? live(r).filter(e => !BLOCKED.includes(e.from)) : live(r);
 const myPower = r => r.power.me || 0;
 const role = p => p >= 100 ? "Admin" : p >= 50 ? "Moderator" : "";
 
@@ -367,7 +390,7 @@ const emojiOnly = t => /^(\p{Extended_Pictographic}|️|‍|\s){1,12}$/u.test(t)
 const preview = r => { const e = last(r); if (!e) return ""; if (e.t === "s") return sysText(e, r);
   return (e.from === "me" ? "You: " : r.dm ? "" : first(e.from) + ": ") + (e.img && !e.body ? "Photo" : e.body.replace(/\s+/g, " ")); };
 const sysText = (e, r) => e.kind === "created" ? `${e.from === "me" ? "You" : first(e.from)} created this ${r.dm ? "chat" : "room"}` : e.kind === "join" ? `${e.from === "me" ? "You" : first(e.from)} joined`
-  : e.kind === "leave" ? `${first(e.from)} left` : "";
+  : e.kind === "leave" ? `${first(e.from)} left` : e.kind === "invited" ? `${e.from === "me" ? "You" : first(e.from)} invited ${first(e.to)}` : "";
 
 /* ---------- rules from the verified holo ---------- */
 const RULES = { source: "the built-in copy", asked: 0, differ: [], note: "the holo has not been asked yet" };
@@ -466,7 +489,7 @@ function drawTimeline(toEnd) {
   const r = R(S.cur), tl = $("#tl"); if (!r || !tl) return;
   const t0 = performance.now();
   const follow = toEnd || r.lo == null || (r.hi == null && tl.scrollHeight - tl.scrollTop - tl.clientHeight < 55);
-  const all = live(r);
+  const all = shownEv(r);
   if (r.lo == null || (toEnd && r.hi != null)) { r.hi = null; r.lo = Math.max(0, all.length - WIN); }   // while following the latest, the window only grows, then trims in one step
   const end = r.hi == null ? all.length : Math.min(r.hi, all.length);
   if (r.hi == null && end - r.lo > MAXW) r.lo = end - WIN;
@@ -526,7 +549,7 @@ function onScroll() {
   const tl = $("#tl"), r = R(S.cur); if (!tl || !r || r.lo == null) return;
   const nearTop = tl.scrollTop < 233 && r.lo > 0, nearEnd = r.hi != null && tl.scrollHeight - tl.scrollTop - tl.clientHeight < 233;
   if (!nearTop && !nearEnd) return;
-  const total = live(r).length, end = r.hi == null ? total : r.hi;
+  const total = shownEv(r).length, end = r.hi == null ? total : r.hi;
   const a = [...tl.children].find(n => n.dataset.k[0] === "m" && n.offsetTop + n.offsetHeight > tl.scrollTop + 55), off = a ? a.offsetTop - tl.scrollTop : 0;
   if (nearTop) { r.lo = Math.max(0, r.lo - WIN); if (end - r.lo > MAXW) r.hi = r.lo + MAXW; }
   else { r.hi = end + WIN; if (r.hi >= total) r.hi = null; r.lo = Math.max(r.lo, (r.hi == null ? total : r.hi) - MAXW); }
@@ -699,7 +722,7 @@ function newChat() {
   });
 }
 function jump(id) { let el = $(`.msg[data-id="${id}"]`);
-  if (!el) { const r = R(S.cur), all = live(r), k = all.findIndex(e => e.id === id); if (k >= 0) { r.lo = Math.max(0, k - 40); r.hi = k + 41 >= all.length ? null : k + 41; drawTimeline(); el = $(`.msg[data-id="${id}"]`); } }
+  if (!el) { const r = R(S.cur), all = shownEv(r), k = all.findIndex(e => e.id === id); if (k >= 0) { r.lo = Math.max(0, k - 40); r.hi = k + 41 >= all.length ? null : k + 41; drawTimeline(); el = $(`.msg[data-id="${id}"]`); } }
   if (el) { el.scrollIntoView({ block: "center" }); el.classList.add("act"); setTimeout(() => el.classList.remove("act"), 1600); } }
 function searchDlg() {
   let all = !S.cur;
@@ -840,6 +863,351 @@ U.me.n = S.set.name; applySet(); drawAll();
 if (panes(innerWidth) > 1) openRoom("r1");
 (window.requestIdleCallback || setTimeout)(loadRules);
 setTimeout(() => { const r = R("r3"); if (r && S.cur !== "r3") incoming(r, "sofia", "New run: first load is down to 138 KB."); }, 9000);
+</script>
+<script>
+"use strict";
+/* ===== Phase 1 screens: identity, recovery, devices, verification, notifications, preferences, navigation.
+   Sample data still. Each rule it follows is named beside it. ===== */
+const store = { get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }, del(k) { try { localStorage.removeItem(k); } catch (e) {} } };
+const ID = Object.assign({ created: false, kit: false, bannerOff: false, promptOff: false, verified: ["amara", "yuki"], blocked: [],
+  devices: [{ id: "d2", name: "Firefox on a laptop", verified: false }] }, store.get("hm-id", {}));
+const saveId = () => store.set("hm-id", ID);
+BLOCKED.push(...ID.blocked);
+for (const [k, v] of Object.entries({ h12: false, stamps: false, showReceipts: true, sendReceipts: true, typing: true, sound: false, showText: true, contrast: false, defaultLevel: "all", avatar: null }))
+  if (!(k in S.set)) S.set[k] = v;
+const addrOf = n => "blake3:" + Array.from({ length: 64 }, (_, i) => "0123456789abcdef"[(hue(n) * 7 + i * i * 3 + n.charCodeAt(i % n.length)) % 16]).join("");
+
+/* ---------- recovery kit: 28 random characters and a 4-character check ---------- */
+const KA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const kitSum = body => { let a = 7, b = 13; for (const c of body) { a = (a * 31 + KA.indexOf(c)) % 1048576; b = (b + a) % 1048576; }
+  let n = (a ^ b) >>> 0, out = ""; for (let i = 0; i < 4; i++) { out += KA[n % 32]; n = Math.floor(n / 32); } return out; };
+const newKit = () => { const r = new Uint8Array(28); crypto.getRandomValues(r); const body = [...r].map(x => KA[x % 32]).join(""); return (body + kitSum(body)).match(/.{4}/g).join("-"); };
+const kitNorm = s => s.toUpperCase().replace(/[^A-Z0-9]/g, "");
+const kitState = s => { const c = kitNorm(s); if (!c) return "empty"; if ([...c].some(x => !KA.includes(x)) || c.length > 32) return "bad"; if (c.length < 32) return "short"; return kitSum(c.slice(0, 28)) === c.slice(28) ? "ok" : "bad"; };
+
+function toastMsg(title, text, acts = [], ms = 6000) {
+  const t = document.createElement("div"); t.className = "toast";
+  t.innerHTML = `<span class="grow"><b>${esc(title)}</b><span>${esc(text)}</span>${acts.length ? `<span class="tacts">${acts.map((a, i) => `<button class="btn small${i ? "" : " primary"}" data-i="${i}">${esc(a[0])}</button>`).join("")}</span>` : ""}</span>`;
+  t.onclick = e => { const b = e.target.closest("[data-i]"); if (b) { t.remove(); acts[+b.dataset.i][1](); } };
+  $("#toasts").append(t); if (ms) setTimeout(() => t.remove(), ms); return t;
+}
+function stage(html) {   // every first-run screen shares this frame
+  let o = $("#onb"); if (!o) { o = document.createElement("div"); o.id = "onb"; document.body.append(o); }
+  o.innerHTML = `<div class="onb">${html}</div>`; o.onclick = o.onkeydown = o.oninput = null;
+  const f = o.querySelector("input,button"); if (f) f.focus(); return o;
+}
+const unstage = () => { const o = $("#onb"); if (o) o.remove(); };
+
+/* ---------- first run, restore, identity confirmed ---------- */
+onboard = function (step = 0) {
+  const dots = n => `<div class="steps">${[0, 1, 2].map(i => `<i class="${i <= n ? "on" : ""}"></i>`).join("")}</div>`;
+  if (step === 0) { const o = stage(`<h2>Private messages, with no server.</h2><p>No account and no password. Your identity is a key that stays on this device.</p><button class="btn primary" data-o="create">Create my identity</button><button class="btn" data-o="restore">I have a recovery kit</button>`);
+    o.onclick = e => { const b = e.target.closest("[data-o]"); if (b) b.dataset.o === "create" ? onboard(1) : restore(); }; }
+  else if (step === 1) { const o = stage(`${dots(1)}<h2>What should people call you?</h2><p>You can change this later.</p><input id="nm" type="text" value="${esc(S.set.name)}" aria-label="Your name" maxlength="40"><button class="btn primary" data-o="go">Continue</button>`);
+    const go = () => { const v = $("#nm").value.trim(); if (!v) return; S.set.name = v; U.me.n = v; applySet(); ID.created = true; saveId(); onboard(2); };
+    o.onclick = e => { if (e.target.closest("[data-o]")) go(); }; o.onkeydown = e => { if (e.key === "Enter") go(); }; }
+  else { const o = stage(`${dots(2)}<h2>Save a recovery kit.</h2><p>Why: this device holds the only copy of your key.</p><p>How: the kit is a short code you keep somewhere safe.</p><p>What it does: restores your identity on another device.</p><button class="btn primary" data-o="kit">Save a kit now</button><button class="btn" data-o="skip">Not now</button>`);
+    o.onclick = e => { const b = e.target.closest("[data-o]"); if (!b) return; unstage(); drawAll(); if (b.dataset.o === "kit") createKit(); }; }
+};
+function restore() {
+  const o = stage(`<h2>Restore your identity.</h2><p>Enter the recovery kit you saved: 32 letters and digits.</p><input id="kit" type="text" autocomplete="off" spellcheck="false" aria-label="Recovery kit" placeholder="XXXX-XXXX-XXXX-XXXX" style="font-family:var(--mono)"><div id="kitMsg" class="kitmsg" aria-live="polite"></div>
+    <button class="btn primary" data-o="go" disabled>Restore</button><button class="btn" data-o="device">Confirm from another device</button><button class="btn" data-o="sample">Fill in a sample kit</button><button class="btn" data-o="back">Back</button>`);
+  const upd = () => { const st = kitState($("#kit").value); $("#kitMsg").textContent = { empty: "", short: "Keep typing.", bad: "That is not a valid kit. Check for a mistyped character.", ok: "This kit is valid." }[st];
+    $("#kitMsg").className = "kitmsg " + st; o.querySelector('[data-o="go"]').disabled = st !== "ok"; };
+  o.oninput = upd;
+  o.onclick = e => { const b = e.target.closest("[data-o]"); if (!b) return; const a = b.dataset.o;
+    if (a === "back") onboard(0); else if (a === "sample") { $("#kit").value = newKit(); upd(); }
+    else if (a === "device") verifyFlow({ kind: "restore", name: "your other device", onDone: confirmed });
+    else if (a === "go" && !b.disabled) { ID.kit = true; confirmed(); } };
+}
+function confirmed() {
+  ID.created = true; saveId();
+  const o = stage(`<div class="okmark">${I.lock}</div><h2>Identity confirmed.</h2><p>This device can now read your encrypted chats.</p><button class="btn primary" data-o="go">Continue</button>`);
+  o.onclick = e => { if (e.target.closest("[data-o]")) { unstage(); drawAll(); } };
+}
+function createKit() {
+  const kit = newKit();
+  dialog(`<header><h3>Your recovery kit</h3></header><div class="c"><p style="margin:0">Why: it is the only way back in if you lose this device.</p><div class="addr" style="font-size:15px;text-align:center;letter-spacing:.04em;color:var(--ink)">${kit}</div>
+    <div style="display:flex;gap:8px"><button class="btn" id="kc">Copy</button><button class="btn" id="kd">Save as a file</button></div><p style="margin:0">Keep it where only you can reach it. Anyone who holds it can become you.</p></div>
+    <footer><button class="btn" data-close>Not now</button><button class="btn primary" id="kn">I have saved it</button></footer>`, sc => {
+    $("#kc", sc).onclick = () => { if (navigator.clipboard) navigator.clipboard.writeText(kit).then(() => { $("#kc", sc).textContent = "Copied"; }).catch(() => {}); };
+    $("#kd", sc).onclick = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([kit + "\n"], { type: "text/plain" })); a.download = "holo-messenger-recovery-kit.txt"; a.click(); };
+    $("#kn", sc).onclick = () => dialog(`<header><h3>Confirm your kit</h3></header><div class="c"><p style="margin:0">Type or paste the kit you saved, to check your copy is good.</p><input type="text" id="kv" autocomplete="off" spellcheck="false" aria-label="Recovery kit" style="font-family:var(--mono)" autofocus><div id="kvm" class="kitmsg" aria-live="polite"></div></div>
+      <footer><button class="btn" data-close>Cancel</button><button class="btn primary" id="kok" disabled>Confirm</button></footer>`, s2 => {
+      $("#kv", s2).oninput = () => { const v = kitNorm($("#kv", s2).value), ok = v === kitNorm(kit), full = v.length >= 32;
+        $("#kvm", s2).textContent = !v ? "" : ok ? "It matches." : full ? "That does not match the kit shown." : "Keep typing."; $("#kvm", s2).className = "kitmsg " + (ok ? "ok" : full ? "bad" : "short"); $("#kok", s2).disabled = !ok; };
+      $("#kok", s2).onclick = () => { ID.kit = true; saveId(); closeOverlay(); drawList(); toastMsg("Recovery kit saved", "You can restore your identity on another device."); };
+    });
+  });
+}
+function signOut() {
+  const wipe = () => confirmDlg("Remove everything from this device?", `<p style="margin:0">What happens: your identity, chats and settings are deleted from this browser.</p><p style="margin:0;color:var(--warn);font-weight:600">${ID.kit ? "You can restore your identity later with your recovery kit." : "You have no recovery kit. This identity cannot be recovered."}</p>`,
+    "Remove and sign out", "danger", () => { store.del("hm-id"); store.del("hm-set"); store.del("hm-ui"); location.reload(); });
+  if (ID.kit) { wipe(); return; }
+  dialog(`<header><h3>You have no recovery kit</h3></header><div class="c"><p style="margin:0">Why this stops you: this device holds the only copy of your key. Signing out now deletes it for good.</p><p style="margin:0">How to keep your identity: save a recovery kit first. It takes a minute.</p></div>
+    <footer><button class="btn danger" id="so">Sign out anyway</button><button class="btn primary" id="sk" autofocus>Save a kit first</button></footer>`, sc => { $("#sk", sc).onclick = createKit; $("#so", sc).onclick = wipe; });
+}
+
+/* ---------- one tab at a time (Session.lockStep) ---------- */
+let lockCh = null, holdsLock = true, booting = true; setTimeout(() => { booting = false; }, 700);
+function lockScreen(kind) {
+  let l = $("#lock"); if (!kind) { if (l) l.remove(); return; }
+  if (!l) { l = document.createElement("div"); l.id = "lock"; document.body.append(l); }
+  l.innerHTML = `<div class="onb"><h2>${kind === "ask" ? "Holo Messenger is open in another tab." : "You moved to another tab."}</h2><p>${kind === "ask" ? "Only one tab uses your identity at a time, so nothing is sent twice." : "This tab is paused. Your chats continue in the other one."}</p><button class="btn primary" data-take>Use it here</button></div>`;
+  l.querySelector("button").focus();
+}
+try { lockCh = new BroadcastChannel("hm-lock");
+  lockCh.onmessage = ({ data }) => { if (data === "hello" && holdsLock) lockCh.postMessage("held");
+    else if (data === "held" && booting && holdsLock) { holdsLock = false; lockScreen("ask"); }
+    else if (data === "take" && holdsLock) { holdsLock = false; lockScreen("moved"); } };
+  lockCh.postMessage("hello"); } catch (e) {}
+
+/* ---------- verification: compare seven emoji, or scan a code ---------- */
+const VEMO = [["🐶", "Dog"], ["🔑", "Key"], ["🌙", "Moon"], ["🎈", "Balloon"], ["⚓", "Anchor"], ["🍎", "Apple"], ["🚲", "Bicycle"], ["🎸", "Guitar"], ["📌", "Pin"], ["🌵", "Cactus"], ["🦋", "Butterfly"], ["☂️", "Umbrella"]];
+function verifyFlow(v, step = v.incoming ? "emoji" : "start", reason = "") {
+  const done = () => { if (v.kind === "device") { const d = ID.devices.find(x => x.id === v.id); if (d) d.verified = true; } else if (v.kind === "user" && !ID.verified.includes(v.id)) ID.verified.push(v.id); saveId(); };
+  const head = `<header><h3>Verify ${esc(v.name)}</h3><button class="icon" data-close aria-label="Close">${I.x}</button></header>`;
+  const go = (s, r) => verifyFlow(v, s, r);
+  if (step === "start") dialog(`${head}<div class="c"><p style="margin:0">Why: verifying proves you are talking to the right ${v.kind === "user" ? "person" : "device"}, not someone in between.</p><p style="margin:0">How: both sides compare the same seven pictures, or one scans a code from the other.</p></div>
+    <footer><button class="btn" id="vq">Scan a code</button><button class="btn primary" id="ve" autofocus>Compare pictures</button></footer>`, sc => { $("#ve", sc).onclick = () => go("wait"); $("#vq", sc).onclick = () => go("qr"); });
+  else if (step === "wait") { dialog(`${head}<div class="c"><p style="margin:0">Waiting for ${esc(v.name)} to accept.</p></div><footer><button class="btn" id="vc">Cancel</button></footer>`, sc => { $("#vc", sc).onclick = () => { clearTimeout(tm); go("cancel", "You cancelled."); }; });
+    const tm = setTimeout(() => { if ($("#vc")) go("emoji"); }, 1200); }
+  else if (step === "emoji") { const h = hue(v.name), pick = Array.from({ length: 7 }, (_, i) => VEMO[(h + i * 5) % VEMO.length]);
+    dialog(`${head}<div class="c"><p style="margin:0">Do both sides show these seven pictures, in this order?</p><div class="emo7">${pick.map(([e, n]) => `<div><b>${e}</b><span>${n}</span></div>`).join("")}</div></div>
+      <footer><button class="btn danger" id="vn">They do not match</button><button class="btn primary" id="vy" autofocus>They match</button></footer>`, sc => { $("#vy", sc).onclick = () => { done(); go("done"); }; $("#vn", sc).onclick = () => go("cancel", "The pictures did not match. Someone may be in between. Do not trust this until you have verified another way."); }); }
+  else if (step === "qr") { const h = hue(v.name) + 17; let cells = ""; for (let i = 0; i < 144; i++) { const x = i % 12, y = (i / 12) | 0, corner = (x < 3 && y < 3) || (x > 8 && y < 3) || (x < 3 && y > 8); cells += `<i class="${corner || ((x * 7 + y * 13 + h * (x ^ y)) % 3) ? "" : "o"}"></i>`; }
+    dialog(`${head}<div class="c"><div class="qr" role="img" aria-label="Sample code">${cells}</div><p style="margin:0;text-align:center">A sample code. On a real device, scan this with the other one.</p></div>
+      <footer><button class="btn" id="vc">Cancel</button><button class="btn primary" id="vs" autofocus>The other side scanned it</button></footer>`, sc => { $("#vs", sc).onclick = () => { done(); go("done"); }; $("#vc", sc).onclick = () => go("cancel", "You cancelled. The other side is told too."); }); }
+  else if (step === "done") dialog(`<header><h3>Verified</h3></header><div class="c" style="align-items:center;text-align:center"><div class="okmark">${I.lock}</div><p style="margin:0">${esc(v.name[0].toUpperCase() + v.name.slice(1))} is verified.</p></div><footer><button class="btn primary" id="vd" autofocus>Done</button></footer>`,
+    sc => { $("#vd", sc).onclick = () => { closeOverlay(); if (v.onDone) v.onDone(); else { drawPanel(); if (S.cur) drawTimeline(); } }; });
+  else dialog(`<header><h3>Verification cancelled</h3></header><div class="c"><p style="margin:0">${esc(reason)}</p></div><footer><button class="btn" data-close>Close</button><button class="btn primary" id="vr" autofocus>Try again</button></footer>`, sc => { $("#vr", sc).onclick = () => go("start"); });
+}
+const incomingVerify = () => toastMsg("Verification request", "Firefox on a laptop wants to verify with this device.", [["Accept", () => verifyFlow({ kind: "device", id: "d2", name: "Firefox on a laptop", incoming: true })], ["Decline", () => {}]], 0);
+
+/* ---------- profile card: message, mention, verify, block ---------- */
+profile = function (id) {
+  const r = R(S.cur), u = U[id], ver = id === "me" || ID.verified.includes(id), blocked = ID.blocked.includes(id), rl = r && role(r.power[id] || 0);
+  const face = id === "me" && S.set.avatar ? `<img class="meimg l" src="${S.set.avatar}" alt="">` : av(u.n, "l");
+  dialog(`<header><span class="grow"></span><button class="icon" data-close aria-label="Close">${I.x}</button></header><div class="c" style="align-items:center;text-align:center">
+    <button data-avbig="${id}" aria-label="Show picture full size">${ver ? `<span class="ring">${face}</span>` : face}</button><div><div style="font-size:17px;font-weight:650;color:var(--ink)">${esc(u.n)}${id === "me" ? " (you)" : ""}</div><div>${rl ? rl + " in " + esc(r.name) : ""}</div></div>
+    <div class="note" style="text-align:left;align-self:stretch">${ver ? I.lock : I.info.replace("<svg", '<svg style="color:var(--ink3)"')}<span>${ver ? "Verified. You have confirmed this identity." : "Not verified yet. Compare pictures in person or on a call to verify."}</span></div>
+    <div class="addr" style="align-self:stretch;text-align:left">${addrOf(u.n)}</div>${blocked ? '<p style="margin:0;color:var(--warn);font-weight:600">You have blocked this person. Their messages are hidden.</p>' : ""}</div>
+    ${id === "me" ? `<footer><button class="btn primary" id="pe">Edit profile</button></footer>` : `<footer style="flex-wrap:wrap"><button class="btn danger" id="pb">${blocked ? "Unblock" : "Block"}</button>${ver ? "" : '<button class="btn" id="pv">Verify</button>'}${r && !r.dm ? '<button class="btn" id="pn">Mention</button>' : ""}<button class="btn primary" id="pm">Message</button></footer>`}`, sc => {
+    const on = (q, f) => { const b = $(q, sc); if (b) b.onclick = f; };
+    on("#pm", () => startDm(id)); on("#pe", () => settings("account")); on("#pv", () => verifyFlow({ kind: "user", id, name: first(id) }));
+    on("#pn", () => { closeOverlay(); const ta = $("#ta"); if (ta) { ta.setRangeText("@" + first(id) + " ", ta.selectionStart, ta.selectionEnd, "end"); grow(); ta.focus(); } });
+    on("#pb", () => { const i = ID.blocked.indexOf(id); i < 0 ? ID.blocked.push(id) : ID.blocked.splice(i, 1); BLOCKED.length = 0; BLOCKED.push(...ID.blocked); saveId(); closeOverlay(); S.rooms.forEach(x => { x.lo = null; }); if (S.cur) drawTimeline(true); drawList(); });
+  });
+};
+const _startDm = startDm;
+startDm = function (id) {   // a new chat is confirmed by name before it exists
+  if (S.rooms.some(x => x.dm === id && !x.invite)) return _startDm(id);
+  confirmDlg(`Start a chat with ${U[id].n}?`, `<p style="margin:0">What happens: an encrypted chat is created, and ${esc(first(id))} sees it when you send your first message.</p>`, "Start chat", "primary", () => _startDm(id));
+};
+
+/* ---------- invite people: pick several, see progress, see who could not be reached ---------- */
+function invitePeople() {
+  const r = R(S.cur), picked = new Set(), pool = Object.keys(U).filter(id => id !== "me" && !r.members.includes(id) && !(r.invited || []).includes(id));
+  dialog(`<header><h3>Invite to ${esc(r.name)}</h3><button class="icon" data-close aria-label="Close">${I.x}</button></header><div class="c qs"><div class="chips" id="ic"></div><div id="il"></div></div><footer><button class="btn" data-close>Cancel</button><button class="btn primary" id="ig" disabled>Invite</button></footer>`, sc => {
+    const draw = () => { $("#ic", sc).innerHTML = [...picked].map(id => `<span class="chip">${esc(first(id))}</span>`).join("");
+      $("#il", sc).innerHTML = pool.length ? pool.map(id => `<button class="o${picked.has(id) ? " on" : ""}" data-pickp="${id}" aria-pressed="${picked.has(id)}">${av(U[id].n)}<span class="grow">${esc(U[id].n)}</span>${picked.has(id) ? I.check : ""}</button>`).join("") : `<div class="empty">Everyone you know is already here.</div>`;
+      $("#ig", sc).disabled = !picked.size; $("#ig", sc).textContent = picked.size > 1 ? `Invite ${picked.size} people` : "Invite"; };
+    sc.addEventListener("click", e => { const b = e.target.closest("[data-pickp]"); if (b) { const id = b.dataset.pickp; picked.has(id) ? picked.delete(id) : picked.add(id); draw(); } });
+    $("#ig", sc).onclick = () => sendInvites(r, [...picked]); draw();
+  });
+}
+function sendInvites(r, ids, force) {
+  let k = 0; const failed = [];
+  dialog(`<header><h3>Inviting</h3></header><div class="c"><p style="margin:0" id="ip" aria-live="polite">0 of ${ids.length}</p></div>`);
+  const step = () => { if (k < ids.length) { const id = ids[k++];
+      if (id === "omar" && !force) failed.push(id); else { (r.invited = r.invited || []).push(id); r.ev.push({ id: "e" + (++seq), t: "s", from: "me", to: id, ts: Date.now(), kind: "invited" }); }
+      const p = $("#ip"); if (p) p.textContent = `${k} of ${ids.length}`; setTimeout(step, 260); return; }
+    if (failed.length) dialog(`<header><h3>${failed.length === ids.length ? "Nobody was invited" : "Some people were not invited"}</h3></header><div class="c">${failed.map(id => `<div class="mem">${av(U[id].n)}<span>${esc(U[id].n)}</span><span class="role">could not be reached</span></div>`).join("")}<p style="margin:0">They may be offline. An invitation can wait for them.</p></div>
+      <footer><button class="btn" data-close>Close</button><button class="btn primary" id="ia" autofocus>Invite anyway</button></footer>`, sc => { $("#ia", sc).onclick = () => sendInvites(r, failed, true); });   // Invite.inviteOutcome
+    else closeOverlay();
+    drawTimeline(true); drawList(); drawPanel(); };
+  setTimeout(step, 260);
+}
+
+/* ---------- wrap the base screens ---------- */
+const _drawList = drawList;
+drawList = function () {
+  _drawList();
+  let b = $("#homeBanner"); if (!b) { b = document.createElement("div"); b.id = "homeBanner"; $("#rooms").before(b); }
+  const show = ID.created && !ID.kit && !ID.bannerOff; b.hidden = !show;   // Session.recoveryBanner
+  if (show) b.innerHTML = `<div class="inv" style="margin:0 8px 8px"><div><b>Save a recovery kit</b><div style="color:var(--ink2)">Without one, losing this device loses your identity.</div></div><div class="iacts"><button class="btn primary small" data-kit>Set up</button><button class="btn small" data-kitoff>Not now</button></div></div>`;
+};
+const _drawPanel = drawPanel;
+drawPanel = function () {
+  _drawPanel(); const p = $("#panel"), r = R(S.cur); if (!r || p.hidden) return;
+  p.querySelectorAll(".mem[data-user]").forEach(el => { if (el.dataset.user === "me" || ID.verified.includes(el.dataset.user)) el.querySelector("span").insertAdjacentHTML("afterend", I.lock.replace("<svg", '<svg class="trust" aria-label="Verified"')); });
+  const leave = p.querySelector("[data-leave]"); if (!leave) return;
+  if ((r.invited || []).length) leave.parentElement.insertAdjacentHTML("beforebegin", `<div class="grp"><h4>Invited</h4>${r.invited.map(id => `<button class="mem" data-user="${id}">${av(U[id].n)}<span>${esc(U[id].n)}</span><span class="role">Invited</span></button>`).join("")}</div>`);
+  leave.insertAdjacentHTML("beforebegin", `${r.dm ? "" : '<button class="btn" data-invite>Invite people</button>'}<button class="btn" data-unread>Mark as unread</button>`);
+  leave.parentElement.style.gap = "8px";
+};
+const _drawRoom = drawRoom;
+drawRoom = function () {
+  _drawRoom(); const h = $("#room .home > div");
+  if (h) h.insertAdjacentHTML("beforeend", `<div><button class="btn primary" data-home>New chat</button><button class="btn" data-home>Create a room</button></div>`);
+};
+const _applySet = applySet;
+applySet = function () {
+  _applySet(); const root = document.documentElement;
+  S.set.contrast ? root.dataset.contrast = "1" : delete root.dataset.contrast;
+  $("#app").classList.toggle("stamps", !!S.set.stamps);
+};
+const _drawAll = drawAll;
+drawAll = function () { _drawAll(); if (S.set.avatar) $("#meBtn").innerHTML = `<img class="meimg" src="${S.set.avatar}" alt="">`; };
+
+/* ---------- history of visited chats (Navigation.goForward, canGoBack) and what was open last ---------- */
+const HIST = []; let hpos = -1, hnav = false;
+const _openRoom = openRoom;
+openRoom = function (id) {
+  _openRoom(id);
+  if (!hnav && HIST[hpos] !== id) { HIST.length = hpos + 1; HIST.push(id); hpos = HIST.length - 1; }
+  store.set("hm-ui", { cur: S.cur, panel: S.panel });
+};
+const histGo = d => { const n = hpos + d; if (n < 0 || n >= HIST.length || !R(HIST[n])) return; hpos = n; hnav = true; openRoom(HIST[n]); hnav = false; };
+
+/* ---------- notifications: the system's own, a sound, and the one-time offer (Notify.promptShown) ---------- */
+function askNotify(then) {
+  if (!("Notification" in window)) { confirmDlg("Notifications are not available", `<p style="margin:0">This browser does not offer system notifications to this page. Notices still show inside the app.</p>`, "OK", "primary", () => {}); return; }
+  Notification.requestPermission().then(p => { if (p === "denied") confirmDlg("Notifications are blocked", `<p style="margin:0">Why nothing was asked: this browser is set to block notifications from this page.</p><p style="margin:0">How to allow them: open the site settings from the address bar, set Notifications to Allow, then reload.</p>`, "OK", "primary", () => {}); if (then) then(); }).catch(() => {});
+}
+function beep() { try { const a = new (window.AudioContext || window.webkitAudioContext)(), o = a.createOscillator(), g = a.createGain(); o.frequency.value = 660; g.gain.setValueAtTime(.08, a.currentTime); g.gain.exponentialRampToValueAtTime(.0001, a.currentTime + .25); o.connect(g).connect(a.destination); o.start(); o.stop(a.currentTime + .26); } catch (e) {} }
+let offered = false;
+const _toast = toast;
+toast = function (r, e) {
+  _toast(r, e);
+  if (S.set.sound) beep();
+  const can = "Notification" in window;
+  if (can && Notification.permission === "granted" && document.hidden) { try { const n = new Notification(r.dm ? r.name : `${first(e.from)} in ${r.name}`, { body: S.set.showText ? e.body : "New message", tag: r.id }); n.onclick = () => { window.focus(); openRoom(r.id); n.close(); }; } catch (x) {} }
+  else if (can && Notification.permission === "default" && !ID.promptOff && !offered) { offered = true;
+    toastMsg("Turn on notifications?", "Get a notice when a message arrives while this tab is in the background.", [["Turn on", () => askNotify()], ["Not now", () => { ID.promptOff = true; saveId(); }]], 0); }
+};
+
+/* ---------- menu and settings ---------- */
+userMenu = function (anchor) {
+  closeOverlay(); lastFocus = anchor;
+  const mn = document.createElement("div"); mn.id = "menu";
+  mn.innerHTML = `<div style="padding:8px"><b>${esc(S.set.name)}</b><div style="color:var(--ink3)">Sample data</div></div><hr>
+    <button data-m="account">${I.info}Profile</button><button data-m="settings">${I.gear}Settings</button><button data-m="signout">${I.out}Sign out</button><hr>
+    <div class="sect" style="padding:5px 8px">Try a situation</div>
+    <button data-m="offline">${I.wifi}${S.offline ? "Go back online" : "No connection"}</button><button data-m="arrive">${I.clock}A new message</button><button data-m="verify">${I.lock}A verification request</button>
+    <button data-m="rerr">${I.info}A session that will not open</button><button data-m="evict">${I.trash}Storage cleared by the browser</button><button data-m="update">${I.check}An update is ready</button>
+    <button data-m="stress">${I.search}20,000 messages</button><button data-m="onboard">${I.out}First run</button>`;
+  document.body.append(mn); const b = anchor.getBoundingClientRect(); mn.style.left = b.left + "px"; mn.style.top = b.bottom + 5 + "px"; mn.style.maxHeight = `calc(100% - ${b.bottom + 13}px)`; mn.style.overflow = "auto";
+  mn.onclick = e => { const x = e.target.closest("[data-m]"); if (!x) return; closeOverlay(); ({
+    account: () => settings("account"), settings: () => settings(), signout: signOut, offline: toggleOffline, stress, onboard: () => onboard(0), verify: incomingVerify,
+    arrive: () => { const r = R("r1"); if (r && !r.invite) incoming(r, "amara", `@${first("me")} one more thing for Thursday: bring the phone build.`); },
+    rerr: () => dialog(`<header><h3>Your saved session could not be opened</h3></header><div class="c"><p style="margin:0">Why: the data kept in this browser is damaged or from a newer version.</p><p style="margin:0">What you can do: try again, or clear this device and restore from your recovery kit.</p></div><footer><button class="btn danger" id="rc">Clear this device</button><button class="btn primary" data-close autofocus>Try again</button></footer>`, sc => { $("#rc", sc).onclick = signOut; }),
+    evict: () => dialog(`<header><h3>The browser removed this app's data</h3></header><div class="c"><p style="margin:0">Why: browsers clear stored data when space runs low, or when history is cleared.</p><p style="margin:0">What it means: your identity is no longer on this device. Your recovery kit brings it back.</p></div><footer><button class="btn" id="ef">Start fresh</button><button class="btn primary" id="er" autofocus>Restore from a kit</button></footer>`, sc => { $("#er", sc).onclick = () => { closeOverlay(); restore(); }; $("#ef", sc).onclick = () => { closeOverlay(); onboard(0); }; }),
+    update: () => toastMsg("An update is ready", "It was checked against its content address before being offered.", [["Update now", () => location.reload()], ["Later", () => {}]], 0)
+  })[x.dataset.m](); };
+};
+settings = function (tab = "account") {
+  const sw = (k, t, d) => `<div class="set"><div>${t}<small>${d}</small></div><button class="sw" role="switch" aria-checked="${!!S.set[k]}" data-sw2="${k}" aria-label="${t}"></button></div>`;
+  const np = "Notification" in window ? Notification.permission : "none", idx = S.rooms.reduce((a, r) => a + r.ev.length, 0);
+  const body = {
+    account: `<div class="row"><div style="flex:none">${S.set.avatar ? `<img class="meimg l" src="${S.set.avatar}" alt="">` : av(S.set.name, "l")}</div><div><button class="btn small" data-avpick>Choose a picture</button> ${S.set.avatar ? '<button class="btn small" data-avrm>Remove</button>' : ""}<small>An image up to 300 KB, kept on this device.</small></div></div>
+      <label>Name<input type="text" id="acName" value="${esc(S.set.name)}" maxlength="40"></label><div><button class="btn primary" data-acsave>Save name</button></div>
+      <div><div class="sect" style="padding:0 0 5px">Your identity</div><div class="addr">${addrOf(S.set.name)}</div></div><div><button class="btn small" data-copyid>Copy identity</button></div>`,
+    look: `<div class="set"><div>Theme<small>Follow the device, or choose.</small></div><div class="seg" style="width:233px">${["system", "light", "dark"].map(v => `<button data-theme2="${v}" aria-pressed="${S.set.theme === v}">${v[0].toUpperCase() + v.slice(1)}</button>`).join("")}</div></div>
+      ${sw("contrast", "High contrast", "Stronger text and lines.")}
+      <div class="set"><div>Message text size<small>${S.set.font} px. From 12 to 24.</small></div><button class="btn small" data-font2="-1" aria-label="Smaller">A−</button><button class="btn small" data-font2="1" aria-label="Larger">A+</button></div>`,
+    notify: `${sw("notify", "Notifications", "Show a notice when a message arrives in a chat you are not viewing.")}
+      <div class="set"><div>System notifications<small>${{ granted: "On. A notice shows when this tab is in the background.", denied: "Blocked by the browser. Allow them in the site settings, then reload.", default: "Off. The browser will ask once.", none: "Not available in this browser." }[np]}</small></div>${np === "default" ? '<button class="btn small primary" data-notifyon>Turn on</button>' : ""}</div>
+      <div class="set"><div>New chats notify me about<small>Each chat can be changed under Details.</small></div><div class="seg" style="width:233px;grid-template-columns:1fr 1fr"><button data-deflevel="all" aria-pressed="${S.set.defaultLevel === "all"}">Everything</button><button data-deflevel="mentions" aria-pressed="${S.set.defaultLevel === "mentions"}">Mentions</button></div></div>
+      ${sw("showText", "Show message text", "Off shows only that a message arrived.")}${sw("sound", "Play a sound", "A short tone with each notice.")}`,
+    prefs: `${sw("h12", "12-hour clock", "Show 3:05 pm instead of 15:05.")}${sw("stamps", "Always show times", "Show a time beside every message.")}${sw("previews", "Message previews", "Show the latest message under each chat.")}
+      ${sw("modSend", `Send with ${modKey} Enter`, "Enter then adds a new line.")}${sw("showReceipts", "Show read receipts", "See who has read a message.")}
+      ${sw("sendReceipts", "Send read receipts", "Let others see what you have read. Takes effect when the engine is connected.")}${sw("typing", "Send typing notices", "Let others see when you are typing. Takes effect when the engine is connected.")}`,
+    crypto: `<div class="row"><div>Recovery kit<small>${ID.kit ? "Saved. It restores your identity on another device." : "Not saved. Losing this device would lose your identity."}</small></div><button class="btn small${ID.kit ? "" : " primary"}" data-kit>${ID.kit ? "Make a new kit" : "Set up"}</button></div>
+      <div><div class="sect" style="padding:0 0 5px">This device</div><div class="addr">${addrOf(S.set.name + " device")}</div></div>
+      <div><div class="sect" style="padding:0 0 5px">Your other devices</div>${ID.devices.map(d => `<div class="row" style="padding:5px 0"><div>${esc(d.name)}<small>${d.verified ? "Verified" : "Not verified"}</small></div>${d.verified ? I.lock.replace("<svg", '<svg style="color:var(--ok)"') : `<button class="btn small" data-verifydev="${d.id}">Verify</button>`}</div>`).join("")}</div>
+      <div class="row"><div>Search index<small id="ixs">${idx.toLocaleString()} messages indexed on this device.</small></div><button class="btn small" data-rebuild>Rebuild</button></div>`,
+    keys: `<div class="keys">${[["Find a chat", modKey + " K"], ["Search messages", modKey + " F"], ["Show or hide details", modKey + " ."], ["Open your menu", modKey + " `"], ["Previous or next chat", "Alt ↑ / Alt ↓"], ["Back or forward through chats", "Alt ← / Alt →"], ["Move between areas", "F6"],
+      ["Scroll the timeline", "Page Up / Page Down"], ["First or latest message", modKey + " Home / " + modKey + " End"], ["Oldest unread", "Shift Page Up"], ["Jump to latest", "Esc"], ["Send", S.set.modSend ? modKey + " Enter" : "Enter"], ["New line", S.set.modSend ? "Enter" : "Shift Enter"],
+      ["Bold, italic, code", modKey + " B / I / E"], ["Edit your last message", "↑ in an empty box"], ["Cancel reply or edit", "Esc"], ["Complete a suggestion", "Enter or Tab"], ["Attach a file", modKey + " Shift U"], ["Move through the chat list", "↓ ↑ then Enter"]].map(([a, k]) => `<span>${a}</span><span class="kbd">${k}</span>`).join("")}</div>`,
+    about: `<p style="margin:0;color:var(--ink)">Holo Messenger 0.1.0, prototype. Sample people and messages; nothing is sent anywhere.</p>
+      <p style="margin:0">Rules are answered by ${RULES.source}.${RULES.source === "the verified holo" ? ` ${RULES.asked} answers were compared with the built-in copy in ${RULES.ms.toFixed(0)} ms: ${RULES.differ.length ? RULES.differ.length + " differ. " + esc(RULES.differ.slice(0, 3).join("; ")) : "none differ"}.` : ` The holo is not in use: ${esc(RULES.note)}.`}</p>
+      <p style="margin:0">${S.perf.open != null ? `Measured on this device, script time: last chat opened in ${S.perf.open.toFixed(1)} ms; last timeline update ${S.perf.draw.toFixed(1)} ms, building ${S.perf.built} of ${S.perf.rows} rows shown from ${S.perf.total} messages${S.perf.send != null ? `; last send ${S.perf.send.toFixed(1)} ms` : ""}.` : ""}</p>
+      <p style="margin:0">This page asks no server for anything; it loads only its own files. There is no account. Your identity is a key held on this device.</p>
+      <p style="margin:0">Licence: MIT or Apache 2.0, your choice. This page contains no third-party code.</p>` }[tab];
+  dialog(`<header><h3>Settings</h3><button class="icon" data-close aria-label="Close">${I.x}</button></header><div class="tabs" role="tablist">${[["account", "Profile"], ["look", "Appearance"], ["notify", "Notifications"], ["prefs", "Preferences"], ["crypto", "Encryption"], ["keys", "Keyboard"], ["about", "About"]].map(([k, t]) => `<button role="tab" aria-selected="${k === tab}" data-tab="${k}">${t}</button>`).join("")}</div><div class="c" style="padding-top:21px" data-stab="${tab}">${body}</div>`);
+};
+const avFile = Object.assign(document.createElement("input"), { type: "file", accept: "image/*", hidden: true }); document.body.append(avFile);
+avFile.onchange = () => { const f = avFile.files[0]; avFile.value = ""; if (!f) return;
+  if (f.size > 300000) { confirmDlg("That picture is too large", `<p style="margin:0">Choose an image under 300 KB. It is kept in this browser, which has little room.</p>`, "OK", "primary", () => settings("account")); return; }
+  const fr = new FileReader(); fr.onload = () => { S.set.avatar = fr.result; applySet(); drawAll(); settings("account"); }; fr.readAsDataURL(f); };
+
+/* ---------- clicks for everything above ---------- */
+const redraw = () => { saveDraft(); drawAll(); };
+document.addEventListener("click", e => {
+  const q = s => e.target.closest(s); let b;
+  const tabNow = () => { const c = $("[data-stab]"); return c ? c.dataset.stab : "account"; };
+  if (q("[data-take]")) { holdsLock = true; if (lockCh) lockCh.postMessage("take"); lockScreen(null); }
+  else if (q("[data-kitoff]")) { ID.bannerOff = true; saveId(); drawList(); }
+  else if (q("[data-kit]")) createKit();
+  else if ((b = q("[data-sw2]"))) { const k = b.dataset.sw2, t = tabNow(); S.set[k] = !S.set[k]; applySet(); redraw(); settings(t); }
+  else if ((b = q("[data-theme2]"))) { S.set.theme = b.dataset.theme2; applySet(); settings("look"); }
+  else if ((b = q("[data-font2]"))) { S.set.font = Math.max(12, Math.min(24, S.set.font + +b.dataset.font2)); applySet(); settings("look"); }   // Settings.fontSize
+  else if ((b = q("[data-deflevel]"))) { S.set.defaultLevel = b.dataset.deflevel; applySet(); settings("notify"); }
+  else if (q("[data-notifyon]")) askNotify(() => settings("notify"));
+  else if ((b = q("[data-verifydev]"))) { const d = ID.devices.find(x => x.id === b.dataset.verifydev); verifyFlow({ kind: "device", id: d.id, name: d.name, onDone: () => settings("crypto") }); }
+  else if (q("[data-rebuild]")) { const s = $("#ixs"); s.textContent = "Rebuilding."; setTimeout(() => { if ($("#ixs")) $("#ixs").textContent = S.rooms.reduce((a, r) => a + r.ev.length, 0).toLocaleString() + " messages indexed. Rebuilt just now."; }, 500); }
+  else if (q("[data-acsave]")) { const v = $("#acName").value.trim(); if (v) { S.set.name = v; U.me.n = v; applySet(); redraw(); settings("account"); toastMsg("Name saved", "People see your new name on your next message.", [], 3000); } }
+  else if (q("[data-avpick]")) avFile.click();
+  else if (q("[data-avrm]")) { S.set.avatar = null; applySet(); drawAll(); settings("account"); }
+  else if (q("[data-copyid]")) { if (navigator.clipboard) navigator.clipboard.writeText(addrOf(S.set.name)).then(() => toastMsg("Identity copied", "Share it so people can start a chat with you.", [], 3000)).catch(() => {}); }
+  else if (q("[data-invite]")) invitePeople();
+  else if (q("[data-unread]")) { const r = R(S.cur), e2 = [...r.ev].reverse().find(x => x.t === "m" && x.from !== "me" && !x.del); if (e2) { r.lastRead = e2.ts - 1; saveDraft(); S.cur = null; $("#app").classList.remove("in-room"); S.panel = false; drawRoom(); drawList(); drawPanel(); } }
+  else if (q("[data-home]")) newChat();
+  else if ((b = q("[data-avbig]"))) { const id = b.dataset.avbig, n = U[id].n; dialog(`<header><h3>${esc(n)}</h3><button class="icon" data-close aria-label="Close">${I.x}</button></header><div class="c" style="align-items:center">${id === "me" && S.set.avatar ? `<img src="${S.set.avatar}" alt="" style="max-width:100%;max-height:44vh;border-radius:8px">` : `<span class="av" style="width:233px;height:233px;font-size:89px;background:hsl(${hue(n)} 42% 44%)">${esc(n[0].toUpperCase())}</span>`}</div>`); }
+});
+/* right-click or long-press a chat: mark read or unread, details, leave */
+document.addEventListener("contextmenu", e => {
+  const it = e.target.closest(".ri[data-room]"); if (!it) return; e.preventDefault(); closeOverlay();
+  const r = R(it.dataset.room), n = unread(r), mn = document.createElement("div"); mn.id = "menu";
+  mn.innerHTML = `<button data-c="read">${I.check}${n ? "Mark as read" : "Mark as unread"}</button><button data-c="details">${I.info}Details</button><button data-c="leave">${I.out}Leave</button>`;
+  document.body.append(mn); mn.style.left = Math.min(e.clientX, innerWidth - 240) + "px"; mn.style.top = Math.min(e.clientY, innerHeight - 130) + "px";
+  mn.onclick = x => { const c = x.target.closest("[data-c]"); if (!c) return; closeOverlay(); const a = c.dataset.c;
+    if (a === "read") { if (n) r.lastRead = Date.now(); else { const e2 = [...r.ev].reverse().find(y => y.t === "m" && y.from !== "me" && !y.del); if (e2) r.lastRead = e2.ts - 1; } drawList(); }
+    else { openRoom(r.id); S.panel = true; drawPanel(); if (a === "leave") $("#panel [data-leave]").click(); } };
+});
+
+/* ---------- keys: history, areas, the chat list, the timeline, formatting ---------- */
+document.addEventListener("keydown", e => {
+  const mod = isMac ? e.metaKey : e.ctrlKey, k = e.key, t = e.target, typing = t.tagName === "INPUT" || t.tagName === "TEXTAREA", over = $("#scrim") || $("#onb") || $("#lock");
+  if (over) return;
+  if (e.altKey && (k === "ArrowLeft" || k === "ArrowRight")) { e.preventDefault(); histGo(k === "ArrowLeft" ? -1 : 1); return; }
+  if (k === "F6") { e.preventDefault(); const areas = [$("#filter"), $("#tl"), $("#ta"), $("#panel:not([hidden]) button")].filter(Boolean);   // Navigation.nextLandmark
+    const i = areas.findIndex(a => a === document.activeElement || a.contains(document.activeElement)); areas[(i + (e.shiftKey ? areas.length - 1 : 1)) % areas.length].focus(); return; }
+  if (mod && k === "`") { e.preventDefault(); userMenu($("#meBtn")); return; }
+  if (mod && e.shiftKey && k.toLowerCase() === "u" && S.cur) { e.preventDefault(); $("#file").click(); return; }
+  if (t.id === "filter" && k === "ArrowDown") { const f = $("#rooms .ri"); if (f) { e.preventDefault(); f.focus(); } return; }
+  if (t.classList && t.classList.contains("ri") && (k === "ArrowDown" || k === "ArrowUp")) { e.preventDefault(); const l = [...document.querySelectorAll("#rooms .ri")], i = l.indexOf(t), n = l[i + (k === "ArrowDown" ? 1 : -1)]; n ? n.focus() : k === "ArrowUp" && $("#filter").focus(); return; }   // Navigation.moveDown, canMoveUp
+  if ((t.id === "filter" || (t.classList && t.classList.contains("ri"))) && k === "Escape") { $("#filter").value = ""; drawList(); $("#filter").focus(); return; }
+  if (t.id === "ta" && mod && !e.shiftKey && "bie".includes(k.toLowerCase()) && k.length === 1) { e.preventDefault(); const w = { b: "**", i: "*", e: "`" }[k.toLowerCase()], a = t.selectionStart, z = t.selectionEnd;
+    t.setRangeText(w + t.value.slice(a, z) + w, a, z, "select"); if (a === z) t.setSelectionRange(a + w.length, a + w.length); grow(); return; }
+  const tl = $("#tl"), r = R(S.cur); if (!tl || !r) return;
+  if (k === "PageUp" && e.shiftKey) { e.preventDefault(); const u = r.ev.find(x => x.t === "m" && x.from !== "me" && !x.del && x.ts > (r.seenLine || 0)); if (u) jump(u.id); return; }
+  if (!typing || !t.value) { if (k === "PageUp" || k === "PageDown") { e.preventDefault(); tl.scrollTop += (k === "PageDown" ? 1 : -1) * tl.clientHeight * .9; return; } }
+  if (!typing && mod && k === "Home") { e.preventDefault(); r.lo = 0; r.hi = Math.min(shownEv(r).length, WIN) >= shownEv(r).length ? null : WIN; drawTimeline(); tl.scrollTop = 0; return; }
+  if (!typing && mod && k === "End") { e.preventDefault(); drawTimeline(true); return; }
+  if (k === "Escape" && !typing && !$("#menu") && !$("#picker")) drawTimeline(true);
+});
+addEventListener("error", ev => { if ($("#scrim") || !ev.message) return;   // a failure shows a way out, not a blank page
+  dialog(`<header><h3>Something went wrong</h3></header><div class="c"><p style="margin:0">Part of the page failed to draw. Your messages are not affected.</p><p class="addr" style="margin:0">${esc(ev.message)}</p></div><footer><button class="btn" data-close>Carry on</button><button class="btn primary" onclick="location.reload()" autofocus>Reload</button></footer>`); });
+
+/* ---------- start (Session.rootView): unsupported, first run, or the chats ---------- */
+applySet(); drawAll();
+const supported = !!(window.CSS && CSS.supports && CSS.supports("display", "grid") && window.crypto && crypto.getRandomValues && "replaceChildren" in document.body);
+if (!supported) stage(`<h2>This browser is too old.</h2><p>Holo Messenger needs a current version of Chrome, Edge, Firefox or Safari.</p><button class="btn primary" onclick="location.reload()">Try again</button>`);
+else if (!ID.created) onboard(0);
+else { const ui = store.get("hm-ui", null); if (ui && R(ui.cur) && panes(innerWidth) > 1) { openRoom(ui.cur); if (ui.panel) { S.panel = true; drawPanel(); } } }
 </script>
 </body>
 </html>
