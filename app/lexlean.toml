@@ -1,9 +1,9 @@
 spec = "lexlean/project/1"
-name = "prism-text-request"
+name = "holo-messenger-rules"
 language = "1.2"
-module_prefix = "PrismTextRequest"
+module_prefix = "PrismMessengerRules"
 source_roots = ["src"]
-entrypoints = ["src/TextRequest.lex.tex", "src/Messenger/BudgetProofs.lex.tex", "src/Messenger/ComposerProofs.lex.tex", "src/Messenger/InviteProofs.lex.tex", "src/Messenger/KeysProofs.lex.tex", "src/Messenger/LayoutProofs.lex.tex", "src/Messenger/MembershipProofs.lex.tex", "src/Messenger/MenuProofs.lex.tex", "src/Messenger/NavigationProofs.lex.tex", "src/Messenger/NotifyProofs.lex.tex", "src/Messenger/OverlayProofs.lex.tex", "src/Messenger/RenderProofs.lex.tex", "src/Messenger/RoomListProofs.lex.tex", "src/Messenger/SearchProofs.lex.tex", "src/Messenger/SessionProofs.lex.tex", "src/Messenger/SettingsProofs.lex.tex", "src/Messenger/TimelineProofs.lex.tex"]
+entrypoints = ["src/Messenger/BudgetProofs.lex.tex", "src/Messenger/ComposerProofs.lex.tex", "src/Messenger/InviteProofs.lex.tex", "src/Messenger/KeysProofs.lex.tex", "src/Messenger/LayoutProofs.lex.tex", "src/Messenger/MembershipProofs.lex.tex", "src/Messenger/MenuProofs.lex.tex", "src/Messenger/NavigationProofs.lex.tex", "src/Messenger/NotifyProofs.lex.tex", "src/Messenger/OverlayProofs.lex.tex", "src/Messenger/RenderProofs.lex.tex", "src/Messenger/RoomListProofs.lex.tex", "src/Messenger/SearchProofs.lex.tex", "src/Messenger/SessionProofs.lex.tex", "src/Messenger/SettingsProofs.lex.tex", "src/Messenger/TimelineProofs.lex.tex", "src/MessengerRules.lex.tex"]
 build_root = ".lexlean"
 lockfile = "lexlean.lock"
 lean_workspace = "."

@@ -3,26 +3,11 @@
 \useglossary{lexlean.std.nat@1.2.0}
 \title{Boolean}
 \begin{semanticmodule}
-definition{
-  name: panelHidden,
-  parameters: [],
-  result: Nat,
-  body: 0
-}
+definition{name: panelHidden, parameters: [], result: Nat, body: 0}
 
-definition{
-  name: panelOverlay,
-  parameters: [],
-  result: Nat,
-  body: 1
-}
+definition{name: panelOverlay, parameters: [], result: Nat, body: 1}
 
-definition{
-  name: panelDocked,
-  parameters: [],
-  result: Nat,
-  body: 2
-}
+definition{name: panelDocked, parameters: [], result: Nat, body: 2}
 
 definition{
   name: panes,
@@ -52,12 +37,7 @@ definition{
   body: (if (isOpen =? 0) then 0 else (if (width <? 1200) then 1 else 2))
 }
 
-definition{
-  name: bottomTabs,
-  parameters: [width : Nat],
-  result: Bool,
-  body: (width <? 768)
-}
+definition{name: bottomTabs, parameters: [width : Nat], result: Bool, body: (width <? 768)}
 
 definition{
   name: listed,

@@ -1,0 +1,136 @@
+{
+  "name": "Messenger rules",
+  "shortName": "Rules",
+  "live": "https://hologram-technologies.github.io/holo-messenger/",
+  "purpose": "Decides one client question for Holo Messenger with no server to ask: which screen shows, whether to notify, whether a message action is offered, where a link lands, what Enter does, whether a link opens, or how many panes fit. Send one request; it answers with the decision, and invalid request for anything else.",
+  "inputLabel": "Request",
+  "placeholder": "hex: one operation byte, then that operation's fields",
+  "submitLabel": "Decide",
+  "outputLabel": "Answer",
+  "answers": {
+    "positive": [
+      "main",
+      "notify",
+      "highlight",
+      "offered",
+      "room",
+      "send",
+      "opens",
+      "one",
+      "two",
+      "three"
+    ],
+    "negative": [
+      "loading",
+      "onboarding",
+      "moved",
+      "fatal",
+      "none",
+      "badge",
+      "hidden",
+      "home",
+      "preview",
+      "profile",
+      "settings",
+      "newline",
+      "complete",
+      "blocked"
+    ],
+    "refusal": "invalid request"
+  },
+  "promise": {
+    "headline": "Answers each client question with a rule Lean has checked.",
+    "detail": "Seven questions, each decided by a function in the model; the theorems about those functions are checked by the Lean kernel."
+  },
+  "claim": "MR-01 to MR-08: each answer is decided by the function the theorems are about.",
+  "proposition": {
+    "name": "Rules",
+    "text": "See features/suites/rules.feature: each scenario pins the exact statements.",
+    "plain": "For example: a muted room never notifies, a non-member is offered only copy, and an unsafe link never opens."
+  },
+  "theorems": [
+    {
+      "name": "mainNeedsIdentity",
+      "statement": "(((Messenger.Session::rootView supported started 0 holdsLock) =? 2) = false)",
+      "how": "Proved by linear arithmetic over the definition, checked by the Lean kernel by prismpm verify in CI",
+      "where": "app/src/Messenger/SessionProofs.lex.tex"
+    },
+    {
+      "name": "mutedNeverNotifies",
+      "statement": "((Messenger.Notify::notifyLevel enabled 2 mention viewing isOwn) = 0)",
+      "how": "Proved by linear arithmetic over the definition, checked by the Lean kernel by prismpm verify in CI",
+      "where": "app/src/Messenger/NotifyProofs.lex.tex"
+    },
+    {
+      "name": "nonMemberOnlyCopies",
+      "statement": "((((status <? 2) || (2 <? status)) && ((1 <=? (Messenger.Menu::messageAction action isOwn status moderator failed)) && ((action <? 3) || (3 <? action)))) = false)",
+      "how": "Proved by linear arithmetic over the definition, checked by the Lean kernel by prismpm verify in CI",
+      "where": "app/src/Messenger/MenuProofs.lex.tex"
+    },
+    {
+      "name": "nonMemberNeverLandsInTimeline",
+      "statement": "((((status <? 2) || (2 <? status)) && ((Messenger.Navigation::routeTarget kind known status) =? 1)) = false)",
+      "how": "Proved by linear arithmetic over the definition, checked by the Lean kernel by prismpm verify in CI",
+      "where": "app/src/Messenger/NavigationProofs.lex.tex"
+    },
+    {
+      "name": "shiftEnterNeverSends",
+      "statement": "(((Messenger.Composer::enterAction 1 modifier requireModifier popupOpen) =? 1) = false)",
+      "how": "Proved by linear arithmetic over the definition, checked by the Lean kernel by prismpm verify in CI",
+      "where": "app/src/Messenger/ComposerProofs.lex.tex"
+    },
+    {
+      "name": "unknownMarkupNeverRenders",
+      "statement": "(((4 <=? kind) && (1 <=? (Messenger.Render::markupAllowed kind))) = false)",
+      "how": "Proved by linear arithmetic over the definition, checked by the Lean kernel by prismpm verify in CI",
+      "where": "app/src/Messenger/RenderProofs.lex.tex"
+    },
+    {
+      "name": "atLeastOnePane",
+      "statement": "((1 <=? (Messenger.Layout::panes width)) = true)",
+      "how": "Proved by linear arithmetic over the definition, checked by the Lean kernel by prismpm verify in CI",
+      "where": "app/src/Messenger/LayoutProofs.lex.tex"
+    }
+  ],
+  "pinned": [
+    {
+      "name": "rules_mr_01 to rules_mr_08",
+      "what": "Each pinned theorem's exact statement and axioms, and that each answer is decided by the function the theorems are about. A string-matching test, not a theorem: a planted defect fails it.",
+      "where": "crates/conformance/tests/contract.rs"
+    }
+  ],
+  "trusted": [
+    {
+      "name": "SDK image",
+      "value": "the digest prismpm.lock pins; see the bootstrap workflow's log"
+    },
+    {
+      "name": "Lean toolchain",
+      "value": "leanprover/lean4:v4.32.1"
+    },
+    {
+      "name": "LexLean compiler semantics",
+      "value": "5262e5b4c8b5668ae7066ad686757a6bb7f80c941d515fb9d586894fbc7de69a"
+    },
+    {
+      "name": "prism-code runtime, vendored",
+      "value": "0.2.0, see try/vendor/prism-code/VENDOR.md"
+    },
+    {
+      "name": "Your browser",
+      "value": "runs the WebAssembly guest and this page"
+    }
+  ],
+  "attestations": {
+    "proof": {
+      "id": "not recorded; the hosted verifier attestation is in README.md",
+      "url": "https://github.com/Hologram-Technologies/holo-messenger/actions/workflows/bootstrap.yml"
+    },
+    "build": {
+      "id": "printed by prismpm verify in every pages run",
+      "url": "https://github.com/Hologram-Technologies/holo-messenger/actions/workflows/pages.yml"
+    }
+  },
+  "repository": "https://github.com/Hologram-Technologies/holo-messenger",
+  "report": "https://github.com/Hologram-Technologies/holo-messenger/blob/main/README.md"
+}

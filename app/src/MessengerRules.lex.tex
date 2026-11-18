@@ -1,0 +1,149 @@
+\begin{lexlean}{MessengerRules}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\importmodule{Foundation.Bytes}
+\importmodule{Foundation.View.Text.V1.Model}
+\importmodule{Messenger.Composer}
+\importmodule{Messenger.Layout}
+\importmodule{Messenger.Menu}
+\importmodule{Messenger.Navigation}
+\importmodule{Messenger.Notify}
+\importmodule{Messenger.Render}
+\importmodule{Messenger.Session}
+\title{Text application model}
+\begin{semanticmodule}
+definition{
+  name: application,
+  parameters: [],
+  result: Foundation.View.Text.V1.Model::TextApplication,
+  body: (record Foundation.View.Text.V1.Model::TextApplication {profile := "prismpm/text-application/1", name := "Messenger rules", cargoName := "holo-messenger-rules", cargoVersion := "0.1.0", cargoDescription := "Decides one client question for Holo Messenger: which screen shows, whether to notify, whether a message action is offered, where a link lands, what Enter does, whether a link opens, how many panes fit.", cargoRepository := "https://github.com/Hologram-Technologies/holo-messenger", cargoHomepage := "https://github.com/Hologram-Technologies/holo-messenger", libraryRoots := (cons "PrismMessengerRules.MessengerRules.dispatch" (nil String)), acceptanceVectors := (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x0101010101, response := 0x6d61696e}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x0101010001, response := 0x6f6e626f617264696e67}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x0100010101, response := 0x666174616c}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x0101010100, response := 0x6d6f766564}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x0101000101, response := 0x6c6f6164696e67}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x020100010000, response := 0x686967686c69676874}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x020102010000, response := 0x6e6f6e65}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x020100000000, response := 0x6e6f74696679}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x020000000000, response := 0x6261646765}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x020100010001, response := 0x6e6f6e65}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x030201020000, response := 0x6f666665726564}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x030200020000, response := 0x68696464656e}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x030300000000, response := 0x6f666665726564}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x030000010000, response := 0x68696464656e}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x04000102, response := 0x726f6f6d}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x04000101, response := 0x70726576696577}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x04000002, response := 0x686f6d65}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x04020100, response := 0x70726f66696c65}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x04030100, response := 0x73657474696e6773}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x0500000000, response := 0x73656e64}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x0501000000, response := 0x6e65776c696e65}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x0500000100, response := 0x6e65776c696e65}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x0500000001, response := 0x636f6d706c657465}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x0600, response := 0x6f70656e73}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x0603, response := 0x626c6f636b6564}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x070140, response := 0x6f6e65}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x070400, response := 0x74776f}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x0705a0, response := 0x7468726565}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x, response := 0x696e76616c69642072657175657374}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x09, response := 0x696e76616c69642072657175657374}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x0101, response := 0x696e76616c69642072657175657374}) (nil Foundation.View.Text.V1.Model::AcceptanceVector)))))))))))))))))))))))))))))))), entryRoot := "PrismMessengerRules.MessengerRules.dispatch", coreContract := "hologram:guest/core-wasm@1", requestMaximum := (6 : UInt32), responseMaximum := (32 : UInt32), guestAllocationMaximum := (256 : UInt32), capabilitiesEmpty := true, fatArchive := true, primaryLayer := (0 : UInt8), viewLayer := (1 : UInt8), view := (record Foundation.View.Text.V1.Model::TextView {title := "Messenger rules", heading := "Messenger rules", inputLabel := "Request", submitLabel := "Decide", outputLabel := "Answer", inputError := "Invalid request", responseError := "Invalid response"})}),
+  axioms: []
+}
+
+definition{
+  name: natAt,
+  parameters: [value : Bytes, offset : Nat, remaining : Nat, accumulated : Nat],
+  result: Nat,
+  body: (match remaining
+    | Nat.zero => accumulated
+    | Nat.succ rest => (match (Foundation.Bytes::byteAt value offset)
+      | Option.none => accumulated
+      | Option.some byte => (natAt value (offset + 1) rest ((prim multiply accumulated 256 : Nat) + (prim to_nat byte : Nat))))),
+  axioms: [Quot.sound, propext],
+  recursive_argument: remaining
+}
+
+definition{
+  name: viewName,
+  parameters: [view : Nat],
+  result: Bytes,
+  body: (if (view =? 0) then (prim utf8_encode "loading" : Bytes) else (if (view =? 1) then (prim utf8_encode "onboarding" : Bytes) else (if (view =? 2) then (prim utf8_encode "main" : Bytes) else (if (view =? 3) then (prim utf8_encode "moved" : Bytes) else (prim utf8_encode "fatal" : Bytes))))),
+  axioms: []
+}
+
+definition{
+  name: levelName,
+  parameters: [level : Nat],
+  result: Bytes,
+  body: (if (level =? 0) then (prim utf8_encode "none" : Bytes) else (if (level =? 1) then (prim utf8_encode "badge" : Bytes) else (if (level =? 2) then (prim utf8_encode "notify" : Bytes) else (prim utf8_encode "highlight" : Bytes)))),
+  axioms: []
+}
+
+definition{
+  name: targetName,
+  parameters: [target : Nat],
+  result: Bytes,
+  body: (if (target =? 0) then (prim utf8_encode "home" : Bytes) else (if (target =? 1) then (prim utf8_encode "room" : Bytes) else (if (target =? 2) then (prim utf8_encode "preview" : Bytes) else (if (target =? 3) then (prim utf8_encode "profile" : Bytes) else (prim utf8_encode "settings" : Bytes))))),
+  axioms: []
+}
+
+definition{
+  name: enterName,
+  parameters: [action : Nat],
+  result: Bytes,
+  body: (if (action =? 1) then (prim utf8_encode "send" : Bytes) else (if (action =? 2) then (prim utf8_encode "newline" : Bytes) else (prim utf8_encode "complete" : Bytes))),
+  axioms: []
+}
+
+definition{
+  name: panesName,
+  parameters: [count : Nat],
+  result: Bytes,
+  body: (if (count =? 1) then (prim utf8_encode "one" : Bytes) else (if (count =? 2) then (prim utf8_encode "two" : Bytes) else (prim utf8_encode "three" : Bytes))),
+  axioms: []
+}
+
+definition{
+  name: viewAnswer,
+  parameters: [value : Bytes],
+  result: Bytes,
+  body: (viewName (Messenger.Session::rootView (natAt value 1 1 0) (natAt value 2 1 0) (natAt value 3 1 0) (natAt value 4 1 0))),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: notifyAnswer,
+  parameters: [value : Bytes],
+  result: Bytes,
+  body: (levelName (Messenger.Notify::notifyLevel (natAt value 1 1 0) (natAt value 2 1 0) (natAt value 3 1 0) (natAt value 4 1 0) (natAt value 5 1 0))),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: actionAnswer,
+  parameters: [value : Bytes],
+  result: Bytes,
+  body: (if ((Messenger.Menu::messageAction (natAt value 1 1 0) (natAt value 2 1 0) (natAt value 3 1 0) (natAt value 4 1 0) (natAt value 5 1 0)) =? 1) then (prim utf8_encode "offered" : Bytes) else (prim utf8_encode "hidden" : Bytes)),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: linkAnswer,
+  parameters: [value : Bytes],
+  result: Bytes,
+  body: (targetName (Messenger.Navigation::routeTarget (natAt value 1 1 0) (natAt value 2 1 0) (natAt value 3 1 0))),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: enterAnswer,
+  parameters: [value : Bytes],
+  result: Bytes,
+  body: (enterName (Messenger.Composer::enterAction (natAt value 1 1 0) (natAt value 2 1 0) (natAt value 3 1 0) (natAt value 4 1 0))),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: schemeAnswer,
+  parameters: [value : Bytes],
+  result: Bytes,
+  body: (if ((Messenger.Render::schemeAllowed (natAt value 1 1 0)) =? 1) then (prim utf8_encode "opens" : Bytes) else (prim utf8_encode "blocked" : Bytes)),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: panesAnswer,
+  parameters: [value : Bytes],
+  result: Bytes,
+  body: (panesName (Messenger.Layout::panes (natAt value 1 2 0))),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: route,
+  parameters: [operation : Nat, length : Nat, value : Bytes],
+  result: Bytes,
+  body: (if ((operation =? 1) && (length =? 5)) then (viewAnswer value) else (if ((operation =? 2) && (length =? 6)) then (notifyAnswer value) else (if ((operation =? 3) && (length =? 6)) then (actionAnswer value) else (if ((operation =? 4) && (length =? 4)) then (linkAnswer value) else (if ((operation =? 5) && (length =? 5)) then (enterAnswer value) else (if ((operation =? 6) && (length =? 2)) then (schemeAnswer value) else (if ((operation =? 7) && (length =? 3)) then (panesAnswer value) else (prim utf8_encode "invalid request" : Bytes)))))))),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: dispatch,
+  parameters: [value : Bytes],
+  result: Bytes,
+  body: (route (natAt value 0 1 0) (Foundation.Bytes::byteLength value) value),
+  axioms: [Quot.sound, propext]
+}
+\end{semanticmodule}
+\end{lexlean}

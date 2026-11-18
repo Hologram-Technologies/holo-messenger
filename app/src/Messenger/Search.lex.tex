@@ -3,75 +3,25 @@
 \useglossary{lexlean.std.nat@1.2.0}
 \title{Boolean}
 \begin{semanticmodule}
-definition{
-  name: searchIdle,
-  parameters: [],
-  result: Nat,
-  body: 0
-}
+definition{name: searchIdle, parameters: [], result: Nat, body: 0}
 
-definition{
-  name: searchRunning,
-  parameters: [],
-  result: Nat,
-  body: 1
-}
+definition{name: searchRunning, parameters: [], result: Nat, body: 1}
 
-definition{
-  name: searchResults,
-  parameters: [],
-  result: Nat,
-  body: 2
-}
+definition{name: searchResults, parameters: [], result: Nat, body: 2}
 
-definition{
-  name: searchEmpty,
-  parameters: [],
-  result: Nat,
-  body: 3
-}
+definition{name: searchEmpty, parameters: [], result: Nat, body: 3}
 
-definition{
-  name: searchFailed,
-  parameters: [],
-  result: Nat,
-  body: 4
-}
+definition{name: searchFailed, parameters: [], result: Nat, body: 4}
 
-definition{
-  name: sigQuery,
-  parameters: [],
-  result: Nat,
-  body: 0
-}
+definition{name: sigQuery, parameters: [], result: Nat, body: 0}
 
-definition{
-  name: sigClear,
-  parameters: [],
-  result: Nat,
-  body: 1
-}
+definition{name: sigClear, parameters: [], result: Nat, body: 1}
 
-definition{
-  name: sigFound,
-  parameters: [],
-  result: Nat,
-  body: 2
-}
+definition{name: sigFound, parameters: [], result: Nat, body: 2}
 
-definition{
-  name: sigNothing,
-  parameters: [],
-  result: Nat,
-  body: 3
-}
+definition{name: sigNothing, parameters: [], result: Nat, body: 3}
 
-definition{
-  name: sigError,
-  parameters: [],
-  result: Nat,
-  body: 4
-}
+definition{name: sigError, parameters: [], result: Nat, body: 4}
 
 definition{
   name: searchStep,
@@ -87,75 +37,25 @@ definition{
   body: (if (queryLength =? 0) then (if (1 <=? isRecent) then 1 else 0) else (if (1 <=? matches) then 1 else 0))
 }
 
-definition{
-  name: indexOff,
-  parameters: [],
-  result: Nat,
-  body: 0
-}
+definition{name: indexOff, parameters: [], result: Nat, body: 0}
 
-definition{
-  name: indexBuilding,
-  parameters: [],
-  result: Nat,
-  body: 1
-}
+definition{name: indexBuilding, parameters: [], result: Nat, body: 1}
 
-definition{
-  name: indexReady,
-  parameters: [],
-  result: Nat,
-  body: 2
-}
+definition{name: indexReady, parameters: [], result: Nat, body: 2}
 
-definition{
-  name: indexPaused,
-  parameters: [],
-  result: Nat,
-  body: 3
-}
+definition{name: indexPaused, parameters: [], result: Nat, body: 3}
 
-definition{
-  name: sigEnable,
-  parameters: [],
-  result: Nat,
-  body: 0
-}
+definition{name: sigEnable, parameters: [], result: Nat, body: 0}
 
-definition{
-  name: sigBuilt,
-  parameters: [],
-  result: Nat,
-  body: 1
-}
+definition{name: sigBuilt, parameters: [], result: Nat, body: 1}
 
-definition{
-  name: sigPause,
-  parameters: [],
-  result: Nat,
-  body: 2
-}
+definition{name: sigPause, parameters: [], result: Nat, body: 2}
 
-definition{
-  name: sigResume,
-  parameters: [],
-  result: Nat,
-  body: 3
-}
+definition{name: sigResume, parameters: [], result: Nat, body: 3}
 
-definition{
-  name: sigReset,
-  parameters: [],
-  result: Nat,
-  body: 4
-}
+definition{name: sigReset, parameters: [], result: Nat, body: 4}
 
-definition{
-  name: sigDisable,
-  parameters: [],
-  result: Nat,
-  body: 5
-}
+definition{name: sigDisable, parameters: [], result: Nat, body: 5}
 
 definition{
   name: indexStep,

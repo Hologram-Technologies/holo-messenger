@@ -3,47 +3,17 @@
 \useglossary{lexlean.std.nat@1.2.0}
 \title{Boolean}
 \begin{semanticmodule}
-definition{
-  name: enterSend,
-  parameters: [],
-  result: Nat,
-  body: 1
-}
+definition{name: enterSend, parameters: [], result: Nat, body: 1}
 
-definition{
-  name: enterNewLine,
-  parameters: [],
-  result: Nat,
-  body: 2
-}
+definition{name: enterNewLine, parameters: [], result: Nat, body: 2}
 
-definition{
-  name: enterComplete,
-  parameters: [],
-  result: Nat,
-  body: 3
-}
+definition{name: enterComplete, parameters: [], result: Nat, body: 3}
 
-definition{
-  name: modePlain,
-  parameters: [],
-  result: Nat,
-  body: 0
-}
+definition{name: modePlain, parameters: [], result: Nat, body: 0}
 
-definition{
-  name: modeReply,
-  parameters: [],
-  result: Nat,
-  body: 1
-}
+definition{name: modeReply, parameters: [], result: Nat, body: 1}
 
-definition{
-  name: modeEdit,
-  parameters: [],
-  result: Nat,
-  body: 2
-}
+definition{name: modeEdit, parameters: [], result: Nat, body: 2}
 
 definition{
   name: enterAction,
@@ -101,11 +71,6 @@ definition{
   body: (if (position <? length) then 1 else 0)
 }
 
-definition{
-  name: lengthAfterEdit,
-  parameters: [position : Nat],
-  result: Nat,
-  body: (position + 1)
-}
+definition{name: lengthAfterEdit, parameters: [position : Nat], result: Nat, body: (position + 1)}
 \end{semanticmodule}
 \end{lexlean}

@@ -1,6 +1,6 @@
-name = "PrismTextRequest"
+name = "PrismMessengerRules"
 version = "0.1.0"
-defaultTargets = ["PrismTextRequest"]
+defaultTargets = ["PrismMessengerRules"]
 
 [[lean_lib]]
-name = "PrismTextRequest"
+name = "PrismMessengerRules"
