@@ -56,8 +56,8 @@ The acceptance vectors are tested, not proved, and only when `prismpm verify` ru
 - Membership status numbers match `Comms.Rules` in uor-comms by inspection; nothing imports that module.
 - 35 client-side Phase 1 items have no formal rule; most are frames, text or lists with no decision to state.
 - The gate's rule that only Prism is implemented here is relaxed for `client/`, by the owner's decision on 2026-11-18. Code there is not counted by `audit-prism` and is covered by no proof.
-- The interface restates the rules it uses in JavaScript; it does not yet call the holo, so the two can drift.
-- The interface is not published. The Pages site still shows the `Messenger rules` application only.
+- The interface asks the verified holo for five of its rules (panes, notify, Enter, message actions, link schemes) and compares every answer with a built-in copy it falls back to. Sort order and the rest are still JavaScript only.
+- The interface is served at `messenger/` on the Pages site, beside the `Messenger rules` application.
 - The application exposes seven of the rules. The others are proved but not callable.
 - `natAt`, the byte reader in the application module, is copied from the uor-comms room kernel.
 - Inventory parity calls were made from names and one-line descriptions, and web and mobile rows were paired by name.

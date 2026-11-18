@@ -8,7 +8,9 @@ Open `index.html` in a browser, or serve this folder with any static file server
 
 A prototype on sample data. Nothing is stored, encrypted or sent. It becomes real as uor-comms gains an engine to call.
 
-The decisions it takes (pane breakpoints, what Enter does, sort order, when to notify, which message actions are offered, which links open) are restated in JavaScript from the proved rules in `app/src/Messenger/`. Each one is marked with a comment naming the rule. They are to be replaced by calls into the holo, so they cannot drift.
+On the published site the page loads the `Messenger rules` holo, checks that it verifies, and asks it for five rules: how many panes fit, when to notify, what Enter does, which message actions are offered, and which link schemes open. It asks every case once at start-up, compares each answer with a built-in JavaScript copy, and from then on answers from the holo by table lookup, so no decision waits on a call. Settings, About says which source is in use and how many answers differed.
+
+When the holo cannot be loaded (the page opened from a file, for example) the built-in copy is used. Other decisions, such as sort order, are JavaScript only, marked with a comment naming the proved rule they follow.
 
 ## Why this folder is exempt from the gate
 
