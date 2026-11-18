@@ -1,0 +1,55 @@
+\begin{lexlean}{Messenger.InviteProofs}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\importmodule{Messenger.Invite}
+\title{Boolean}
+\begin{semanticmodule}
+theorem{
+  name: realRoomStaysReal,
+  parameters: [signal : Nat],
+  statement: ((Messenger.Invite::placeholderStep 2 signal) = 2),
+  proof: linear_arithmetic{definitions: [Messenger.Invite::placeholderStep]},
+  axioms: [propext]
+}
+
+theorem{
+  name: realOnlyAfterCreated,
+  parameters: [state : Nat, signal : Nat],
+  statement: ((((Messenger.Invite::placeholderStep state signal) =? 2) && (((state <? 2) || (2 <? state)) && ((signal <? 1) || (1 <? signal)))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Invite::placeholderStep]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: placeholderInRange,
+  parameters: [state : Nat, signal : Nat],
+  statement: (((Messenger.Invite::placeholderStep state signal) <=? 3) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Invite::placeholderStep]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: doneMeansNoFailures,
+  parameters: [sent : Nat, failed : Nat],
+  statement: (((1 <=? failed) && ((Messenger.Invite::inviteOutcome sent failed) =? 2)) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Invite::inviteOutcome]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: anyFailureIsListed,
+  parameters: [sent : Nat, failed : Nat],
+  statement: (((1 <=? failed) && (((Messenger.Invite::inviteOutcome sent failed) <? 3) || (3 <? (Messenger.Invite::inviteOutcome sent failed)))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Invite::inviteOutcome]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: inviteExamples,
+  parameters: [],
+  statement: ((((Messenger.Invite::placeholderStep (Messenger.Invite::roomPlaceholder) (Messenger.Invite::sigFirstSend)) =? 1) && (((Messenger.Invite::placeholderStep (Messenger.Invite::roomCreating) (Messenger.Invite::sigCreated)) =? 2) && (((Messenger.Invite::placeholderStep (Messenger.Invite::roomFailed) (Messenger.Invite::sigRetry)) =? 1) && (((Messenger.Invite::inviteOutcome 2 1) =? (Messenger.Invite::invitePartial)) && ((Messenger.Invite::inviteOutcome 3 0) =? (Messenger.Invite::inviteDone)))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

@@ -1,0 +1,79 @@
+\begin{lexlean}{Messenger.RoomListProofs}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\importmodule{Messenger.RoomList}
+\title{Boolean}
+\begin{semanticmodule}
+theorem{
+  name: neverSortsBeforeItself,
+  parameters: [invite : Nat, activity : Nat],
+  statement: ((Messenger.RoomList::sortsBefore invite activity invite activity) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::sortsBefore]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: neverBothSortFirst,
+  parameters: [inviteA : Nat, activityA : Nat, inviteB : Nat, activityB : Nat],
+  statement: ((((Messenger.RoomList::sortsBefore inviteA activityA inviteB activityB) + (Messenger.RoomList::sortsBefore inviteB activityB inviteA activityA)) <=? 1) = true),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::sortsBefore]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: invitesSortFirst,
+  parameters: [inviteA : Nat, activityA : Nat, inviteB : Nat, activityB : Nat],
+  statement: (((1 <=? inviteA) && ((inviteB =? 0) && ((Messenger.RoomList::sortsBefore inviteA activityA inviteB activityB) =? 0))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::sortsBefore]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: differentActivityAlwaysOrders,
+  parameters: [activityA : Nat, activityB : Nat],
+  statement: ((((activityA <? activityB) || (activityB <? activityA)) && (((Messenger.RoomList::sortsBefore 0 activityA 0 activityB) + (Messenger.RoomList::sortsBefore 0 activityB 0 activityA)) =? 0)) = false),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::sortsBefore]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: inviteShowsNoPreview,
+  parameters: [setting : Nat, hasMessage : Nat, isInvite : Nat],
+  statement: (((1 <=? isInvite) && (1 <=? (Messenger.RoomList::previewShown setting hasMessage isInvite))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::previewShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: mutedRoomShowsNoBadge,
+  parameters: [level : Nat, muted : Nat],
+  statement: (((1 <=? muted) && (1 <=? (Messenger.RoomList::itemBadge level muted))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::itemBadge]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: emptyQueryShowsEveryRoom,
+  parameters: [matches : Nat],
+  statement: ((Messenger.RoomList::filterMatch 0 matches) = 1),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::filterMatch]},
+  axioms: [propext]
+}
+
+theorem{
+  name: listStateInRange,
+  parameters: [loading : Nat, count : Nat],
+  statement: (((Messenger.RoomList::listState loading count) <=? 2) = true),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::listState]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: roomListExamples,
+  parameters: [],
+  statement: ((((Messenger.RoomList::sortsBefore 0 9 0 4) =? 1) && (((Messenger.RoomList::previewShown 1 1 0) =? 1) && (((Messenger.RoomList::listState 0 0) =? (Messenger.RoomList::listEmpty)) && ((Messenger.RoomList::filterMatch 3 0) =? 0)))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

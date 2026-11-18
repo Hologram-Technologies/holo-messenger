@@ -1,0 +1,63 @@
+\begin{lexlean}{Messenger.OverlayProofs}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\importmodule{Messenger.Overlay}
+\title{Boolean}
+\begin{semanticmodule}
+theorem{
+  name: urgentModalAlwaysWins,
+  parameters: [fixed : Nat, urgent : Nat, normal : Nat],
+  statement: (((1 <=? urgent) && (((Messenger.Overlay::modalShown fixed urgent normal) <? 3) || (3 <? (Messenger.Overlay::modalShown fixed urgent normal)))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Overlay::modalShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: modalInRange,
+  parameters: [fixed : Nat, urgent : Nat, normal : Nat],
+  statement: (((Messenger.Overlay::modalShown fixed urgent normal) <=? 3) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Overlay::modalShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: focusTrappedWheneverShown,
+  parameters: [fixed : Nat, urgent : Nat, normal : Nat],
+  statement: (((1 <=? (Messenger.Overlay::modalShown fixed urgent normal)) && ((Messenger.Overlay::focusTrapped fixed urgent normal) =? 0)) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Overlay::focusTrapped, Messenger.Overlay::modalShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: menuClosesBeforeModal,
+  parameters: [menuOpen : Nat, modalKind : Nat],
+  statement: (((1 <=? menuOpen) && (((Messenger.Overlay::escapeCloses menuOpen modalKind) <? 1) || (1 <? (Messenger.Overlay::escapeCloses menuOpen modalKind)))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Overlay::escapeCloses]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: overlayExamples,
+  parameters: [],
+  statement: ((((Messenger.Overlay::modalShown 0 0 0) =? 0) && (((Messenger.Overlay::escapeCloses 0 (Messenger.Overlay::modalFixed)) =? 0) && ((Messenger.Overlay::escapeCloses 0 (Messenger.Overlay::modalNormal)) =? 2))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: topToastCoversLeft,
+  parameters: [x : Nat, y : Nat],
+  statement: ((x <=? (Messenger.Overlay::topToast x y)) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Overlay::topToast]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: topToastCoversRight,
+  parameters: [x : Nat, y : Nat],
+  statement: ((y <=? (Messenger.Overlay::topToast x y)) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Overlay::topToast]},
+  axioms: [Quot.sound, propext]
+}
+\end{semanticmodule}
+\end{lexlean}

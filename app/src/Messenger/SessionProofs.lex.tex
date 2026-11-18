@@ -1,0 +1,127 @@
+\begin{lexlean}{Messenger.SessionProofs}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\importmodule{Messenger.Session}
+\title{Boolean}
+\begin{semanticmodule}
+theorem{
+  name: mainNeedsIdentity,
+  parameters: [supported : Nat, started : Nat, holdsLock : Nat],
+  statement: (((Messenger.Session::rootView supported started 0 holdsLock) =? 2) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Session::rootView]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: mainNeedsLock,
+  parameters: [supported : Nat, started : Nat, hasIdentity : Nat],
+  statement: (((Messenger.Session::rootView supported started hasIdentity 0) =? 2) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Session::rootView]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unsupportedIsFatal,
+  parameters: [started : Nat, hasIdentity : Nat, holdsLock : Nat],
+  statement: ((Messenger.Session::rootView 0 started hasIdentity holdsLock) = 4),
+  proof: linear_arithmetic{definitions: [Messenger.Session::rootView]},
+  axioms: [propext]
+}
+
+theorem{
+  name: rootViewInRange,
+  parameters: [supported : Nat, started : Nat, hasIdentity : Nat, holdsLock : Nat],
+  statement: (((Messenger.Session::rootView supported started hasIdentity holdsLock) <=? 4) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Session::rootView]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: movedStaysMoved,
+  parameters: [signal : Nat],
+  statement: ((Messenger.Session::lockStep 3 signal) = 3),
+  proof: linear_arithmetic{definitions: [Messenger.Session::lockStep]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: askingHoldsOnlyOnConfirm,
+  parameters: [signal : Nat],
+  statement: ((((Messenger.Session::lockStep 2 signal) =? 1) && ((signal <? 2) || (2 <? signal))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Session::lockStep]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: takeoverMovesHolder,
+  parameters: [],
+  statement: ((Messenger.Session::lockStep 1 3) = 3),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: lockStateInRange,
+  parameters: [state : Nat, signal : Nat],
+  statement: (((Messenger.Session::lockStep state signal) <=? 3) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Session::lockStep]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: noWipeWithoutConfirm,
+  parameters: [],
+  statement: ((Messenger.Session::wipeAllowed 0) = false),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: namedValuesMatch,
+  parameters: [],
+  statement: ((((Messenger.Session::viewLoading) =? 0) && (((Messenger.Session::viewOnboarding) =? 1) && (((Messenger.Session::viewMain) =? 2) && (((Messenger.Session::viewMoved) =? 3) && (((Messenger.Session::viewFatal) =? 4) && (((Messenger.Session::lockFree) =? 0) && (((Messenger.Session::lockHeld) =? 1) && (((Messenger.Session::lockAsking) =? 2) && (((Messenger.Session::lockMoved) =? 3) && (((Messenger.Session::sigAcquire) =? 0) && (((Messenger.Session::sigFoundHeld) =? 1) && (((Messenger.Session::sigConfirm) =? 2) && (((Messenger.Session::sigTakenElsewhere) =? 3) && (((Messenger.Session::sigCancel) =? 4) && (((Messenger.Session::lockStep (Messenger.Session::lockFree) (Messenger.Session::sigAcquire)) =? 1) && (((Messenger.Session::lockStep (Messenger.Session::lockFree) (Messenger.Session::sigFoundHeld)) =? 2) && (((Messenger.Session::lockStep (Messenger.Session::lockAsking) (Messenger.Session::sigCancel)) =? 0) && (((Messenger.Session::rootView 1 1 1 1) =? 2) && ((Messenger.Session::rootView 1 1 0 1) =? 1))))))))))))))))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: resumeNeedsStoredState,
+  parameters: [evicted : Nat, loads : Nat],
+  statement: (((Messenger.Session::startOutcome 0 evicted loads) =? 1) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Session::startOutcome]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: resumeNeedsCleanLoad,
+  parameters: [hasStored : Nat, evicted : Nat],
+  statement: (((Messenger.Session::startOutcome hasStored evicted 0) =? 1) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Session::startOutcome]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: evictionAlwaysExplained,
+  parameters: [hasStored : Nat, evicted : Nat, loads : Nat],
+  statement: (((1 <=? evicted) && (((Messenger.Session::startOutcome hasStored evicted loads) <? 3) || (3 <? (Messenger.Session::startOutcome hasStored evicted loads)))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Session::startOutcome]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: dismissedBannerStaysHidden,
+  parameters: [recoverySet : Nat, dismissed : Nat],
+  statement: (((1 <=? dismissed) && (1 <=? (Messenger.Session::recoveryBanner recoverySet dismissed))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Session::recoveryBanner]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: startExamples,
+  parameters: [],
+  statement: ((((Messenger.Session::startOutcome 1 0 1) =? (Messenger.Session::startResume)) && (((Messenger.Session::startOutcome 1 0 0) =? (Messenger.Session::startRestoreError)) && ((Messenger.Session::recoveryBanner 0 0) =? 1))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

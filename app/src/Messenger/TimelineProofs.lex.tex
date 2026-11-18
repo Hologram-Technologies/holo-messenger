@@ -1,0 +1,151 @@
+\begin{lexlean}{Messenger.TimelineProofs}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\importmodule{Messenger.Timeline}
+\title{Boolean}
+\begin{semanticmodule}
+theorem{
+  name: ignoredSenderNeverShown,
+  parameters: [deleted : Nat, known : Nat, showDeleted : Nat],
+  statement: ((Messenger.Timeline::shown deleted 1 known showDeleted) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::shown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unknownEventNeverShown,
+  parameters: [deleted : Nat, ignoredSender : Nat, showDeleted : Nat],
+  statement: ((Messenger.Timeline::shown deleted ignoredSender 0 showDeleted) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::shown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: deletedHiddenByDefault,
+  parameters: [ignoredSender : Nat, known : Nat],
+  statement: ((Messenger.Timeline::shown 1 ignoredSender known 0) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::shown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: sameDayHasNoDivider,
+  parameters: [day : Nat],
+  statement: ((Messenger.Timeline::dividerBefore day day 0) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::dividerBefore]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: firstItemHasDivider,
+  parameters: [previousDay : Nat, day : Nat],
+  statement: ((Messenger.Timeline::dividerBefore previousDay day 1) = 1),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::dividerBefore]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: messagesNeverCollapse,
+  parameters: [kindB : Nat, sameDay : Nat],
+  statement: ((Messenger.Timeline::collapses 0 kindB sameDay) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::collapses]},
+  axioms: [propext]
+}
+
+theorem{
+  name: collapseStaysWithinDay,
+  parameters: [kindA : Nat, kindB : Nat],
+  statement: ((Messenger.Timeline::collapses kindA kindB 0) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::collapses]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: matchingLinkNeverAsks,
+  parameters: [textIsLink : Nat],
+  statement: ((Messenger.Timeline::asksBeforeOpening textIsLink 1) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::asksBeforeOpening]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: plainTextNeverAsks,
+  parameters: [sameTarget : Nat],
+  statement: ((Messenger.Timeline::asksBeforeOpening 0 sameTarget) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::asksBeforeOpening]},
+  axioms: [propext]
+}
+
+theorem{
+  name: offlineAlwaysShown,
+  parameters: [unsent : Nat],
+  statement: ((Messenger.Timeline::statusBar 0 unsent) = 1),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::statusBar]},
+  axioms: [propext]
+}
+
+theorem{
+  name: quietWhenConnectedAndSent,
+  parameters: [],
+  statement: ((Messenger.Timeline::statusBar 1 0) = 0),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: shortDragNeverReplies,
+  parameters: [],
+  statement: ((Messenger.Timeline::startsReply 63) = false),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: namedValuesMatch,
+  parameters: [],
+  statement: ((((Messenger.Timeline::barQuiet) =? 0) && (((Messenger.Timeline::barOffline) =? 1) && (((Messenger.Timeline::barUnsent) =? 2) && (((Messenger.Timeline::statusBar 1 3) =? 2) && (((Messenger.Timeline::shown 0 0 1 0) =? 1) && (((Messenger.Timeline::collapses 2 2 1) =? 1) && ((Messenger.Timeline::asksBeforeOpening 1 0) =? 1))))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: twelveHourClockInRange,
+  parameters: [hour : Nat, twelveHour : Nat],
+  statement: (((hour <=? 23) && ((1 <=? twelveHour) && (((Messenger.Timeline::hourShown hour twelveHour) <? 1) || (12 <? (Messenger.Timeline::hourShown hour twelveHour))))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::hourShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: twentyFourHourClockUnchanged,
+  parameters: [hour : Nat],
+  statement: ((Messenger.Timeline::hourShown hour 0) = hour),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::hourShown]},
+  axioms: [propext]
+}
+
+theorem{
+  name: alwaysSettingShowsTimestamp,
+  parameters: [always : Nat, hovered : Nat, startsGroup : Nat],
+  statement: (((1 <=? always) && ((Messenger.Timeline::timestampShown always hovered startsGroup) =? 0)) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::timestampShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unknownTapDoesNothing,
+  parameters: [target : Nat],
+  statement: (((4 <? target) && (1 <=? (Messenger.Timeline::tapAction target))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::tapAction]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: clockExamples,
+  parameters: [],
+  statement: ((((Messenger.Timeline::hourShown 0 1) =? 12) && (((Messenger.Timeline::hourShown 13 1) =? 1) && (((Messenger.Timeline::hourShown 12 1) =? 12) && ((Messenger.Timeline::timestampShown 0 0 0) =? 0)))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

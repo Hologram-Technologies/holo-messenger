@@ -1,0 +1,31 @@
+\begin{lexlean}{Messenger.BudgetProofs}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\importmodule{Messenger.Budget}
+\title{Boolean}
+\begin{semanticmodule}
+theorem{
+  name: overBudgetFails,
+  parameters: [budget : Nat],
+  statement: ((Messenger.Budget::within (budget + 1) budget) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Budget::within]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: atBudgetPasses,
+  parameters: [budget : Nat],
+  statement: ((Messenger.Budget::within budget budget) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Budget::within]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: echoFitsOneFrame,
+  parameters: [],
+  statement: ((Messenger.Budget::within (Messenger.Budget::sendEchoMs) 16) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

@@ -80,86 +80,6 @@ definition{
   body: (1 <=? (length + mode))
 }
 
-theorem{
-  name: shiftEnterNeverSends,
-  parameters: [modifier : Nat, requireModifier : Nat, popupOpen : Nat],
-  statement: (((enterAction 1 modifier requireModifier popupOpen) =? 1) = false),
-  proof: linear_arithmetic{definitions: [enterAction]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: openPopupEnterCompletes,
-  parameters: [shift : Nat, modifier : Nat, requireModifier : Nat],
-  statement: ((enterAction shift modifier requireModifier 1) = 3),
-  proof: linear_arithmetic{definitions: [enterAction]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: plainEnterWaitsForModifier,
-  parameters: [],
-  statement: ((enterAction 0 0 1 0) = 2),
-  proof: reflexivity{},
-  axioms: []
-}
-
-theorem{
-  name: plainEnterSendsByDefault,
-  parameters: [],
-  statement: ((enterAction 0 0 0 0) = 1),
-  proof: reflexivity{},
-  axioms: []
-}
-
-theorem{
-  name: escapeClosesPopupFirst,
-  parameters: [mode : Nat],
-  statement: ((escapeStep mode 1) = mode),
-  proof: linear_arithmetic{definitions: [escapeStep]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: escapeCancelsReplyOrEdit,
-  parameters: [mode : Nat],
-  statement: ((escapeStep mode 0) = 0),
-  proof: linear_arithmetic{definitions: [escapeStep]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: typedTextBlocksUpEdit,
-  parameters: [popupOpen : Nat, hasOwnMessage : Nat],
-  statement: ((upEditsPrevious 0 popupOpen hasOwnMessage) = 0),
-  proof: linear_arithmetic{definitions: [upEditsPrevious]},
-  axioms: [propext]
-}
-
-theorem{
-  name: emptyNeverSends,
-  parameters: [],
-  statement: ((sendable 0 0) = false),
-  proof: reflexivity{},
-  axioms: []
-}
-
-theorem{
-  name: emptyPlainDraftDropped,
-  parameters: [],
-  statement: ((draftKept 0 0) = false),
-  proof: reflexivity{},
-  axioms: []
-}
-
-theorem{
-  name: namedValuesMatch,
-  parameters: [],
-  statement: ((((enterSend) =? 1) && (((enterNewLine) =? 2) && (((enterComplete) =? 3) && (((modePlain) =? 0) && (((modeReply) =? 1) && (((modeEdit) =? 2) && (((enterAction 0 1 1 0) =? 1) && ((upEditsPrevious 1 0 1) =? 1)))))))) = true),
-  proof: reflexivity{},
-  axioms: []
-}
-
 definition{
   name: suggestKind,
   parameters: [trigger : Nat, position : Nat, queryLength : Nat],
@@ -186,46 +106,6 @@ definition{
   parameters: [position : Nat],
   result: Nat,
   body: (position + 1)
-}
-
-theorem{
-  name: slashMidTextSuggestsNothing,
-  parameters: [position : Nat, queryLength : Nat],
-  statement: (((1 <=? position) && (1 <=? (suggestKind 4 position queryLength))) = false),
-  proof: linear_arithmetic{definitions: [suggestKind]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: suggestKindInRange,
-  parameters: [trigger : Nat, position : Nat, queryLength : Nat],
-  statement: (((suggestKind trigger position queryLength) <=? 4) = true),
-  proof: linear_arithmetic{definitions: [suggestKind]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: editClearsRedo,
-  parameters: [position : Nat],
-  statement: ((redoAvailable (position + 1) (lengthAfterEdit position)) = 0),
-  proof: linear_arithmetic{definitions: [lengthAfterEdit, redoAvailable]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: phaseOneOffersNoLocationOrPoll,
-  parameters: [item : Nat],
-  statement: (((3 <=? item) && (1 <=? (attachOffered item))) = false),
-  proof: linear_arithmetic{definitions: [attachOffered]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: suggestExamples,
-  parameters: [],
-  statement: ((((suggestKind 1 5 0) =? 1) && (((suggestKind 3 0 1) =? 0) && (((suggestKind 3 0 2) =? 3) && ((suggestKind 4 0 0) =? 4)))) = true),
-  proof: reflexivity{},
-  axioms: []
 }
 \end{semanticmodule}
 \end{lexlean}

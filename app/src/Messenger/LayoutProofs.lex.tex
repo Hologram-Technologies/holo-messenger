@@ -1,0 +1,87 @@
+\begin{lexlean}{Messenger.LayoutProofs}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\importmodule{Messenger.Layout}
+\title{Boolean}
+\begin{semanticmodule}
+theorem{
+  name: atLeastOnePane,
+  parameters: [width : Nat],
+  statement: ((1 <=? (Messenger.Layout::panes width)) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::panes]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: atMostThreePanes,
+  parameters: [width : Nat],
+  statement: (((Messenger.Layout::panes width) <=? 3) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::panes]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: narrowestPhoneHasOnePane,
+  parameters: [],
+  statement: ((Messenger.Layout::panes 320) = 1),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: phoneNeverShowsListAndTimeline,
+  parameters: [width : Nat, roomOpen : Nat],
+  statement: (((width <? 768) && (2 <=? ((Messenger.Layout::listVisible width roomOpen) + (Messenger.Layout::timelineVisible width roomOpen)))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::listVisible, Messenger.Layout::timelineVisible]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: alwaysShowsListOrTimeline,
+  parameters: [width : Nat, roomOpen : Nat],
+  statement: ((1 <=? ((Messenger.Layout::listVisible width roomOpen) + (Messenger.Layout::timelineVisible width roomOpen))) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::listVisible, Messenger.Layout::timelineVisible]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: closedPanelHidden,
+  parameters: [width : Nat],
+  statement: ((Messenger.Layout::rightPanelMode width 0) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::rightPanelMode]},
+  axioms: [propext]
+}
+
+theorem{
+  name: dockedPanelNeedsWidth,
+  parameters: [width : Nat, isOpen : Nat],
+  statement: ((((Messenger.Layout::rightPanelMode width isOpen) =? 2) && (width <? 1200)) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::rightPanelMode]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: spacesNeverListed,
+  parameters: [isPlaceholder : Nat],
+  statement: ((Messenger.Layout::listed 1 isPlaceholder) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::listed]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: placeholdersNeverListed,
+  parameters: [isSpace : Nat],
+  statement: ((Messenger.Layout::listed isSpace 1) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::listed]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: namedValuesMatch,
+  parameters: [],
+  statement: ((((Messenger.Layout::panelHidden) =? 0) && (((Messenger.Layout::panelOverlay) =? 1) && (((Messenger.Layout::panelDocked) =? 2) && (((Messenger.Layout::rightPanelMode 1024 1) =? 1) && (((Messenger.Layout::rightPanelMode 1440 1) =? 2) && (((Messenger.Layout::panes 1024) =? 2) && ((Messenger.Layout::panes 1440) =? 3))))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

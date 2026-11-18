@@ -1,0 +1,55 @@
+\begin{lexlean}{Messenger.RenderProofs}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\importmodule{Messenger.Render}
+\title{Boolean}
+\begin{semanticmodule}
+theorem{
+  name: unknownMarkupNeverRenders,
+  parameters: [kind : Nat],
+  statement: (((4 <=? kind) && (1 <=? (Messenger.Render::markupAllowed kind))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Render::markupAllowed]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unsafeSchemeNeverOpens,
+  parameters: [scheme : Nat],
+  statement: (((3 <=? scheme) && (1 <=? (Messenger.Render::schemeAllowed scheme))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Render::schemeAllowed]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unknownFileNeverOpensInline,
+  parameters: [kind : Nat],
+  statement: (((4 <=? kind) && ((Messenger.Render::viewerMode kind) =? 1)) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Render::viewerMode]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: nonMemberSeesNoDropOverlay,
+  parameters: [dragging : Nat, hasFiles : Nat, status : Nat],
+  statement: ((((status <? 2) || (2 <? status)) && (1 <=? (Messenger.Render::dropOverlay dragging hasFiles status))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Render::dropOverlay]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: missingImageFallsBack,
+  parameters: [hasImage : Nat, loaded : Nat],
+  statement: (((hasImage =? 0) && ((Messenger.Render::avatarFallback hasImage loaded) =? 0)) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Render::avatarFallback]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: renderExamples,
+  parameters: [],
+  statement: ((((Messenger.Render::markupAllowed (Messenger.Render::markupScript)) =? 0) && (((Messenger.Render::markupAllowed (Messenger.Render::markupStyle)) =? 0) && (((Messenger.Render::schemeAllowed (Messenger.Render::schemeJavascript)) =? 0) && (((Messenger.Render::schemeAllowed (Messenger.Render::schemeData)) =? 0) && (((Messenger.Render::viewerMode (Messenger.Render::filePdf)) =? 1) && ((Messenger.Render::removeAvatarOffered 0) =? 0)))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

@@ -1,0 +1,79 @@
+\begin{lexlean}{Messenger.KeysProofs}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\importmodule{Messenger.Keys}
+\title{Boolean}
+\begin{semanticmodule}
+theorem{
+  name: plainKeyHasNoGlobalAction,
+  parameters: [key : Nat, shift : Nat],
+  statement: ((Messenger.Keys::globalAction key 0 shift 0) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Keys::globalAction]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: quickSwitcherKey,
+  parameters: [],
+  statement: ((Messenger.Keys::globalAction 0 1 0 0) = 1),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: uploadNeedsShift,
+  parameters: [],
+  statement: ((Messenger.Keys::globalAction 4 1 0 0) = 0),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: actionInRange,
+  parameters: [key : Nat, modifier : Nat, shift : Nat, alt : Nat],
+  statement: (((Messenger.Keys::globalAction key modifier shift alt) <=? 9) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Keys::globalAction]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: namedValuesMatch,
+  parameters: [],
+  statement: ((((Messenger.Keys::keyK) =? 0) && (((Messenger.Keys::keyF) =? 1) && (((Messenger.Keys::keyPeriod) =? 2) && (((Messenger.Keys::keyBacktick) =? 3) && (((Messenger.Keys::keyU) =? 4) && (((Messenger.Keys::keyUp) =? 5) && (((Messenger.Keys::keyDown) =? 6) && (((Messenger.Keys::actNone) =? 0) && (((Messenger.Keys::actQuickSwitcher) =? 1) && (((Messenger.Keys::actRoomSearch) =? 2) && (((Messenger.Keys::actRightPanel) =? 3) && (((Messenger.Keys::actUserMenu) =? 4) && (((Messenger.Keys::actUpload) =? 5) && (((Messenger.Keys::actPreviousRoom) =? 6) && (((Messenger.Keys::actNextRoom) =? 7) && (((Messenger.Keys::actPreviousUnread) =? 8) && (((Messenger.Keys::actNextUnread) =? 9) && (((Messenger.Keys::globalAction (Messenger.Keys::keyF) 1 0 0) =? 2) && (((Messenger.Keys::globalAction (Messenger.Keys::keyPeriod) 1 0 0) =? 3) && (((Messenger.Keys::globalAction (Messenger.Keys::keyBacktick) 1 0 0) =? 4) && (((Messenger.Keys::globalAction (Messenger.Keys::keyU) 1 1 0) =? 5) && (((Messenger.Keys::globalAction (Messenger.Keys::keyUp) 0 0 1) =? 6) && (((Messenger.Keys::globalAction (Messenger.Keys::keyDown) 0 0 1) =? 7) && (((Messenger.Keys::globalAction (Messenger.Keys::keyUp) 0 1 1) =? 8) && ((Messenger.Keys::globalAction (Messenger.Keys::keyDown) 0 1 1) =? 9))))))))))))))))))))))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: timelineKeyInRange,
+  parameters: [key : Nat, modifier : Nat, shift : Nat],
+  statement: (((Messenger.Keys::timelineKey key modifier shift) <=? 6) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Keys::timelineKey]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: plainKeyNeverFormats,
+  parameters: [key : Nat, shift : Nat],
+  statement: ((Messenger.Keys::composerKey key 0 shift) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Keys::composerKey]},
+  axioms: [propext]
+}
+
+theorem{
+  name: composerKeyInRange,
+  parameters: [key : Nat, modifier : Nat, shift : Nat],
+  statement: (((Messenger.Keys::composerKey key modifier shift) <=? 7) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Keys::composerKey]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: contextKeyExamples,
+  parameters: [],
+  statement: ((((Messenger.Keys::timelineKey (Messenger.Keys::keyHome) 0 0) =? 0) && (((Messenger.Keys::timelineKey (Messenger.Keys::keyHome) 1 0) =? 3) && (((Messenger.Keys::timelineKey (Messenger.Keys::keyPageUp) 0 1) =? 5) && (((Messenger.Keys::timelineKey (Messenger.Keys::keyEscape) 0 0) =? 6) && (((Messenger.Keys::composerKey (Messenger.Keys::keyZ) 1 0) =? 4) && (((Messenger.Keys::composerKey (Messenger.Keys::keyZ) 1 1) =? 5) && ((Messenger.Keys::composerKey (Messenger.Keys::keyB) 1 0) =? 1))))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

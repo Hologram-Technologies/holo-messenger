@@ -1,0 +1,127 @@
+\begin{lexlean}{Messenger.NotifyProofs}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\importmodule{Messenger.Notify}
+\title{Boolean}
+\begin{semanticmodule}
+theorem{
+  name: combineCommutes,
+  parameters: [x : Nat, y : Nat],
+  statement: ((Messenger.Notify::combine x y) = (Messenger.Notify::combine y x)),
+  proof: linear_arithmetic{definitions: [Messenger.Notify::combine]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: combineIdempotent,
+  parameters: [x : Nat],
+  statement: ((Messenger.Notify::combine x x) = x),
+  proof: linear_arithmetic{definitions: [Messenger.Notify::combine]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: combineCoversLeft,
+  parameters: [x : Nat, y : Nat],
+  statement: ((x <=? (Messenger.Notify::combine x y)) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Notify::combine]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: combineCoversRight,
+  parameters: [x : Nat, y : Nat],
+  statement: ((y <=? (Messenger.Notify::combine x y)) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Notify::combine]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: combineAssociates,
+  parameters: [x : Nat, y : Nat, z : Nat],
+  statement: ((Messenger.Notify::combine (Messenger.Notify::combine x y) z) = (Messenger.Notify::combine x (Messenger.Notify::combine y z))),
+  proof: linear_arithmetic{definitions: [Messenger.Notify::combine]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: mutedNeverNotifies,
+  parameters: [enabled : Nat, mention : Nat, viewing : Nat, isOwn : Nat],
+  statement: ((Messenger.Notify::notifyLevel enabled 2 mention viewing isOwn) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Notify::notifyLevel]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: ownMessageNeverNotifies,
+  parameters: [enabled : Nat, mode : Nat, mention : Nat, viewing : Nat],
+  statement: ((Messenger.Notify::notifyLevel enabled mode mention viewing 1) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Notify::notifyLevel]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: viewedRoomNeverNotifies,
+  parameters: [enabled : Nat, mode : Nat, mention : Nat, isOwn : Nat],
+  statement: ((Messenger.Notify::notifyLevel enabled mode mention 1 isOwn) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Notify::notifyLevel]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: disabledNeverShowsSystemNotice,
+  parameters: [mode : Nat, mention : Nat, viewing : Nat, isOwn : Nat],
+  statement: ((2 <=? (Messenger.Notify::notifyLevel 0 mode mention viewing isOwn)) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Notify::notifyLevel]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: mentionHighlights,
+  parameters: [],
+  statement: ((Messenger.Notify::notifyLevel 1 0 1 0 0) = 3),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: decisionInRange,
+  parameters: [enabled : Nat, mode : Nat, mention : Nat, viewing : Nat, isOwn : Nat],
+  statement: (((Messenger.Notify::notifyLevel enabled mode mention viewing isOwn) <=? 3) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Notify::notifyLevel]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: badgeOnlyIsSilent,
+  parameters: [sound : Nat],
+  statement: ((Messenger.Notify::plays sound 1) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Notify::plays]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: namedValuesMatch,
+  parameters: [],
+  statement: ((((Messenger.Notify::levelNone) =? 0) && (((Messenger.Notify::levelBadge) =? 1) && (((Messenger.Notify::levelNotify) =? 2) && (((Messenger.Notify::levelHighlight) =? 3) && (((Messenger.Notify::modeAll) =? 0) && (((Messenger.Notify::modeMentions) =? 1) && (((Messenger.Notify::modeMuted) =? 2) && (((Messenger.Notify::notifyLevel 1 (Messenger.Notify::modeAll) 0 0 0) =? 2) && (((Messenger.Notify::notifyLevel 1 (Messenger.Notify::modeMentions) 0 0 0) =? 0) && ((Messenger.Notify::notifyLevel 0 (Messenger.Notify::modeAll) 1 0 0) =? 1)))))))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: decidedPermissionNeverPrompts,
+  parameters: [permission : Nat, dismissed : Nat],
+  statement: (((1 <=? permission) && (1 <=? (Messenger.Notify::promptShown permission dismissed))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Notify::promptShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: dismissedPromptStaysHidden,
+  parameters: [permission : Nat, dismissed : Nat],
+  statement: (((1 <=? dismissed) && (1 <=? (Messenger.Notify::promptShown permission dismissed))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Notify::promptShown]},
+  axioms: [Quot.sound, propext]
+}
+\end{semanticmodule}
+\end{lexlean}

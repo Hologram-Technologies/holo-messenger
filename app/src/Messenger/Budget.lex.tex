@@ -44,29 +44,5 @@ definition{
   result: Bool,
   body: (measured <=? budget)
 }
-
-theorem{
-  name: overBudgetFails,
-  parameters: [budget : Nat],
-  statement: ((within (budget + 1) budget) = false),
-  proof: linear_arithmetic{definitions: [within]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: atBudgetPasses,
-  parameters: [budget : Nat],
-  statement: ((within budget budget) = true),
-  proof: linear_arithmetic{definitions: [within]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: echoFitsOneFrame,
-  parameters: [],
-  statement: ((within (sendEchoMs) 16) = true),
-  proof: reflexivity{},
-  axioms: []
-}
 \end{semanticmodule}
 \end{lexlean}

@@ -115,54 +115,6 @@ definition{
   body: (if (roomSelected =? 0) then 0 else 1)
 }
 
-theorem{
-  name: forwardStaysInHistory,
-  parameters: [position : Nat, length : Nat],
-  statement: (((position <? length) && (length <=? (goForward position length))) = false),
-  proof: linear_arithmetic{definitions: [goForward]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: unknownLinkGoesHome,
-  parameters: [kind : Nat, status : Nat],
-  statement: ((routeTarget kind 0 status) = 0),
-  proof: linear_arithmetic{definitions: [routeTarget]},
-  axioms: [propext]
-}
-
-theorem{
-  name: nonMemberNeverLandsInTimeline,
-  parameters: [kind : Nat, known : Nat, status : Nat],
-  statement: ((((status <? 2) || (2 <? status)) && ((routeTarget kind known status) =? 1)) = false),
-  proof: linear_arithmetic{definitions: [routeTarget]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: routeInRange,
-  parameters: [kind : Nat, known : Nat, status : Nat],
-  statement: (((routeTarget kind known status) <=? 4) = true),
-  proof: linear_arithmetic{definitions: [routeTarget]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: nextThenPreviousReturns,
-  parameters: [current : Nat],
-  statement: (((current <=? 3) && (((previousLandmark (nextLandmark current)) <? current) || (current <? (previousLandmark (nextLandmark current))))) = false),
-  proof: linear_arithmetic{definitions: [nextLandmark, previousLandmark]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: noSavedScrollGoesToBottom,
-  parameters: [saved : Nat, bottom : Nat],
-  statement: ((restoredScroll 0 saved bottom) = bottom),
-  proof: linear_arithmetic{definitions: [restoredScroll]},
-  axioms: [propext]
-}
-
 definition{
   name: canGoBack,
   parameters: [position : Nat],
@@ -189,46 +141,6 @@ definition{
   parameters: [index : Nat],
   result: Nat,
   body: (if (1 <=? index) then 1 else 0)
-}
-
-theorem{
-  name: forwardMovesOnlyWhenAllowed,
-  parameters: [position : Nat, length : Nat],
-  statement: ((((canGoForward position length) =? 0) && (((goForward position length) <? position) || (position <? (goForward position length)))) = false),
-  proof: linear_arithmetic{definitions: [canGoForward, goForward]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: selectionStaysInList,
-  parameters: [index : Nat, count : Nat],
-  statement: (((index <? count) && (count <=? (moveDown index count))) = false),
-  proof: linear_arithmetic{definitions: [moveDown]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: navigationExamples,
-  parameters: [],
-  statement: ((((canGoBack 0) =? 0) && (((canMoveUp 0) =? 0) && (((routeTarget (linkNotification) 1 2) =? 1) && (((routeTarget (linkRoom) 1 1) =? 2) && (((moveDown 4 5) =? 4) && ((centreView 0) =? 0)))))) = true),
-  proof: reflexivity{},
-  axioms: []
-}
-
-theorem{
-  name: nextLandmarkInRange,
-  parameters: [current : Nat],
-  statement: (((nextLandmark current) <=? 3) = true),
-  proof: linear_arithmetic{definitions: [nextLandmark]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: previousLandmarkInRange,
-  parameters: [current : Nat],
-  statement: (((previousLandmark current) <=? 3) = true),
-  proof: linear_arithmetic{definitions: [previousLandmark]},
-  axioms: [Quot.sound, propext]
 }
 \end{semanticmodule}
 \end{lexlean}

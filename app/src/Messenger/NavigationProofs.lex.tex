@@ -1,0 +1,95 @@
+\begin{lexlean}{Messenger.NavigationProofs}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\importmodule{Messenger.Navigation}
+\title{Boolean}
+\begin{semanticmodule}
+theorem{
+  name: forwardStaysInHistory,
+  parameters: [position : Nat, length : Nat],
+  statement: (((position <? length) && (length <=? (Messenger.Navigation::goForward position length))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Navigation::goForward]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unknownLinkGoesHome,
+  parameters: [kind : Nat, status : Nat],
+  statement: ((Messenger.Navigation::routeTarget kind 0 status) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Navigation::routeTarget]},
+  axioms: [propext]
+}
+
+theorem{
+  name: nonMemberNeverLandsInTimeline,
+  parameters: [kind : Nat, known : Nat, status : Nat],
+  statement: ((((status <? 2) || (2 <? status)) && ((Messenger.Navigation::routeTarget kind known status) =? 1)) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Navigation::routeTarget]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: routeInRange,
+  parameters: [kind : Nat, known : Nat, status : Nat],
+  statement: (((Messenger.Navigation::routeTarget kind known status) <=? 4) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Navigation::routeTarget]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: nextThenPreviousReturns,
+  parameters: [current : Nat],
+  statement: (((current <=? 3) && (((Messenger.Navigation::previousLandmark (Messenger.Navigation::nextLandmark current)) <? current) || (current <? (Messenger.Navigation::previousLandmark (Messenger.Navigation::nextLandmark current))))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Navigation::nextLandmark, Messenger.Navigation::previousLandmark]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: noSavedScrollGoesToBottom,
+  parameters: [saved : Nat, bottom : Nat],
+  statement: ((Messenger.Navigation::restoredScroll 0 saved bottom) = bottom),
+  proof: linear_arithmetic{definitions: [Messenger.Navigation::restoredScroll]},
+  axioms: [propext]
+}
+
+theorem{
+  name: forwardMovesOnlyWhenAllowed,
+  parameters: [position : Nat, length : Nat],
+  statement: ((((Messenger.Navigation::canGoForward position length) =? 0) && (((Messenger.Navigation::goForward position length) <? position) || (position <? (Messenger.Navigation::goForward position length)))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Navigation::canGoForward, Messenger.Navigation::goForward]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: selectionStaysInList,
+  parameters: [index : Nat, count : Nat],
+  statement: (((index <? count) && (count <=? (Messenger.Navigation::moveDown index count))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Navigation::moveDown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: navigationExamples,
+  parameters: [],
+  statement: ((((Messenger.Navigation::canGoBack 0) =? 0) && (((Messenger.Navigation::canMoveUp 0) =? 0) && (((Messenger.Navigation::routeTarget (Messenger.Navigation::linkNotification) 1 2) =? 1) && (((Messenger.Navigation::routeTarget (Messenger.Navigation::linkRoom) 1 1) =? 2) && (((Messenger.Navigation::moveDown 4 5) =? 4) && ((Messenger.Navigation::centreView 0) =? 0)))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: nextLandmarkInRange,
+  parameters: [current : Nat],
+  statement: (((Messenger.Navigation::nextLandmark current) <=? 3) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Navigation::nextLandmark]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: previousLandmarkInRange,
+  parameters: [current : Nat],
+  statement: (((Messenger.Navigation::previousLandmark current) <=? 3) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Navigation::previousLandmark]},
+  axioms: [Quot.sound, propext]
+}
+\end{semanticmodule}
+\end{lexlean}

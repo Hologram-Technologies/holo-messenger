@@ -1,0 +1,71 @@
+\begin{lexlean}{Messenger.MenuProofs}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\importmodule{Messenger.Menu}
+\title{Boolean}
+\begin{semanticmodule}
+theorem{
+  name: nonMemberOnlyCopies,
+  parameters: [action : Nat, isOwn : Nat, status : Nat, moderator : Nat, failed : Nat],
+  statement: ((((status <? 2) || (2 <? status)) && ((1 <=? (Messenger.Menu::messageAction action isOwn status moderator failed)) && ((action <? 3) || (3 <? action)))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Menu::messageAction]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: editOnlyOwnMessage,
+  parameters: [status : Nat, moderator : Nat, failed : Nat],
+  statement: ((Messenger.Menu::messageAction 2 0 status moderator failed) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Menu::messageAction]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: retryOnlyWhenFailed,
+  parameters: [isOwn : Nat, status : Nat, moderator : Nat],
+  statement: ((Messenger.Menu::messageAction 5 isOwn status moderator 0) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Menu::messageAction]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: removeNeedsOwnerOrModerator,
+  parameters: [status : Nat],
+  statement: ((Messenger.Menu::messageAction 4 0 status 0 0) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Menu::messageAction]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: failedMessageNeverReactsOrReplies,
+  parameters: [action : Nat, isOwn : Nat, status : Nat, moderator : Nat],
+  statement: (((action <=? 1) && (1 <=? (Messenger.Menu::messageAction action isOwn status moderator 1))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Menu::messageAction]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: messageActionInRange,
+  parameters: [action : Nat, isOwn : Nat, status : Nat, moderator : Nat, failed : Nat],
+  statement: (((Messenger.Menu::messageAction action isOwn status moderator failed) <=? 1) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Menu::messageAction]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: leaveOnlyWhenJoined,
+  parameters: [status : Nat],
+  statement: ((((status <? 2) || (2 <? status)) && (1 <=? (Messenger.Menu::roomMenuItem 4 status))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Menu::roomMenuItem]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: menuExamples,
+  parameters: [],
+  statement: ((((Messenger.Menu::roomMenuItem (Messenger.Menu::itemForget) 2) =? 0) && (((Messenger.Menu::roomMenuItem (Messenger.Menu::itemForget) 3) =? 1) && (((Messenger.Menu::messageAction (Messenger.Menu::actEdit) 1 2 0 0) =? 1) && ((Messenger.Menu::messageAction (Messenger.Menu::actRemove) 0 2 1 0) =? 1)))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

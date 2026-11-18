@@ -1,0 +1,87 @@
+\begin{lexlean}{Messenger.SettingsProofs}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\importmodule{Messenger.Settings}
+\title{Boolean}
+\begin{semanticmodule}
+theorem{
+  name: lightIgnoresSystem,
+  parameters: [systemDark : Nat],
+  statement: ((Messenger.Settings::resolvesDark 1 systemDark) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Settings::resolvesDark]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: darkIgnoresSystem,
+  parameters: [systemDark : Nat],
+  statement: ((Messenger.Settings::resolvesDark 2 systemDark) = 1),
+  proof: linear_arithmetic{definitions: [Messenger.Settings::resolvesDark]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: fontNeverBelowMinimum,
+  parameters: [requested : Nat],
+  statement: ((12 <=? (Messenger.Settings::fontSize requested)) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Settings::fontSize]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: fontNeverAboveMaximum,
+  parameters: [requested : Nat],
+  statement: (((Messenger.Settings::fontSize requested) <=? 24) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Settings::fontSize]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: failedChangeShowsOldValue,
+  parameters: [oldValue : Nat, newValue : Nat],
+  statement: ((Messenger.Settings::shownValue 3 oldValue newValue) = oldValue),
+  proof: linear_arithmetic{definitions: [Messenger.Settings::shownValue]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: pendingChangeShowsNewValue,
+  parameters: [oldValue : Nat, newValue : Nat],
+  statement: ((Messenger.Settings::shownValue 1 oldValue newValue) = newValue),
+  proof: linear_arithmetic{definitions: [Messenger.Settings::shownValue]},
+  axioms: [propext]
+}
+
+theorem{
+  name: savedOnlyAfterSaving,
+  parameters: [signal : Nat],
+  statement: (((Messenger.Settings::changeStep 0 signal) =? 2) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Settings::changeStep]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: changeStateInRange,
+  parameters: [state : Nat, signal : Nat],
+  statement: (((Messenger.Settings::changeStep state signal) <=? 3) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Settings::changeStep]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unverifiedUpdateNeverActivates,
+  parameters: [reopened : Nat],
+  statement: ((Messenger.Settings::activates 0 reopened) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Settings::activates]},
+  axioms: [propext]
+}
+
+theorem{
+  name: namedValuesMatch,
+  parameters: [],
+  statement: ((((Messenger.Settings::themeSystem) =? 0) && (((Messenger.Settings::themeLight) =? 1) && (((Messenger.Settings::themeDark) =? 2) && (((Messenger.Settings::changeIdle) =? 0) && (((Messenger.Settings::changeSaving) =? 1) && (((Messenger.Settings::changeSaved) =? 2) && (((Messenger.Settings::changeFailed) =? 3) && (((Messenger.Settings::sigChange) =? 0) && (((Messenger.Settings::sigAccepted) =? 1) && (((Messenger.Settings::sigRejected) =? 2) && (((Messenger.Settings::changeStep (Messenger.Settings::changeSaving) (Messenger.Settings::sigAccepted)) =? 2) && (((Messenger.Settings::changeStep (Messenger.Settings::changeSaving) (Messenger.Settings::sigRejected)) =? 3) && (((Messenger.Settings::resolvesDark (Messenger.Settings::themeSystem) 1) =? 1) && ((Messenger.Settings::fontSize 16) =? 16)))))))))))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

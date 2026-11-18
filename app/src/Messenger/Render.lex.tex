@@ -149,53 +149,5 @@ definition{
   result: Nat,
   body: 3
 }
-
-theorem{
-  name: unknownMarkupNeverRenders,
-  parameters: [kind : Nat],
-  statement: (((4 <=? kind) && (1 <=? (markupAllowed kind))) = false),
-  proof: linear_arithmetic{definitions: [markupAllowed]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: unsafeSchemeNeverOpens,
-  parameters: [scheme : Nat],
-  statement: (((3 <=? scheme) && (1 <=? (schemeAllowed scheme))) = false),
-  proof: linear_arithmetic{definitions: [schemeAllowed]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: unknownFileNeverOpensInline,
-  parameters: [kind : Nat],
-  statement: (((4 <=? kind) && ((viewerMode kind) =? 1)) = false),
-  proof: linear_arithmetic{definitions: [viewerMode]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: nonMemberSeesNoDropOverlay,
-  parameters: [dragging : Nat, hasFiles : Nat, status : Nat],
-  statement: ((((status <? 2) || (2 <? status)) && (1 <=? (dropOverlay dragging hasFiles status))) = false),
-  proof: linear_arithmetic{definitions: [dropOverlay]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: missingImageFallsBack,
-  parameters: [hasImage : Nat, loaded : Nat],
-  statement: (((hasImage =? 0) && ((avatarFallback hasImage loaded) =? 0)) = false),
-  proof: linear_arithmetic{definitions: [avatarFallback]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: renderExamples,
-  parameters: [],
-  statement: ((((markupAllowed (markupScript)) =? 0) && (((markupAllowed (markupStyle)) =? 0) && (((schemeAllowed (schemeJavascript)) =? 0) && (((schemeAllowed (schemeData)) =? 0) && (((viewerMode (filePdf)) =? 1) && ((removeAvatarOffered 0) =? 0)))))) = true),
-  proof: reflexivity{},
-  axioms: []
-}
 \end{semanticmodule}
 \end{lexlean}

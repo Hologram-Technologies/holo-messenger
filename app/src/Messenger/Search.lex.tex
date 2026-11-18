@@ -87,54 +87,6 @@ definition{
   body: (if (queryLength =? 0) then (if (1 <=? isRecent) then 1 else 0) else (if (1 <=? matches) then 1 else 0))
 }
 
-theorem{
-  name: clearAlwaysIdle,
-  parameters: [state : Nat],
-  statement: ((searchStep state 1) = 0),
-  proof: linear_arithmetic{definitions: [searchStep]},
-  axioms: [propext]
-}
-
-theorem{
-  name: queryAlwaysSearches,
-  parameters: [state : Nat],
-  statement: ((searchStep state 0) = 1),
-  proof: linear_arithmetic{definitions: [searchStep]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: noResultsFromIdle,
-  parameters: [signal : Nat],
-  statement: (((searchStep 0 signal) =? 2) = false),
-  proof: linear_arithmetic{definitions: [searchStep]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: searchStateInRange,
-  parameters: [state : Nat, signal : Nat],
-  statement: (((searchStep state signal) <=? 4) = true),
-  proof: linear_arithmetic{definitions: [searchStep]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: emptyQueryShowsOnlyRecents,
-  parameters: [matches : Nat],
-  statement: ((switcherShows 0 0 matches) = 0),
-  proof: linear_arithmetic{definitions: [switcherShows]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: namedValuesMatch,
-  parameters: [],
-  statement: ((((searchIdle) =? 0) && (((searchRunning) =? 1) && (((searchResults) =? 2) && (((searchEmpty) =? 3) && (((searchFailed) =? 4) && (((sigQuery) =? 0) && (((sigClear) =? 1) && (((sigFound) =? 2) && (((sigNothing) =? 3) && (((sigError) =? 4) && (((searchStep (searchRunning) (sigFound)) =? 2) && (((searchStep (searchRunning) (sigNothing)) =? 3) && ((searchStep (searchRunning) (sigError)) =? 4))))))))))))) = true),
-  proof: reflexivity{},
-  axioms: []
-}
-
 definition{
   name: indexOff,
   parameters: [],
@@ -217,46 +169,6 @@ definition{
   parameters: [state : Nat],
   result: Nat,
   body: (if (state =? 2) then 1 else 0)
-}
-
-theorem{
-  name: disableAlwaysTurnsOff,
-  parameters: [state : Nat],
-  statement: ((indexStep state 5) = 0),
-  proof: linear_arithmetic{definitions: [indexStep]},
-  axioms: [propext]
-}
-
-theorem{
-  name: offStaysOffUntilEnabled,
-  parameters: [signal : Nat],
-  statement: (((1 <=? signal) && (1 <=? (indexStep 0 signal))) = false),
-  proof: linear_arithmetic{definitions: [indexStep]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: resetRebuilds,
-  parameters: [state : Nat],
-  statement: (((1 <=? state) && ((state <=? 3) && (((indexStep state 4) <? 1) || (1 <? (indexStep state 4))))) = false),
-  proof: linear_arithmetic{definitions: [indexStep]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: indexStateInRange,
-  parameters: [state : Nat, signal : Nat],
-  statement: (((indexStep state signal) <=? 3) = true),
-  proof: linear_arithmetic{definitions: [indexStep]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: indexExamples,
-  parameters: [],
-  statement: ((((indexStep (indexOff) (sigEnable)) =? 1) && (((indexStep (indexBuilding) (sigBuilt)) =? 2) && (((indexStep (indexReady) (sigPause)) =? 2) && (((indexSearchable (indexBuilding)) =? 0) && ((indexSearchable (indexReady)) =? 1))))) = true),
-  proof: reflexivity{},
-  axioms: []
 }
 \end{semanticmodule}
 \end{lexlean}

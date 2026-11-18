@@ -1,0 +1,95 @@
+\begin{lexlean}{Messenger.SearchProofs}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\importmodule{Messenger.Search}
+\title{Boolean}
+\begin{semanticmodule}
+theorem{
+  name: clearAlwaysIdle,
+  parameters: [state : Nat],
+  statement: ((Messenger.Search::searchStep state 1) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Search::searchStep]},
+  axioms: [propext]
+}
+
+theorem{
+  name: queryAlwaysSearches,
+  parameters: [state : Nat],
+  statement: ((Messenger.Search::searchStep state 0) = 1),
+  proof: linear_arithmetic{definitions: [Messenger.Search::searchStep]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: noResultsFromIdle,
+  parameters: [signal : Nat],
+  statement: (((Messenger.Search::searchStep 0 signal) =? 2) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Search::searchStep]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: searchStateInRange,
+  parameters: [state : Nat, signal : Nat],
+  statement: (((Messenger.Search::searchStep state signal) <=? 4) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Search::searchStep]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: emptyQueryShowsOnlyRecents,
+  parameters: [matches : Nat],
+  statement: ((Messenger.Search::switcherShows 0 0 matches) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Search::switcherShows]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: namedValuesMatch,
+  parameters: [],
+  statement: ((((Messenger.Search::searchIdle) =? 0) && (((Messenger.Search::searchRunning) =? 1) && (((Messenger.Search::searchResults) =? 2) && (((Messenger.Search::searchEmpty) =? 3) && (((Messenger.Search::searchFailed) =? 4) && (((Messenger.Search::sigQuery) =? 0) && (((Messenger.Search::sigClear) =? 1) && (((Messenger.Search::sigFound) =? 2) && (((Messenger.Search::sigNothing) =? 3) && (((Messenger.Search::sigError) =? 4) && (((Messenger.Search::searchStep (Messenger.Search::searchRunning) (Messenger.Search::sigFound)) =? 2) && (((Messenger.Search::searchStep (Messenger.Search::searchRunning) (Messenger.Search::sigNothing)) =? 3) && ((Messenger.Search::searchStep (Messenger.Search::searchRunning) (Messenger.Search::sigError)) =? 4))))))))))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: disableAlwaysTurnsOff,
+  parameters: [state : Nat],
+  statement: ((Messenger.Search::indexStep state 5) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Search::indexStep]},
+  axioms: [propext]
+}
+
+theorem{
+  name: offStaysOffUntilEnabled,
+  parameters: [signal : Nat],
+  statement: (((1 <=? signal) && (1 <=? (Messenger.Search::indexStep 0 signal))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Search::indexStep]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: resetRebuilds,
+  parameters: [state : Nat],
+  statement: (((1 <=? state) && ((state <=? 3) && (((Messenger.Search::indexStep state 4) <? 1) || (1 <? (Messenger.Search::indexStep state 4))))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Search::indexStep]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: indexStateInRange,
+  parameters: [state : Nat, signal : Nat],
+  statement: (((Messenger.Search::indexStep state signal) <=? 3) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Search::indexStep]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: indexExamples,
+  parameters: [],
+  statement: ((((Messenger.Search::indexStep (Messenger.Search::indexOff) (Messenger.Search::sigEnable)) =? 1) && (((Messenger.Search::indexStep (Messenger.Search::indexBuilding) (Messenger.Search::sigBuilt)) =? 2) && (((Messenger.Search::indexStep (Messenger.Search::indexReady) (Messenger.Search::sigPause)) =? 2) && (((Messenger.Search::indexSearchable (Messenger.Search::indexBuilding)) =? 0) && ((Messenger.Search::indexSearchable (Messenger.Search::indexReady)) =? 1))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

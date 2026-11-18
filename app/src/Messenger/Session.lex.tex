@@ -122,86 +122,6 @@ definition{
   body: (1 <=? confirmed)
 }
 
-theorem{
-  name: mainNeedsIdentity,
-  parameters: [supported : Nat, started : Nat, holdsLock : Nat],
-  statement: (((rootView supported started 0 holdsLock) =? 2) = false),
-  proof: linear_arithmetic{definitions: [rootView]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: mainNeedsLock,
-  parameters: [supported : Nat, started : Nat, hasIdentity : Nat],
-  statement: (((rootView supported started hasIdentity 0) =? 2) = false),
-  proof: linear_arithmetic{definitions: [rootView]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: unsupportedIsFatal,
-  parameters: [started : Nat, hasIdentity : Nat, holdsLock : Nat],
-  statement: ((rootView 0 started hasIdentity holdsLock) = 4),
-  proof: linear_arithmetic{definitions: [rootView]},
-  axioms: [propext]
-}
-
-theorem{
-  name: rootViewInRange,
-  parameters: [supported : Nat, started : Nat, hasIdentity : Nat, holdsLock : Nat],
-  statement: (((rootView supported started hasIdentity holdsLock) <=? 4) = true),
-  proof: linear_arithmetic{definitions: [rootView]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: movedStaysMoved,
-  parameters: [signal : Nat],
-  statement: ((lockStep 3 signal) = 3),
-  proof: linear_arithmetic{definitions: [lockStep]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: askingHoldsOnlyOnConfirm,
-  parameters: [signal : Nat],
-  statement: ((((lockStep 2 signal) =? 1) && ((signal <? 2) || (2 <? signal))) = false),
-  proof: linear_arithmetic{definitions: [lockStep]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: takeoverMovesHolder,
-  parameters: [],
-  statement: ((lockStep 1 3) = 3),
-  proof: reflexivity{},
-  axioms: []
-}
-
-theorem{
-  name: lockStateInRange,
-  parameters: [state : Nat, signal : Nat],
-  statement: (((lockStep state signal) <=? 3) = true),
-  proof: linear_arithmetic{definitions: [lockStep]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: noWipeWithoutConfirm,
-  parameters: [],
-  statement: ((wipeAllowed 0) = false),
-  proof: reflexivity{},
-  axioms: []
-}
-
-theorem{
-  name: namedValuesMatch,
-  parameters: [],
-  statement: ((((viewLoading) =? 0) && (((viewOnboarding) =? 1) && (((viewMain) =? 2) && (((viewMoved) =? 3) && (((viewFatal) =? 4) && (((lockFree) =? 0) && (((lockHeld) =? 1) && (((lockAsking) =? 2) && (((lockMoved) =? 3) && (((sigAcquire) =? 0) && (((sigFoundHeld) =? 1) && (((sigConfirm) =? 2) && (((sigTakenElsewhere) =? 3) && (((sigCancel) =? 4) && (((lockStep (lockFree) (sigAcquire)) =? 1) && (((lockStep (lockFree) (sigFoundHeld)) =? 2) && (((lockStep (lockAsking) (sigCancel)) =? 0) && (((rootView 1 1 1 1) =? 2) && ((rootView 1 1 0 1) =? 1))))))))))))))))))) = true),
-  proof: reflexivity{},
-  axioms: []
-}
-
 definition{
   name: startOnboarding,
   parameters: [],
@@ -242,46 +162,6 @@ definition{
   parameters: [recoverySet : Nat, dismissed : Nat],
   result: Nat,
   body: (if (recoverySet =? 0) then (if (dismissed =? 0) then 1 else 0) else 0)
-}
-
-theorem{
-  name: resumeNeedsStoredState,
-  parameters: [evicted : Nat, loads : Nat],
-  statement: (((startOutcome 0 evicted loads) =? 1) = false),
-  proof: linear_arithmetic{definitions: [startOutcome]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: resumeNeedsCleanLoad,
-  parameters: [hasStored : Nat, evicted : Nat],
-  statement: (((startOutcome hasStored evicted 0) =? 1) = false),
-  proof: linear_arithmetic{definitions: [startOutcome]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: evictionAlwaysExplained,
-  parameters: [hasStored : Nat, evicted : Nat, loads : Nat],
-  statement: (((1 <=? evicted) && (((startOutcome hasStored evicted loads) <? 3) || (3 <? (startOutcome hasStored evicted loads)))) = false),
-  proof: linear_arithmetic{definitions: [startOutcome]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: dismissedBannerStaysHidden,
-  parameters: [recoverySet : Nat, dismissed : Nat],
-  statement: (((1 <=? dismissed) && (1 <=? (recoveryBanner recoverySet dismissed))) = false),
-  proof: linear_arithmetic{definitions: [recoveryBanner]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: startExamples,
-  parameters: [],
-  statement: ((((startOutcome 1 0 1) =? (startResume)) && (((startOutcome 1 0 0) =? (startRestoreError)) && ((recoveryBanner 0 0) =? 1))) = true),
-  proof: reflexivity{},
-  axioms: []
 }
 \end{semanticmodule}
 \end{lexlean}

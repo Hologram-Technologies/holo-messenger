@@ -143,70 +143,6 @@ definition{
   body: (if (status =? 2) then 0 else (if (status =? 1) then 1 else 2))
 }
 
-theorem{
-  name: joinedSeesNoBar,
-  parameters: [busy : Nat],
-  statement: ((previewBar 2 busy) = 0),
-  proof: linear_arithmetic{definitions: [previewBar]},
-  axioms: [propext]
-}
-
-theorem{
-  name: bannedNeverOfferedJoin,
-  parameters: [busy : Nat],
-  statement: ((((previewBar 4 busy) =? 1) || ((previewBar 4 busy) =? 2)) = false),
-  proof: linear_arithmetic{definitions: [previewBar]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: acceptOnlyWhenInvited,
-  parameters: [status : Nat, busy : Nat],
-  statement: ((((previewBar status busy) =? 1) && ((status <? 1) || (1 <? status))) = false),
-  proof: linear_arithmetic{definitions: [previewBar]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: previewBarInRange,
-  parameters: [status : Nat, busy : Nat],
-  statement: (((previewBar status busy) <=? 4) = true),
-  proof: linear_arithmetic{definitions: [previewBar]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: bannedHasNoComposer,
-  parameters: [],
-  statement: ((composerShown 4) = false),
-  proof: reflexivity{},
-  axioms: []
-}
-
-theorem{
-  name: lastAdminAlwaysWarned,
-  parameters: [isPrivate : Nat],
-  statement: ((leaveWarning 1 1 isPrivate) = 1),
-  proof: linear_arithmetic{definitions: [leaveWarning]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: bannedNotInMemberList,
-  parameters: [],
-  statement: ((memberSection 4) = 2),
-  proof: reflexivity{},
-  axioms: []
-}
-
-theorem{
-  name: namedValuesMatch,
-  parameters: [],
-  statement: ((((absent) =? 0) && (((invited) =? 1) && (((joined) =? 2) && (((departed) =? 3) && (((banned) =? 4) && (((barNone) =? 0) && (((barInvite) =? 1) && (((barJoin) =? 2) && (((barBusy) =? 3) && (((barBanned) =? 4) && (((warnNone) =? 0) && (((warnLastAdmin) =? 1) && (((warnNoRejoin) =? 2) && (((sectionJoined) =? 0) && (((sectionInvited) =? 1) && (((sectionHidden) =? 2) && (((previewBar (invited) 0) =? 1) && (((previewBar (absent) 0) =? 2) && (((previewBar (departed) 0) =? 2) && (((previewBar (banned) 0) =? 4) && (((previewBar (invited) 1) =? 3) && (((leaveWarning 3 0 1) =? 2) && ((memberSection (invited)) =? 1))))))))))))))))))))))) = true),
-  proof: reflexivity{},
-  axioms: []
-}
-
 definition{
   name: mayEdit,
   parameters: [status : Nat, power : Nat, required : Nat],
@@ -219,30 +155,6 @@ definition{
   parameters: [power : Nat],
   result: Nat,
   body: (if (100 <=? power) then 2 else (if (50 <=? power) then 1 else 0))
-}
-
-theorem{
-  name: belowRequiredNeverEdits,
-  parameters: [status : Nat, power : Nat, required : Nat],
-  statement: (((power <? required) && (1 <=? (mayEdit status power required))) = false),
-  proof: linear_arithmetic{definitions: [mayEdit]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: nonMemberNeverEdits,
-  parameters: [status : Nat, power : Nat, required : Nat],
-  statement: ((((status <? 2) || (2 <? status)) && (1 <=? (mayEdit status power required))) = false),
-  proof: linear_arithmetic{definitions: [mayEdit]},
-  axioms: [Quot.sound, propext]
-}
-
-theorem{
-  name: roleNeverDropsWithPower,
-  parameters: [low : Nat, high : Nat],
-  statement: (((low <=? high) && ((roleLabel high) <? (roleLabel low))) = false),
-  proof: linear_arithmetic{definitions: [roleLabel]},
-  axioms: [Quot.sound, propext]
 }
 \end{semanticmodule}
 \end{lexlean}
