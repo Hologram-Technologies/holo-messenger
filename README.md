@@ -15,7 +15,7 @@ uor-comms has a room kernel on its main branch that answers six questions about 
 | Path | What it holds |
 |---|---|
 | `app/src/Messenger/` | Sixteen rule modules and their sixteen `Proofs` modules: Phase 1 client rules that need no engine |
-| `app/src/MessengerRules.lex.tex` | The application: one request in, one answer out, with 31 acceptance vectors |
+| `app/src/MessengerRules.lex.tex` | The application: one request in, one answer out, with 32 acceptance vectors |
 | `features/suites/rules.feature` | The pinned statements for `MR-01` to `MR-08` |
 | `docs/phase-1-client-coverage.md` | Which inventory items each definition covers (136 of 171) |
 | `docs/inventory/holo-messenger-inventory.md` | 885 items from Element Web, Element X and Element Call, each with keep, adapt or drop, a phase and an acceptance check |
