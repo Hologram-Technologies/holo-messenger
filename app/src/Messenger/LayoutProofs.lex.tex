@@ -32,7 +32,9 @@ theorem{
   name: phoneNeverShowsListAndTimeline,
   parameters: [width : Nat, roomOpen : Nat],
   statement: (((width <? 768) && (2 <=? ((Messenger.Layout::listVisible width roomOpen) + (Messenger.Layout::timelineVisible width roomOpen)))) = false),
-  proof: linear_arithmetic{definitions: [Messenger.Layout::listVisible, Messenger.Layout::timelineVisible]},
+  proof: linear_arithmetic{
+    definitions: [Messenger.Layout::listVisible, Messenger.Layout::timelineVisible]
+  },
   axioms: [Quot.sound, propext]
 }
 
@@ -40,7 +42,9 @@ theorem{
   name: alwaysShowsListOrTimeline,
   parameters: [width : Nat, roomOpen : Nat],
   statement: ((1 <=? ((Messenger.Layout::listVisible width roomOpen) + (Messenger.Layout::timelineVisible width roomOpen))) = true),
-  proof: linear_arithmetic{definitions: [Messenger.Layout::listVisible, Messenger.Layout::timelineVisible]},
+  proof: linear_arithmetic{
+    definitions: [Messenger.Layout::listVisible, Messenger.Layout::timelineVisible]
+  },
   axioms: [Quot.sound, propext]
 }
 

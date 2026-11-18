@@ -40,7 +40,9 @@ theorem{
   name: nextThenPreviousReturns,
   parameters: [current : Nat],
   statement: (((current <=? 3) && (((Messenger.Navigation::previousLandmark (Messenger.Navigation::nextLandmark current)) <? current) || (current <? (Messenger.Navigation::previousLandmark (Messenger.Navigation::nextLandmark current))))) = false),
-  proof: linear_arithmetic{definitions: [Messenger.Navigation::nextLandmark, Messenger.Navigation::previousLandmark]},
+  proof: linear_arithmetic{
+    definitions: [Messenger.Navigation::nextLandmark, Messenger.Navigation::previousLandmark]
+  },
   axioms: [Quot.sound, propext]
 }
 
@@ -56,7 +58,9 @@ theorem{
   name: forwardMovesOnlyWhenAllowed,
   parameters: [position : Nat, length : Nat],
   statement: ((((Messenger.Navigation::canGoForward position length) =? 0) && (((Messenger.Navigation::goForward position length) <? position) || (position <? (Messenger.Navigation::goForward position length)))) = false),
-  proof: linear_arithmetic{definitions: [Messenger.Navigation::canGoForward, Messenger.Navigation::goForward]},
+  proof: linear_arithmetic{
+    definitions: [Messenger.Navigation::canGoForward, Messenger.Navigation::goForward]
+  },
   axioms: [Quot.sound, propext]
 }
 

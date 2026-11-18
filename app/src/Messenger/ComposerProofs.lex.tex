@@ -104,7 +104,9 @@ theorem{
   name: editClearsRedo,
   parameters: [position : Nat],
   statement: ((Messenger.Composer::redoAvailable (position + 1) (Messenger.Composer::lengthAfterEdit position)) = 0),
-  proof: linear_arithmetic{definitions: [Messenger.Composer::lengthAfterEdit, Messenger.Composer::redoAvailable]},
+  proof: linear_arithmetic{
+    definitions: [Messenger.Composer::lengthAfterEdit, Messenger.Composer::redoAvailable]
+  },
   axioms: [Quot.sound, propext]
 }
 

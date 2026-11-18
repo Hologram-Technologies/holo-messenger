@@ -24,7 +24,9 @@ theorem{
   name: focusTrappedWheneverShown,
   parameters: [fixed : Nat, urgent : Nat, normal : Nat],
   statement: (((1 <=? (Messenger.Overlay::modalShown fixed urgent normal)) && ((Messenger.Overlay::focusTrapped fixed urgent normal) =? 0)) = false),
-  proof: linear_arithmetic{definitions: [Messenger.Overlay::focusTrapped, Messenger.Overlay::modalShown]},
+  proof: linear_arithmetic{
+    definitions: [Messenger.Overlay::focusTrapped, Messenger.Overlay::modalShown]
+  },
   axioms: [Quot.sound, propext]
 }
 
