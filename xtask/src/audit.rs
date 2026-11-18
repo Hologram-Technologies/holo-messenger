@@ -657,7 +657,7 @@ mod tests {
 /// decision costs nothing. Prism output that a Prism lock binds byte for byte is Prism's own
 /// and is not counted: the frame `frame.lock` pins to the template, and the Prism id
 /// `identity/stitch.lock` generates from stitch's model. A bound file whose bytes differ from its
-/// lock is counted.
+/// lock is counted. Files under `client/` are not counted: see `language`.
 pub mod prism {
     use std::collections::BTreeMap;
     use std::io::{BufRead, BufReader, Read, Write};
@@ -704,12 +704,17 @@ pub mod prism {
         Html,
     }
 
+    /// One exception, made on 2026-11-18 by the owner's decision: files under `client/` are not
+    /// counted. Holo Messenger's interface is a browser page, which LexLean cannot express, and it
+    /// lives there. The exception is that folder and nothing else: every decision the interface
+    /// takes is still to come from the Prism model, and code outside `client/` stays under the
+    /// ratchet. This is a relaxation of the template's gate, not a strengthening.
     fn language(path: &str) -> Option<Comments> {
         let name = path.rsplit('/').next().unwrap_or(path);
         let (_, extension) = name.rsplit_once('.')?;
         LANGUAGES
             .iter()
-            .find(|(e, _)| *e == extension)
+            .find(|(e, _)| *e == extension && !path.starts_with("client/"))
             .map(|(_, c)| *c)
     }
 

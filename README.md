@@ -4,7 +4,7 @@ A serverless messenger client with the feature set of Element, built on uor-comm
 
 ## Status
 
-Step 1 (reading, mapping, inventory) and the client-only Phase 1 rules are done. There is no user interface yet.
+Step 1 (reading, mapping, inventory) and the client-only Phase 1 rules are done. The interface exists as a prototype on sample data in `client/`; nothing in it is stored, encrypted or sent.
 
 This repository is an instance of `UOR-Foundation/template`. Its Prism application, `Messenger rules`, answers seven client questions with the rules proved here.
 
@@ -16,6 +16,7 @@ uor-comms has a room kernel on its main branch that answers six questions about 
 |---|---|
 | `app/src/Messenger/` | Sixteen rule modules and their sixteen `Proofs` modules: Phase 1 client rules that need no engine |
 | `app/src/MessengerRules.lex.tex` | The application: one request in, one answer out, with 32 acceptance vectors |
+| `client/` | The interface: one static page with no dependencies. See `client/README.md` |
 | `features/suites/rules.feature` | The pinned statements for `MR-01` to `MR-08` |
 | `docs/phase-1-client-coverage.md` | Which inventory items each definition covers (136 of 171) |
 | `docs/inventory/holo-messenger-inventory.md` | 885 items from Element Web, Element X and Element Call, each with keep, adapt or drop, a phase and an acceptance check |
@@ -54,6 +55,9 @@ The acceptance vectors are tested, not proved, and only when `prismpm verify` ru
 - Thresholds and budgets in the modules are the accepted Phase 1 values (2026-11-18). None is measured; the 150 KB first load has no build to test it against.
 - Membership status numbers match `Comms.Rules` in uor-comms by inspection; nothing imports that module.
 - 35 client-side Phase 1 items have no formal rule; most are frames, text or lists with no decision to state.
+- The gate's rule that only Prism is implemented here is relaxed for `client/`, by the owner's decision on 2026-11-18. Code there is not counted by `audit-prism` and is covered by no proof.
+- The interface restates the rules it uses in JavaScript; it does not yet call the holo, so the two can drift.
+- The interface is not published. The Pages site still shows the `Messenger rules` application only.
 - The application exposes seven of the rules. The others are proved but not callable.
 - `natAt`, the byte reader in the application module, is copied from the uor-comms room kernel.
 - Inventory parity calls were made from names and one-line descriptions, and web and mobile rows were paired by name.

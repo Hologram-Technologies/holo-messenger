@@ -1,0 +1,807 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Holo Messenger: private messages with no server.">
+<meta name="color-scheme" content="light dark">
+<title>Holo Messenger</title>
+<style>
+/* Layout: three panes on one screen. Chat list, timeline, details. One pane under 768px, details dock at 1200px.
+   Every measure is from the series 5, 8, 13, 21, 34, 55. */
+:root{
+  --bg:#FFFFFF; --panel:#F5F6F8; --raise:#FFFFFF; --ink:#11151C; --ink2:#4A5362; --ink3:#7A8494;
+  --line:#E4E7EC; --hover:#ECEEF2; --sel:#E4E9FA; --accent:#3046D8; --accent-ink:#FFFFFF;
+  --ok:#12805C; --warn:#A8610A; --bad:#C62F3B; --hl:#FBF1CC; --scrim:rgba(17,21,28,.28);
+  --shadow:0 13px 34px rgba(17,21,28,.14),0 1px 3px rgba(17,21,28,.08);
+  --ui:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono","Cascadia Mono",Consolas,monospace;
+  --fs:15px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0E1116; --panel:#141820; --raise:#1A1F29; --ink:#EDEFF3; --ink2:#A9B1BE; --ink3:#7C8696;
+  --line:#252B36; --hover:#1C222C; --sel:#1F2A4D; --accent:#8196FF; --accent-ink:#0B1020;
+  --ok:#4CC38A; --warn:#F0B45A; --bad:#F2777F; --hl:#3A3212; --scrim:rgba(0,0,0,.5);
+  --shadow:0 13px 34px rgba(0,0,0,.5),0 1px 3px rgba(0,0,0,.4); color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0E1116; --panel:#141820; --raise:#1A1F29; --ink:#EDEFF3; --ink2:#A9B1BE; --ink3:#7C8696;
+  --line:#252B36; --hover:#1C222C; --sel:#1F2A4D; --accent:#8196FF; --accent-ink:#0B1020;
+  --ok:#4CC38A; --warn:#F0B45A; --bad:#F2777F; --hl:#3A3212; --scrim:rgba(0,0,0,.5);
+  --shadow:0 13px 34px rgba(0,0,0,.5),0 1px 3px rgba(0,0,0,.4); color-scheme:dark }
+
+html,body{height:100%;margin:0}
+[hidden]{display:none!important}
+img{max-width:100%}
+body{background:var(--bg);color:var(--ink);font:13px/1.45 var(--ui);overflow:hidden;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:1px;border-radius:5px}
+svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+#app{height:100%;display:grid;grid-template-columns:321px minmax(0,1fr)}
+#app.panel-docked{grid-template-columns:321px minmax(0,1fr) 340px}
+#list,#room,#panel{min-width:0;min-height:0;display:flex;flex-direction:column}
+#list{background:var(--panel);border-right:1px solid var(--line)}
+#panel{background:var(--panel);border-left:1px solid var(--line)}
+#app:not(.panel-docked) #panel{position:fixed;inset:0 0 0 auto;width:min(340px,100%);z-index:30;box-shadow:var(--shadow)}
+@media (max-width:767px){
+  #app,#app.panel-docked{grid-template-columns:minmax(0,1fr)}
+  #app.in-room #list{display:none} #app:not(.in-room) #room{display:none}
+  #list{border-right:0}
+  #app:not(.panel-docked) #panel{width:100%}
+  .search .kbd{display:none} .search input{padding-right:13px}
+  .acts{top:auto;bottom:100%;right:13px}
+  .msg{padding:2px 13px} .day,.newline{margin-left:13px;margin-right:13px} .sys{margin-left:55px} #comp{padding:0 13px 13px} .typing{padding-left:55px}
+  #app .icon{width:42px;height:42px} #comp #send{width:42px;height:42px} #app .acts .icon{width:34px;height:34px}
+}
+.bar{height:55px;flex:none;display:flex;align-items:center;gap:8px;padding:0 13px;border-bottom:1px solid var(--line)}
+.bar h1,.bar h2{font-size:15px;font-weight:650;margin:0;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.grow{flex:1;min-width:0}
+.icon{width:34px;height:34px;display:grid;place-items:center;border-radius:8px;color:var(--ink2);flex:none}
+.icon:hover{background:var(--hover);color:var(--ink)}
+.icon[aria-pressed="true"]{background:var(--sel);color:var(--accent)}
+.btn{height:34px;padding:0 13px;border-radius:8px;font-weight:600;border:1px solid var(--line);background:var(--raise)}
+.btn:hover{background:var(--hover)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.danger{color:var(--bad)}
+.btn.small{height:26px;padding:0 8px;font-size:12px}
+
+/* avatars */
+.av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:650;font-size:13px;flex:none;letter-spacing:0}
+.av.sq{border-radius:8px}
+.av.s{width:21px;height:21px;font-size:10px} .av.l{width:55px;height:55px;font-size:21px}
+.av.me{box-shadow:0 0 0 2px var(--panel),0 0 0 4px transparent;background-clip:padding-box;position:relative}
+.ring{padding:2px;border-radius:50%;background:conic-gradient(from 210deg,#5B7CFA,#22C3C9,#8BD36B,#F4C65B,#F2788F,#9B7BFF,#5B7CFA);display:grid}
+.ring .av{box-shadow:0 0 0 2px var(--panel)}
+
+/* chat list */
+.search{margin:13px;position:relative}
+.search input{width:100%;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--raise);padding:0 55px 0 34px}
+.search svg{position:absolute;left:8px;top:8px;color:var(--ink3)}
+.kbd{font:11px var(--mono);color:var(--ink3);border:1px solid var(--line);border-radius:5px;padding:1px 5px;background:var(--panel)}
+.search .kbd{position:absolute;right:8px;top:8px}
+#rooms{contain:content;flex:1;overflow:auto;padding:0 8px 13px;display:flex;flex-direction:column;gap:1px}
+.sect{font-size:11px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);padding:13px 8px 5px}
+.ri{display:flex;gap:8px;align-items:center;padding:8px;border-radius:8px;text-align:left;width:100%}
+.ri:hover{background:var(--hover)} .ri.on{background:var(--sel)}
+.ri .t{display:flex;align-items:baseline;gap:8px}
+.ri .n{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ri.unread .n{font-weight:700}
+.ri .tm{font-size:11px;color:var(--ink3);margin-left:auto;flex:none;font-variant-numeric:tabular-nums}
+.ri .p{color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}
+.ri.unread .p{color:var(--ink)}
+.ri .row2{display:flex;align-items:center;gap:8px}
+.badge{min-width:21px;height:21px;padding:0 5px;border-radius:13px;background:var(--ink3);color:var(--bg);font-size:11px;font-weight:700;display:grid;place-items:center;flex:none;font-variant-numeric:tabular-nums}
+.badge.hi{background:var(--accent);color:var(--accent-ink)}
+.mut{color:var(--ink3);width:13px;height:13px}
+.inv{margin:0 0 5px;padding:13px;border:1px solid var(--line);border-radius:8px;background:var(--raise);display:flex;flex-direction:column;gap:8px}
+.inv .who{display:flex;gap:8px;align-items:center} .inv .iacts{display:flex;gap:8px}
+.empty{color:var(--ink3);padding:21px 8px;text-align:center}
+
+/* room */
+.sub{font-size:12px;color:var(--ink3);display:flex;align-items:center;gap:5px;white-space:nowrap;overflow:hidden}
+.sub svg{width:13px;height:13px;color:var(--ok)}
+#banner{flex:none;display:flex;gap:8px;align-items:center;padding:8px 21px;background:var(--hl);color:var(--ink);font-weight:600;border-bottom:1px solid var(--line)}
+#tl{flex:1;overflow:auto;padding:13px 0 8px;overflow-anchor:none;contain:content}
+.day{display:flex;align-items:center;gap:13px;margin:13px 21px;color:var(--ink3);font-size:11px;font-weight:650;letter-spacing:.06em;text-transform:uppercase}
+.day:before,.day:after{content:"";height:1px;background:var(--line);flex:1}
+.newline{display:flex;align-items:center;gap:8px;margin:8px 21px;color:var(--accent);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.newline:after{content:"";height:1px;background:var(--accent);flex:1;opacity:.5}
+.sys{margin:5px 21px 5px 63px;color:var(--ink3);font-size:12px}
+.sys button{color:var(--ink2);text-decoration:underline;text-underline-offset:2px}
+.msg{position:relative;display:grid;grid-template-columns:34px minmax(0,1fr);column-gap:8px;padding:2px 21px}
+.msg.first{margin-top:8px}
+.msg:hover,.msg.act{background:var(--panel)}
+.msg.hl{background:var(--hl)}
+.msg .gut{font-size:10px;color:var(--ink3);text-align:right;padding-top:4px;opacity:0;font-variant-numeric:tabular-nums}
+.msg:hover .gut{opacity:1}
+.msg .hd{display:flex;align-items:baseline;gap:8px}
+.msg .nm{font-weight:650;font-size:14px}
+.msg .ts{font-size:11px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.body{font-size:var(--fs);line-height:1.45;overflow-wrap:anywhere;white-space:pre-wrap}
+.body.big{font-size:34px;line-height:1.2}
+.body code{font:.9em var(--mono);background:var(--hover);padding:1px 5px;border-radius:5px}
+.body a{color:var(--accent);text-underline-offset:2px}
+.pill{background:var(--sel);color:var(--accent);border-radius:5px;padding:0 4px;font-weight:600}
+.pill.me{background:var(--accent);color:var(--accent-ink)}
+.ed{font-size:11px;color:var(--ink3);margin-left:5px}
+.quote{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--ink2);margin:2px 0;padding:2px 8px;border-left:2px solid var(--ink3);max-width:100%;text-align:left}
+.quote span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rx{display:flex;flex-wrap:wrap;gap:5px;margin:5px 0 2px}
+.rx button{height:24px;padding:0 8px;border-radius:13px;border:1px solid var(--line);background:var(--raise);font-size:12px;display:flex;align-items:center;gap:5px;font-variant-numeric:tabular-nums}
+.rx button.mine{border-color:var(--accent);background:var(--sel);color:var(--accent);font-weight:650}
+.st{font-size:11px;color:var(--ink3);display:flex;align-items:center;gap:4px;margin-top:2px}
+.st svg{width:13px;height:13px} .st.read svg{color:var(--accent)} .st.failed{color:var(--bad)}
+.st button{text-decoration:underline;color:inherit}
+.acts{position:absolute;right:21px;top:-13px;display:none;background:var(--raise);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);padding:2px;z-index:2}
+.msg:hover .acts,.msg.act .acts{display:flex}
+.acts .icon{width:28px;height:28px} .acts svg{width:16px;height:16px}
+.typing{height:21px;padding:0 21px 0 63px;color:var(--ink3);font-size:12px;flex:none}
+.intro{margin:34px 21px 13px;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.intro h3{margin:0;font-size:21px;letter-spacing:-.02em} .intro p{margin:0;color:var(--ink2);max-width:55ch}
+
+/* composer */
+#comp{flex:none;padding:0 21px 13px;position:relative}
+.cbox{border:1px solid var(--line);border-radius:13px;background:var(--raise);transition:border-color .12s}
+.cbox:focus-within{border-color:var(--accent)}
+.ctx{display:flex;align-items:center;gap:8px;padding:8px 13px 0;font-size:12px;color:var(--ink2)}
+.ctx b{color:var(--ink)} .ctx span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crow{display:flex;align-items:flex-end;gap:2px;padding:5px}
+#ta{flex:1;min-width:0;border:0;background:none;resize:none;outline:none;font-size:var(--fs);line-height:1.45;padding:7px 8px;max-height:210px}
+#send{width:34px;height:34px;border-radius:8px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center}
+#send:disabled{background:var(--hover);color:var(--ink3);cursor:default}
+.hint{font-size:11px;color:var(--ink3);padding:5px 5px 0;display:flex;gap:13px}
+@media (max-width:767px){.hint{display:none}}
+.pop{position:absolute;left:21px;bottom:100%;margin-bottom:5px;width:min(340px,calc(100% - 42px));background:var(--raise);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);padding:5px;z-index:5;max-height:233px;overflow:auto}
+.pop .o{display:flex;gap:8px;align-items:center;padding:5px 8px;border-radius:5px;width:100%;text-align:left}
+.pop .o.on,.pop .o:hover{background:var(--sel)}
+.emo{display:grid;grid-template-columns:repeat(8,1fr);gap:2px}
+.emo button{height:34px;border-radius:5px;font-size:21px} .emo button:hover{background:var(--hover)}
+#picker{position:fixed;z-index:60;width:296px;background:var(--raise);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);padding:8px}
+
+/* details panel */
+.pbody{flex:1;overflow:auto;padding:21px 13px;display:flex;flex-direction:column;gap:21px}
+.hero{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.hero h3{margin:0;font-size:17px;letter-spacing:-.01em} .hero p{margin:0;color:var(--ink2)}
+.grp{display:flex;flex-direction:column;gap:5px}
+.grp h4{margin:0 0 3px;font-size:11px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3)}
+.note{display:flex;gap:8px;padding:13px;border:1px solid var(--line);border-radius:8px;background:var(--raise);color:var(--ink2)}
+.note svg{color:var(--ok)}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--raise)}
+.seg button{height:34px;font-weight:600;color:var(--ink2)} .seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--sel);color:var(--accent)}
+.mem{display:flex;gap:8px;align-items:center;padding:5px;border-radius:8px;width:100%;text-align:left}
+.mem:hover{background:var(--hover)}
+.img{display:block;margin:2px 0} .img img{display:block;max-width:min(321px,100%);max-height:233px;border-radius:8px;border:1px solid var(--line)}
+.snip{display:block;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis} mark{background:var(--hl);color:inherit;border-radius:3px}
+.dlg label{display:flex;flex-direction:column;gap:5px;color:var(--ink);font-weight:600}
+.msg button.nm:hover{text-decoration:underline}
+.mem .role{margin-left:auto;font-size:11px;color:var(--ink3)}
+
+/* overlays: centred, light scrim, 550 wide, at most 61.8% tall */
+#scrim{position:fixed;inset:0;background:var(--scrim);z-index:40;display:grid;place-items:center;padding:13px}
+.dlg{width:min(550px,100%);max-height:61.8vh;background:var(--raise);border-radius:13px;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden}
+.dlg header{padding:21px 21px 8px;display:flex;align-items:center;gap:8px}
+.dlg header h3{margin:0;font-size:17px;letter-spacing:-.01em;flex:1}
+.dlg .c{padding:8px 21px 21px;overflow:auto;display:flex;flex-direction:column;gap:13px;color:var(--ink2)}
+.dlg footer{padding:13px 21px;display:flex;gap:8px;justify-content:flex-end;border-top:1px solid var(--line)}
+.dlg input[type=text]{height:34px;border-radius:8px;border:1px solid var(--line);background:var(--bg);padding:0 13px;width:100%}
+.tabs{display:flex;gap:2px;padding:0 21px;border-bottom:1px solid var(--line)}
+.tabs button{padding:8px 13px;font-weight:600;color:var(--ink2);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button[aria-selected="true"]{color:var(--ink);border-color:var(--accent)}
+.set{display:flex;align-items:center;gap:13px;color:var(--ink)}
+.set small{display:block;color:var(--ink3)} .set>div{flex:1}
+.sw{width:34px;height:21px;border-radius:13px;background:var(--line);position:relative;flex:none;transition:background .12s}
+.sw:after{content:"";position:absolute;left:2px;top:2px;width:17px;height:17px;border-radius:50%;background:var(--raise);transition:transform .12s;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.sw[aria-checked="true"]{background:var(--accent)} .sw[aria-checked="true"]:after{transform:translateX(13px)}
+.keys{display:grid;grid-template-columns:1fr auto;gap:8px 21px;color:var(--ink)}
+.addr{font:12px var(--mono);overflow-wrap:anywhere;color:var(--ink2);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px}
+.qs .o{display:flex;gap:8px;align-items:center;padding:8px;border-radius:8px;width:100%;text-align:left;color:var(--ink)}
+.qs .o.on,.qs .o:hover{background:var(--sel)}
+#menu{position:fixed;z-index:50;min-width:233px;background:var(--raise);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);padding:5px}
+#menu button{display:flex;gap:8px;align-items:center;width:100%;padding:8px;border-radius:5px;text-align:left}
+#menu button:hover{background:var(--hover)} #menu hr{border:0;border-top:1px solid var(--line);margin:5px 0}
+#toasts{position:fixed;right:13px;top:13px;z-index:70;display:flex;flex-direction:column;gap:8px;width:min(321px,calc(100% - 26px))}
+.toast{display:flex;gap:8px;align-items:center;padding:13px;background:var(--raise);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);text-align:left;width:100%}
+.toast b{display:block} .toast span{color:var(--ink2);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#onb{position:fixed;inset:0;background:var(--bg);z-index:80;display:grid;place-items:center;padding:21px}
+.onb{width:min(377px,100%);display:flex;flex-direction:column;gap:21px}
+.onb h2{margin:0;font-size:34px;letter-spacing:-.03em;line-height:1.1} .onb p{margin:0;color:var(--ink2);font-size:15px}
+.onb input{height:42px;border-radius:8px;border:1px solid var(--line);background:var(--raise);padding:0 13px;font-size:15px;width:100%}
+.onb .btn{height:42px;font-size:15px}
+.steps{display:flex;gap:5px} .steps i{height:3px;flex:1;border-radius:2px;background:var(--line)} .steps i.on{background:var(--accent)}
+.home{flex:1;display:grid;place-items:center;color:var(--ink3);text-align:center;padding:21px}
+.back{display:none} @media (max-width:767px){.back{display:grid}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="list" aria-label="Chats">
+    <div class="bar">
+      <button class="ring" id="meBtn" aria-label="Your menu"></button>
+      <h1 class="grow">Chats</h1>
+      <button class="icon" id="newBtn" aria-label="New chat" title="New chat"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+    </div>
+    <label class="search"><span class="sr">Filter chats</span>
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4-4"/></svg>
+      <input id="filter" type="search" placeholder="Filter" autocomplete="off">
+      <span class="kbd" id="kHint">Ctrl K</span>
+    </label>
+    <nav id="rooms"></nav>
+  </aside>
+  <main id="room"></main>
+  <aside id="panel" hidden aria-label="Details"></aside>
+</div>
+<div id="toasts" aria-live="polite"></div>
+<input id="file" type="file" accept="image/*" hidden aria-label="Choose an image">
+
+<script>
+"use strict";
+/* Sample data only. Nothing leaves this page: no network, no server, no storage beyond this browser. */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const I = {
+  info: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>',
+  search: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4-4"/></svg>',
+  back: '<svg viewBox="0 0 24 24"><path d="m14 6-6 6 6 6"/></svg>',
+  x: '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  send: '<svg viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6"/></svg>',
+  clip: '<svg viewBox="0 0 24 24"><path d="M20 11.5 12.5 19a5 5 0 0 1-7-7L13 4.5a3.5 3.5 0 0 1 5 5L10.5 17a2 2 0 0 1-3-3L14 7.5"/></svg>',
+  smile: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4.5 4.5 0 0 0 7 0M9 10v.5M15 10v.5"/></svg>',
+  reply: '<svg viewBox="0 0 24 24"><path d="M10 7 5 12l5 5M5 12h9a5 5 0 0 1 5 5v1"/></svg>',
+  edit: '<svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/></svg>',
+  copy: '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>',
+  trash: '<svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/></svg>',
+  lock: '<svg viewBox="0 0 24 24"><path d="M12 3 5 6v6c0 4 3 7 7 9 4-2 7-5 7-9V6z"/><path d="m9 12 2 2 4-4"/></svg>',
+  mute: '<svg class="mut" viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 1 9-5M18 9v3l2 4H9M4 4l16 16M10 20h4"/></svg>',
+  check: '<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg>',
+  read: '<svg viewBox="0 0 24 24"><path d="m2 12 5 5 8-10M12 16l1 1 9-10"/></svg>',
+  clock: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  gear: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg>',
+  wifi: '<svg viewBox="0 0 24 24"><path d="M3 9a14 14 0 0 1 18 0M6.5 12.5a9 9 0 0 1 11 0M10 16a4 4 0 0 1 4 0M12 19.5v.5"/></svg>',
+  out: '<svg viewBox="0 0 24 24"><path d="M10 5H5v14h5M14 8l4 4-4 4M18 12H9"/></svg>'
+};
+const EMOJI = [["👍","thumbs up yes"],["❤️","heart love"],["😂","joy laugh"],["🎉","party tada"],["🙏","thanks pray"],["👀","eyes look"],["🔥","fire"],["✅","check done"],["😊","smile"],["🤔","thinking"],["😅","sweat"],["🙌","hands hooray"],["💯","hundred"],["🚀","rocket ship"],["☕","coffee"],["👋","wave hello"],["😢","sad cry"],["😮","wow surprised"],["🤝","deal handshake"],["⭐","star"],["🌱","seedling"],["📎","clip"],["📌","pin"],["💡","idea bulb"]];
+const U = {
+  me: { n: "Kai Lindqvist" }, amara: { n: "Amara Okafor" }, tomas: { n: "Tomás Rivera" }, yuki: { n: "Yuki Tanaka" },
+  lena: { n: "Lena Fischer" }, dev: { n: "Dev Patel" }, sofia: { n: "Sofia Marino" }, omar: { n: "Omar Haddad" }
+};
+const now = Date.now(), M = 60000, H = 60 * M, D = 24 * H;
+let seq = 0;
+const m = (from, ago, body, x = {}) => Object.assign({ id: "e" + (++seq), t: "m", from, ts: now - ago, body, status: "read", rx: {} }, x);
+const s = (from, ago, kind) => ({ id: "e" + (++seq), t: "s", from, ts: now - ago, kind });
+const S = {
+  perf: {}, epoch: 0, view: "main", cur: null, panel: false, offline: false, mode: null, drafts: {}, pop: null, typing: {},
+  set: { theme: "system", font: 15, modSend: false, notify: true, previews: true, name: "Kai Lindqvist" },
+  rooms: [
+    { id: "r1", name: "Design review", members: ["me", "amara", "yuki", "lena", "dev"], power: { me: 100, amara: 50 }, level: "all", priv: true,
+      topic: "Weekly review of the messenger screens. Bring one thing to cut.", lastRead: 0, ev: [
+        s("amara", 2 * D + 3 * H, "created"), s("yuki", 2 * D + 2 * H, "join"), s("lena", 2 * D + 2 * H - 5 * M, "join"), s("dev", 2 * D + 2 * H - 9 * M, "join"),
+        m("amara", D + 5 * H, "Morning. Agenda for Thursday: chat list density, the composer, and what happens with no connection."),
+        m("yuki", D + 5 * H - 4 * M, "I measured the list. At 55 px rows we fit 13 chats on a laptop without scrolling."),
+        m("yuki", D + 5 * H - 3 * M, "Dropping the row below 55 makes the previews hard to read."),
+        m("lena", D + 4 * H, "Agree. Keep the preview, lose the second timestamp.", { rx: { "👍": ["amara", "me"] } }),
+        m("me", D + 3 * H, "Done in the latest build. Previews stay, one timestamp per row."),
+        m("dev", 3 * H, "Offline case: I typed three messages on the train. All three sent in order when I got signal back."),
+        m("amara", 2 * H + 20 * M, "That is the behaviour we want. Does the banner say what is waiting?", { reply: null }),
+        m("dev", 2 * H + 12 * M, "It says how many are waiting and offers to send them now."),
+        m("lena", 40 * M, "@Kai can you check the composer on a phone before Thursday? The send button sat under the keyboard for me.", { status: "sent" }),
+        m("yuki", 22 * M, "Same on mine, only in landscape.", { status: "sent", rx: { "👀": ["dev"] } })
+      ] },
+    { id: "r2", name: "Amara Okafor", dm: "amara", members: ["me", "amara"], power: { me: 100, amara: 100 }, level: "all", lastRead: 1e15, ev: [
+        m("amara", 3 * D, "Sent you the room. It is small on purpose."),
+        m("me", 3 * D - 9 * M, "Good. Fewer people, faster decisions."),
+        m("amara", 5 * H, "Lunch on Thursday after the review?"),
+        m("me", 5 * H - 3 * M, "Yes. The place by the canal?", { rx: { "👍": ["amara"] } }),
+        m("amara", 5 * H - 2 * M, "Booked for 13:00 ☕")
+      ] },
+    { id: "r3", name: "Lab notes", members: ["me", "sofia", "omar", "dev"], power: { sofia: 100, me: 50 }, level: "mentions", priv: true,
+      topic: "Measurements and what we learned. One finding per message.", lastRead: 0, ev: [
+        s("sofia", 6 * D, "created"), s("omar", 6 * D - H, "join"), s("dev", 6 * D - 2 * H, "join"),
+        m("sofia", D + 2 * H, "First load came in at 141 KB on the test build. Budget is 150."),
+        m("omar", D + H, "Room switch is under 100 ms on the old laptop. `timeline` render is the largest part."),
+        m("sofia", 6 * H, "Search over 10,000 messages answers before the next keystroke. Details: https://example.org/lab/search"),
+        m("omar", 90 * M, "Cold start to the chat list: 0.8 s.")
+      ] },
+    { id: "r4", name: "Yuki Tanaka", dm: "yuki", members: ["me", "yuki"], power: { me: 100, yuki: 100 }, level: "all", lastRead: 1e15, ev: [
+        m("yuki", 2 * D, "Do you still have the spacing table?"),
+        m("me", 2 * D - 6 * M, "5, 8, 13, 21, 34, 55. Nothing else."),
+        m("yuki", 2 * D - 5 * M, "🙏")
+      ] },
+    { id: "r5", name: "Reading group", members: ["me", "lena", "sofia", "tomas"], power: { lena: 100 }, level: "mute", lastRead: 0, ev: [
+        s("lena", 9 * D, "created"),
+        m("lena", 4 * D, "Next book is chosen. Chapter one by the 28th."),
+        m("tomas", 26 * H, "I am three chapters ahead and regret nothing."),
+        m("sofia", 25 * H, "No spoilers in here, please.")
+      ] },
+    { id: "r6", name: "Weekend climbers", members: ["tomas", "omar", "sofia"], power: { tomas: 100 }, level: "all", invite: "tomas", priv: true,
+      topic: "Saturday mornings, weather allowing.", lastRead: 0, ev: [s("tomas", 12 * D, "created"), m("tomas", 50 * M, "Wall opens at 8. Who is in?")] }
+  ]
+};
+const R = id => S.rooms.find(r => r.id === id);
+R("r1").lastRead = now - 2 * H; R("r3").lastRead = now - D; R("r5").lastRead = now - 2 * D;
+const first = id => U[id].n.split(" ")[0];
+const hue = t => { let h = 0; for (const c of t) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
+const av = (name, cls = "") => `<span class="av ${cls}" style="background:hsl(${hue(name)} 42% 44%)" aria-hidden="true">${esc(name.trim()[0].toUpperCase())}</span>`;
+const rav = (r, cls = "") => av(r.name, cls + (r.dm ? "" : " sq"));
+const pad = n => String(n).padStart(2, "0");
+const clock = t => { const d = new Date(t); return pad(d.getHours()) + ":" + pad(d.getMinutes()); };
+const dayKey = t => { const d = new Date(t); return d.getFullYear() * 400 + d.getMonth() * 32 + d.getDate(); };
+const dayName = t => { const k = dayKey(t), n = dayKey(Date.now()); if (k === n) return "Today"; if (k === dayKey(Date.now() - D)) return "Yesterday";
+  return new Date(t).toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" }); };
+const listTime = t => dayKey(t) === dayKey(Date.now()) ? clock(t) : dayKey(t) === dayKey(Date.now() - D) ? "Yesterday" : new Date(t).toLocaleDateString(undefined, { day: "numeric", month: "short" });
+const last = r => r.ev[r.ev.length - 1];
+const mentionsMe = e => e.t === "m" && e.from !== "me" && new RegExp("@" + first("me") + "\\b").test(e.body);
+/* Costs follow what changed: these walk back only over events newer than the read point, and the list of shown events grows by appending. */
+const unread = r => { if (r.invite) return 0; let n = 0; for (let k = r.ev.length - 1; k >= 0 && r.ev[k].ts > r.lastRead; k--) { const e = r.ev[k]; if (e.t === "m" && e.from !== "me" && !e.del) n++; } return n; };
+const highlight = r => { for (let k = r.ev.length - 1; k >= 0 && r.ev[k].ts > r.lastRead; k--) if (!r.ev[k].del && mentionsMe(r.ev[k])) return true; return false; };
+const live = r => { const d = r.delN || 0; if (!r._lv || r._ld !== d) r._lv = r.ev.filter(e => !e.del); else for (let k = r._ll; k < r.ev.length; k++) if (!r.ev[k].del) r._lv.push(r.ev[k]); r._ll = r.ev.length; r._ld = d; return r._lv; };
+const myPower = r => r.power.me || 0;
+const role = p => p >= 100 ? "Admin" : p >= 50 ? "Moderator" : "";
+
+/* Rules mirrored from the proved model (Messenger.*): each comment names the definition. */
+const panes = w => w < 768 ? 1 : w < 1200 ? 2 : 3;                                   // Layout.panes
+const notifyLevel = (enabled, mode, mention, viewing, own) =>                         // Notify.notifyLevel
+  own ? 0 : mode >= 2 ? 0 : mode === 1 ? (!mention ? 0 : viewing ? 0 : !enabled ? 1 : 3) : viewing ? 0 : !enabled ? 1 : !mention ? 2 : 3;
+const enterAction = (shift, mod, requireMod, popup) => popup ? 3 : shift ? 2 : !requireMod ? 1 : mod ? 1 : 2;   // Composer.enterAction
+const sortsBefore = (a, b) => (a.invite ? 1 : 0) - (b.invite ? 1 : 0) || last(a).ts - last(b).ts;               // RoomList.sortsBefore
+const schemeAllowed = u => /^(https?:|mailto:)/i.test(u);                                                       // Render.schemeAllowed
+const messageAction = (action, own, joined, moderator, failed) =>                                               // Menu.messageAction
+  !joined ? action === "copy" : failed ? ["retry", "remove", "copy"].includes(action)
+  : action === "retry" ? false : action === "edit" ? own : action === "remove" ? own || moderator : true;
+
+function rich(text, r) {
+  let h = esc(text);
+  h = h.replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>").replace(/(^|\s)\*([^*\s][^*]*)\*/g, "$1<i>$2</i>");
+  h = h.replace(/\bhttps?:\/\/[^\s<]+/g, u => schemeAllowed(u) ? `<a href="${u}" target="_blank" rel="noopener noreferrer">${u}</a>` : u);
+  h = h.replace(/@([\p{L}]+)/gu, (all, n) => { const id = r.members.find(x => first(x) === n); return id ? `<span class="pill${id === "me" ? " me" : ""}">@${n}</span>` : all; });
+  return h;
+}
+const emojiOnly = t => /^(\p{Extended_Pictographic}|️|‍|\s){1,12}$/u.test(t) && /\p{Extended_Pictographic}/u.test(t);
+const preview = r => { const e = last(r); if (!e) return ""; if (e.t === "s") return sysText(e, r);
+  return (e.from === "me" ? "You: " : r.dm ? "" : first(e.from) + ": ") + (e.img && !e.body ? "Photo" : e.body.replace(/\s+/g, " ")); };
+const sysText = (e, r) => e.kind === "created" ? `${e.from === "me" ? "You" : first(e.from)} created this ${r.dm ? "chat" : "room"}` : e.kind === "join" ? `${e.from === "me" ? "You" : first(e.from)} joined`
+  : e.kind === "leave" ? `${first(e.from)} left` : "";
+
+/* ---------- chat list ---------- */
+function drawList() {
+  const q = $("#filter").value.trim().toLowerCase();
+  const rooms = S.rooms.filter(r => !q || r.name.toLowerCase().includes(q)).sort((a, b) => -sortsBefore(a, b));
+  const inv = rooms.filter(r => r.invite), rest = rooms.filter(r => !r.invite);
+  let h = "";
+  if (inv.length) h += `<div class="sect">Invitations</div>` + inv.map(r => `<div class="inv"><div class="who">${rav(r)}<div class="grow"><div class="n" style="font-weight:650">${esc(r.name)}</div><div style="color:var(--ink2)">${esc(first(r.invite))} invited you</div></div></div>
+    <div class="iacts"><button class="btn primary small" data-accept="${r.id}">Accept</button><button class="btn small" data-decline="${r.id}">Decline</button></div></div>`).join("");
+  if (rest.length) h += (inv.length ? `<div class="sect">Chats</div>` : "") + rest.map(r => {
+    const n = unread(r), hi = highlight(r), muted = r.level === "mute";
+    return `<button class="ri${S.cur === r.id ? " on" : ""}${n && !muted ? " unread" : ""}" data-room="${r.id}" ${S.cur === r.id ? 'aria-current="true"' : ""}>${rav(r)}
+      <span class="grow"><span class="t"><span class="n">${esc(r.name)}</span><span class="tm">${listTime(last(r).ts)}</span></span>
+      <span class="row2"><span class="p grow">${S.set.previews ? esc(S.drafts[r.id] && S.cur !== r.id ? "Draft: " + S.drafts[r.id] : preview(r)) : ""}</span>
+      ${muted ? I.mute : n ? `<span class="badge${hi ? " hi" : ""}" aria-label="${n} unread">${hi ? "@" : n > 99 ? "99+" : n}</span>` : ""}</span></span></button>`;
+  }).join("");
+  if (!rooms.length) h = `<div class="empty">No chats match "${esc(q)}".</div>`;
+  $("#rooms").innerHTML = h;
+  const total = S.rooms.reduce((a, r) => a + (r.level === "mute" ? 0 : unread(r)), 0);
+  document.title = (total ? `(${total}) ` : "") + "Holo Messenger";
+}
+
+/* ---------- room ---------- */
+function openRoom(id) {
+  const prev = R(S.cur); if (prev) saveDraft();
+  const t0 = performance.now();
+  S.cur = id; S.mode = null; S.pop = null;
+  const r = R(id); r.seenLine = r.lastRead; r.lastRead = Date.now(); r.lo = null;
+  $("#app").classList.add("in-room");
+  drawRoom(); drawList(); drawPanel();
+  S.perf.open = performance.now() - t0; requestAnimationFrame(() => setTimeout(() => { S.perf.openFrame = performance.now() - t0; }));
+  if (panes(innerWidth) > 1) $("#ta") && $("#ta").focus();
+}
+function saveDraft() { const ta = $("#ta"); if (ta && S.cur && !(S.mode && S.mode.type === "edit")) { ta.value.trim() ? S.drafts[S.cur] = ta.value : delete S.drafts[S.cur]; } }
+function drawRoom() {
+  const r = R(S.cur), el = $("#room");
+  if (!r) { el.innerHTML = `<div class="home"><div><div style="font-size:21px;color:var(--ink);font-weight:650;letter-spacing:-.02em">Pick a chat</div><p>Or press <span class="kbd">${modKey} K</span> to find one.</p></div></div>`; return; }
+  el.innerHTML = `<div class="bar"><button class="icon back" data-back aria-label="Back to chats">${I.back}</button>${rav(r)}
+    <div class="grow"><h2>${esc(r.name)}</h2><div class="sub">${I.lock}<span>Encrypted${r.dm ? "" : " · " + r.members.length + " people"}</span></div></div>
+    <button class="icon" data-find aria-label="Search messages" title="Search messages (${modKey} F)">${I.search}</button>
+    <button class="icon" data-panel aria-pressed="${S.panel}" aria-label="Details" title="Details (${modKey} .)">${I.info}</button></div>
+    <div id="banner" ${S.offline ? "" : "hidden"}>${I.wifi}<span class="grow" id="bannerText"></span></div>
+    <div id="tl" tabindex="-1"></div><div class="typing" id="typing" aria-live="polite"></div>
+    <div id="comp"><div id="pop" class="pop" hidden></div><div class="cbox"><div class="ctx" id="ctx" hidden></div>
+    <div class="crow"><button class="icon" data-attach aria-label="Attach a file" title="Attach">${I.clip}</button>
+    <textarea id="ta" rows="1" placeholder="Message ${esc(r.dm ? first(r.dm) : r.name)}" aria-label="Message"></textarea>
+    <button class="icon" data-emoji aria-label="Emoji" title="Emoji">${I.smile}</button>
+    <button id="send" aria-label="Send" disabled>${I.send}</button></div></div>
+    <div class="hint"><span><span class="kbd">Enter</span> ${S.set.modSend ? "new line" : "send"}</span><span><span class="kbd">${S.set.modSend ? modKey + " Enter" : "Shift Enter"}</span> ${S.set.modSend ? "send" : "new line"}</span><span><span class="kbd">↑</span> edit last</span></div></div>`;
+  const ta = $("#ta"); ta.value = S.drafts[r.id] || ""; grow(); drawTimeline(true); drawBanner(); $("#tl").addEventListener("scroll", onScroll, { passive: true });
+}
+function drawBanner() {
+  const b = $("#banner"); if (!b) return; b.hidden = !S.offline;
+  const q = S.rooms.reduce((a, r) => a + r.ev.filter(e => e.status === "queued").length, 0);
+  $("#bannerText").textContent = "No connection." + (q ? ` ${q} message${q > 1 ? "s" : ""} will send when you are back.` : " You can keep reading and writing.");
+}
+/* Rows are keyed by a hash of everything that shows, standing in for the event's content address.
+   A row whose key is unchanged keeps its DOM node, and only the last WIN rows of a room are built. */
+const WIN = 80, MAXW = 240, tpl = document.createElement("template");
+const keyOf = s => { let h = 5381; for (let i = 0; i < s.length; i++) h = (h * 33 ^ s.charCodeAt(i)) >>> 0; return h.toString(36) + s.length.toString(36); };
+function drawTimeline(toEnd) {
+  const r = R(S.cur), tl = $("#tl"); if (!r || !tl) return;
+  const t0 = performance.now();
+  const follow = toEnd || r.lo == null || (r.hi == null && tl.scrollHeight - tl.scrollTop - tl.clientHeight < 55);
+  const all = live(r);
+  if (r.lo == null || (toEnd && r.hi != null)) { r.hi = null; r.lo = Math.max(0, all.length - WIN); }   // while following the latest, the window only grows, then trims in one step
+  const end = r.hi == null ? all.length : Math.min(r.hi, all.length);
+  if (r.hi == null && end - r.lo > MAXW) r.lo = end - WIN;
+  const start = Math.max(0, Math.min(r.lo, end - 1)), evs = all.slice(start, end);
+  let lastOwnId = null; for (let k = all.length - 1; k >= 0; k--) if (all[k].t === "m" && all[k].from === "me") { lastOwnId = all[k].id; break; }
+  const items = []; let prev = null, run = [], lined = false;
+  const flush = () => { if (!run.length) return;
+    if (run.length > 2) { const ids = run.map(e => e.id).join(","); items.push(["s" + ids, `<div class="sys">${run.length} people joined · <button data-expand="${ids}">show</button></div>`]); }
+    else for (const e of run) items.push(["s" + e.id, `<div class="sys">${esc(sysText(e, r))}</div>`]);
+    run = []; };
+  if (start > 0) items.push(["more", `<div class="sys" style="text-align:center;margin:13px 21px">Earlier messages load as you scroll up</div>`]);
+  else if (evs[0] && evs[0].kind === "created") items.push(["i" + keyOf(r.name + "\u0001" + (r.topic || "")), `<div class="intro">${rav(r, "l")}<h3>${esc(r.name)}</h3><p>${esc(r.topic || "")}</p><p>${I.lock.replace("<svg", '<svg style="width:13px;height:13px;vertical-align:-2px;color:var(--ok)"')} Messages here are encrypted. Only the people in this ${r.dm ? "chat" : "room"} can read them.</p></div>`]);
+  const mod = myPower(r) >= 50;
+  for (const e of evs) {
+    const dk = e._d || (e._d = dayKey(e.ts));   // an event's day never changes, so it is worked out once
+    if (!prev || prev._d !== dk) { flush(); items.push(["d" + dk + dayName(e.ts), `<div class="day">${dayName(e.ts)}</div>`]); prev = null; }
+    if (e.t === "s") { if (e.kind === "join" && !r.open) run.push(e); else if (e.kind !== "created") { flush(); items.push(["s" + e.id, `<div class="sys">${esc(sysText(e, r))}</div>`]); } prev = e; continue; }
+    flush();
+    if (!lined && r.seenLine && e.ts > r.seenLine && e.from !== "me") { items.push(["new", `<div class="newline">New</div>`]); lined = true; prev = null; }
+    const firstOf = !prev || prev.t !== "m" || prev.from !== e.from || e.ts - prev.ts > 5 * M;
+    const own = e.from === "me", failed = e.status === "failed", lastOwn = e.id === lastOwnId;
+    const q = e.reply && r.ev.find(x => x.id === e.reply);
+    const rxs = Object.entries(e.rx).filter(([, v]) => v.length);
+    let key = e._k;   // the key is kept on the event and worked out again only when the event or its place changed
+    if (!key || e._f !== firstOf || e._l !== lastOwn || e._e !== S.epoch) { e._f = firstOf; e._l = lastOwn; e._e = S.epoch; key = e._k = "m" + e.id + keyOf([e.body, e.edited ? 1 : 0, e.status, firstOf ? 1 : 0, lastOwn ? 1 : 0, JSON.stringify(e.rx), q ? q.body : "", e.img ? e.img.length : 0, mod ? 1 : 0, U[e.from].n].join("\u0001")); }
+    prev = e;
+    items.push([key, () => { const can = a => messageAction(a, own, true, mod, failed);
+      return `<div class="msg${firstOf ? " first" : ""}${mentionsMe(e) ? " hl" : ""}" data-id="${e.id}">
+      ${firstOf ? av(U[e.from].n) : `<span class="gut">${clock(e.ts)}</span>`}
+      <div>${firstOf ? `<div class="hd"><button class="nm" data-user="${e.from}">${esc(own ? "You" : U[e.from].n)}</button><span class="ts">${clock(e.ts)}</span></div>` : ""}
+      ${q ? `<button class="quote" data-jump="${q.id}">${I.reply}<span><b>${esc(q.from === "me" ? "You" : first(q.from))}</b> ${esc(q.body)}</span></button>` : ""}
+      ${e.img ? `<button class="img" data-view="${e.id}" aria-label="Open image"><img src="${e.img}" alt="${esc(e.name || "image")}"></button>` : ""}<div class="body${emojiOnly(e.body) ? " big" : ""}">${rich(e.body, r)}${e.edited ? '<span class="ed">edited</span>' : ""}</div>
+      ${rxs.length ? `<div class="rx">${rxs.map(([k, v]) => `<button class="${v.includes("me") ? "mine" : ""}" data-rx="${k}" aria-label="${v.length} reacted ${k}">${k}<span>${v.length}</span></button>`).join("")}</div>` : ""}
+      ${failed ? `<div class="st failed">Not sent. <button data-retry>Try again</button></div>` : e.status === "queued" ? `<div class="st">${I.clock}Waiting for a connection</div>`
+        : e.status === "sending" ? `<div class="st">${I.clock}Sending</div>` : lastOwn ? `<div class="st${e.status === "read" ? " read" : ""}">${e.status === "read" ? I.read + "Read" : I.check + "Sent"}</div>` : ""}</div>
+      <div class="acts" role="toolbar" aria-label="Message actions">
+        ${can("react") ? `<button class="icon" data-act="react" aria-label="React" title="React">${I.smile}</button>` : ""}
+        ${can("reply") ? `<button class="icon" data-act="reply" aria-label="Reply" title="Reply">${I.reply}</button>` : ""}
+        ${can("edit") ? `<button class="icon" data-act="edit" aria-label="Edit" title="Edit">${I.edit}</button>` : ""}
+        <button class="icon" data-act="copy" aria-label="Copy text" title="Copy text">${I.copy}</button>
+        ${can("remove") ? `<button class="icon" data-act="remove" aria-label="Delete" title="Delete">${I.trash}</button>` : ""}</div></div>`; }]);
+  }
+  flush();
+  if (end < all.length) items.push(["latest", `<div class="sys" style="text-align:center;margin:13px 21px"><button data-latest>Jump to latest</button></div>`]);
+  const old = new Map(); for (const n of tl.children) old.set(n.dataset.k, n);
+  let built = 0;
+  const nodes = items.map(([k, html]) => { let n = old.get(k);
+    if (!n) { tpl.innerHTML = typeof html === "function" ? html() : html; n = tpl.content.firstElementChild; n.dataset.k = k; built++; } return n; });
+  /* Touch only what moved: a node already in place is left alone, so the browser lays out changed rows and no others. */
+  let cur = tl.firstChild; for (const n of nodes) { if (n === cur) cur = cur.nextSibling; else tl.insertBefore(n, cur); }
+  while (cur) { const nx = cur.nextSibling; cur.remove(); cur = nx; }
+  if (follow) tl.scrollTop = tl.scrollHeight;
+  const ty = S.typing[r.id]; $("#typing").textContent = ty ? `${first(ty)} is typing…` : "";
+  S.perf.draw = performance.now() - t0; S.perf.built = built; S.perf.rows = nodes.length; S.perf.total = all.length;
+}
+function onScroll() {
+  const tl = $("#tl"), r = R(S.cur); if (!tl || !r || r.lo == null) return;
+  const nearTop = tl.scrollTop < 233 && r.lo > 0, nearEnd = r.hi != null && tl.scrollHeight - tl.scrollTop - tl.clientHeight < 233;
+  if (!nearTop && !nearEnd) return;
+  const total = live(r).length, end = r.hi == null ? total : r.hi;
+  const a = [...tl.children].find(n => n.dataset.k[0] === "m" && n.offsetTop + n.offsetHeight > tl.scrollTop + 55), off = a ? a.offsetTop - tl.scrollTop : 0;
+  if (nearTop) { r.lo = Math.max(0, r.lo - WIN); if (end - r.lo > MAXW) r.hi = r.lo + MAXW; }
+  else { r.hi = end + WIN; if (r.hi >= total) r.hi = null; r.lo = Math.max(r.lo, (r.hi == null ? total : r.hi) - MAXW); }
+  drawTimeline(); if (a && a.isConnected) tl.scrollTop = a.offsetTop - off;
+}
+function grow() { const ta = $("#ta"); if (!ta) return; ta.style.height = "auto"; ta.style.height = Math.min(ta.scrollHeight, 210) + "px"; $("#send").disabled = !ta.value.trim(); }
+function drawCtx() {
+  const c = $("#ctx"), r = R(S.cur); if (!c) return;
+  if (!S.mode) { c.hidden = true; return; }
+  const e = r.ev.find(x => x.id === S.mode.id);
+  c.hidden = false;
+  c.innerHTML = `${S.mode.type === "reply" ? I.reply : I.edit}<span class="grow">${S.mode.type === "reply" ? `Replying to <b>${esc(e.from === "me" ? "yourself" : first(e.from))}</b> · ${esc(e.body)}` : "Editing your message"}</span><button class="icon" data-cancel aria-label="Cancel" style="width:21px;height:21px">${I.x}</button>`;
+}
+function send() {
+  const ta = $("#ta"), text = ta.value.trim(), r = R(S.cur); if (!text) return;
+  const t0 = performance.now();       // Composer.sendable
+  if (S.mode && S.mode.type === "edit") { const e = r.ev.find(x => x.id === S.mode.id); if (e.body !== text) { e.body = text; e.edited = true; e._k = null; S.epoch++; } }
+  else { const e = m("me", 0, text, { ts: Date.now(), status: S.offline ? "queued" : "sending", reply: S.mode ? S.mode.id : null }); r.ev.push(e); if (!S.offline) deliver(r, e); }
+  S.mode = null; ta.value = ""; delete S.drafts[r.id]; r.lastRead = Date.now(); r.seenLine = 0;
+  grow(); drawCtx(); drawTimeline(true); drawList(); drawBanner();
+  S.perf.send = performance.now() - t0; requestAnimationFrame(() => setTimeout(() => { S.perf.sendFrame = performance.now() - t0; }));
+}
+function deliver(r, e) {
+  setTimeout(() => { e._k = null, e.status = "sent"; if (S.cur === r.id) drawTimeline(); }, 180);
+  if (r.dm) { setTimeout(() => { S.typing[r.id] = r.dm; if (S.cur === r.id) drawTimeline(); }, 700);
+    setTimeout(() => { delete S.typing[r.id]; e._k = null, e.status = "read"; incoming(r, r.dm, ["Got it.", "Sounds good.", "On it 👍", "Thanks, that helps."][Math.floor(Math.random() * 4)]); }, 2100); }
+}
+function incoming(r, from, body) {
+  const e = m(from, 0, body, { ts: Date.now(), status: "sent" }); r.ev.push(e);
+  const viewing = S.cur === r.id && !document.hidden;
+  const level = notifyLevel(S.set.notify, { all: 0, mentions: 1, mute: 2 }[r.level], mentionsMe(e), viewing, false);
+  if (viewing) { r.lastRead = Date.now(); drawTimeline(); }
+  if (level >= 2) toast(r, e);
+  drawList();
+}
+function toast(r, e) {
+  const t = document.createElement("button"); t.className = "toast";
+  t.innerHTML = `${rav(r)}<span class="grow"><b>${esc(r.dm ? r.name : first(e.from) + " in " + r.name)}</b><span>${esc(e.body)}</span></span>`;
+  t.onclick = () => { openRoom(r.id); t.remove(); }; $("#toasts").append(t); setTimeout(() => t.remove(), 5000);
+}
+
+/* ---------- details panel ---------- */
+function drawPanel() {
+  const p = $("#panel"), r = R(S.cur), docked = panes(innerWidth) === 3;      // Layout.rightPanelMode
+  const show = S.panel && !!r; p.hidden = !show; $("#app").classList.toggle("panel-docked", show && docked);
+  if (!show) return;
+  const mem = [...r.members].sort((a, b) => (r.power[b] || 0) - (r.power[a] || 0) || U[a].n.localeCompare(U[b].n));
+  const seg = (v, label) => `<button data-level="${v}" aria-pressed="${r.level === v}">${label}</button>`;
+  p.innerHTML = `<div class="bar"><h2 class="grow">Details</h2><button class="icon" data-panel aria-label="Close details">${I.x}</button></div><div class="pbody">
+    <div class="hero">${rav(r, "l")}<h3>${esc(r.name)}</h3>${r.topic ? `<p>${esc(r.topic)}</p>` : ""}${!r.dm && myPower(r) >= 50 ? '<button class="btn small" data-editroom>Edit name and topic</button>' : ""}</div>
+    <div class="note">${I.lock}<span>Encrypted. Only the people here hold the keys, and no server stores your messages.</span></div>
+    <div class="grp"><h4>Notify me about</h4><div class="seg">${seg("all", "Everything")}${seg("mentions", "Mentions")}${seg("mute", "Nothing")}</div></div>
+    <div class="grp"><h4>${r.dm ? "People" : r.members.length + " people"}</h4>${mem.map(id => `<button class="mem" data-user="${id}">${av(U[id].n)}<span>${esc(id === "me" ? U[id].n + " (you)" : U[id].n)}</span><span class="role">${role(r.power[id] || 0)}</span></button>`).join("")}</div>
+    <div class="grp"><button class="btn danger" data-leave>${I.out.replace("<svg", '<svg style="vertical-align:-4px;margin-right:5px"')}Leave ${r.dm ? "chat" : "room"}</button></div></div>`;
+}
+
+/* ---------- overlays ---------- */
+function closeOverlay() { const sc = $("#scrim"); if (sc) sc.remove(); const pk = $("#picker"); if (pk) pk.remove(); const mn = $("#menu"); if (mn) mn.remove(); if (lastFocus && document.contains(lastFocus)) lastFocus.focus(); }
+let lastFocus = null;
+function dialog(html, onMount) {
+  closeOverlay(); lastFocus = document.activeElement;
+  const sc = document.createElement("div"); sc.id = "scrim"; sc.innerHTML = `<div class="dlg" role="dialog" aria-modal="true">${html}</div>`;
+  sc.addEventListener("mousedown", e => { if (e.target === sc) closeOverlay(); });
+  document.body.append(sc); const f = sc.querySelector("[autofocus],input,button"); if (f) f.focus(); if (onMount) onMount(sc);
+}
+function confirmDlg(title, why, action, cls, fn) {
+  dialog(`<header><h3>${esc(title)}</h3></header><div class="c">${why}</div><footer><button class="btn" data-close autofocus>Cancel</button><button class="btn ${cls}" id="ok">${esc(action)}</button></footer>`,
+    sc => { $("#ok", sc).onclick = () => { closeOverlay(); fn(); }; });
+}
+function switcher() {
+  dialog(`<header><h3>Find a chat</h3><span class="kbd">Esc</span></header><div class="c qs"><input type="text" id="q" placeholder="Name of a person or room" autocomplete="off" autofocus><div id="qr"></div></div>`, sc => {
+    let idx = 0, rows = [];
+    const draw = () => { const q = $("#q", sc).value.trim().toLowerCase();
+      rows = S.rooms.filter(r => !r.invite && (!q || r.name.toLowerCase().includes(q))).sort((a, b) => -sortsBefore(a, b)).slice(0, 8);   // Search.switcherShows
+      idx = Math.min(idx, Math.max(rows.length - 1, 0));
+      $("#qr", sc).innerHTML = rows.length ? (q ? "" : `<div class="sect" style="padding-left:0">Recent</div>`) + rows.map((r, i) => `<button class="o${i === idx ? " on" : ""}" data-pick="${r.id}">${rav(r)}<span class="grow">${esc(r.name)}</span><span style="color:var(--ink3)">${r.dm ? "Person" : "Room"}</span></button>`).join("") : `<div class="empty">Nothing matches.</div>`; };
+    $("#q", sc).oninput = () => { idx = 0; draw(); };
+    $("#q", sc).onkeydown = e => { if (e.key === "ArrowDown") { idx = Math.min(idx + 1, rows.length - 1); draw(); e.preventDefault(); }
+      else if (e.key === "ArrowUp") { idx = Math.max(idx - 1, 0); draw(); e.preventDefault(); }
+      else if (e.key === "Enter" && rows[idx]) { const id = rows[idx].id; closeOverlay(); openRoom(id); } };
+    sc.addEventListener("click", e => { const b = e.target.closest("[data-pick]"); if (b) { closeOverlay(); openRoom(b.dataset.pick); } });
+    draw();
+  });
+}
+function settings(tab = "look") {
+  const sw = (k, t, d) => `<div class="set"><div>${t}<small>${d}</small></div><button class="sw" role="switch" aria-checked="${S.set[k]}" data-sw="${k}" aria-label="${t}"></button></div>`;
+  const body = { look: `<div class="set"><div>Theme<small>Follow the device, or choose.</small></div><div class="seg" style="width:233px">${["system", "light", "dark"].map(v => `<button data-theme-set="${v}" aria-pressed="${S.set.theme === v}">${v[0].toUpperCase() + v.slice(1)}</button>`).join("")}</div></div>
+      <div class="set"><div>Message text size<small>${S.set.font} px. From 12 to 24.</small></div><button class="btn small" data-font="-1" aria-label="Smaller">A−</button><button class="btn small" data-font="1" aria-label="Larger">A+</button></div>
+      ${sw("previews", "Message previews", "Show the latest message under each chat.")}`,
+    notify: `${sw("notify", "Notifications", "Show a notice when a message arrives in a chat you are not viewing.")}
+      ${sw("modSend", `Send with ${modKey} Enter`, "Enter then adds a new line.")}
+      <p style="margin:0">Each chat has its own level under Details: everything, mentions only, or nothing.</p>`,
+    keys: `<div class="keys">${[["Find a chat", modKey + " K"], ["Search messages", modKey + " F"], ["Show or hide details", modKey + " ."], ["Previous or next chat", "Alt ↑ / Alt ↓"], ["Send", S.set.modSend ? modKey + " Enter" : "Enter"], ["New line", S.set.modSend ? "Enter" : "Shift Enter"], ["Edit your last message", "↑ in an empty box"], ["Cancel reply or edit", "Esc"], ["Complete a suggestion", "Enter or Tab"]].map(([a, k]) => `<span>${a}</span><span class="kbd">${k}</span>`).join("")}</div>`,
+    about: `<p style="margin:0;color:var(--ink)">Holo Messenger, prototype. Sample people and messages; nothing is sent anywhere.</p>
+      <p style="margin:0">${S.perf.open != null ? `Measured on this device, script time: last chat opened in ${S.perf.open.toFixed(1)} ms; last timeline update ${S.perf.draw.toFixed(1)} ms, building ${S.perf.built} of ${S.perf.rows} rows shown from ${S.perf.total} messages${S.perf.send != null ? `; last send ${S.perf.send.toFixed(1)} ms` : ""}.` : ""}</p>
+      <p style="margin:0">This page makes no network requests. There is no server and no account. Your identity is a key held on this device.</p>
+      <div><div class="sect" style="padding:0 0 5px">Your identity</div><div class="addr">blake3:9f2c41d7a80b5e3366f1c0a47d92e85b1a6c3f04e7d2b9580c16a3e4f7b2d9c1</div></div>` }[tab];
+  dialog(`<header><h3>Settings</h3><button class="icon" data-close aria-label="Close">${I.x}</button></header><div class="tabs" role="tablist">${[["look", "Appearance"], ["notify", "Notifications"], ["keys", "Keyboard"], ["about", "About"]].map(([k, t]) => `<button role="tab" aria-selected="${k === tab}" data-tab="${k}">${t}</button>`).join("")}</div><div class="c" style="padding-top:21px">${body}</div>`);
+}
+function applySet() {
+  const root = document.documentElement;
+  if (S.set.theme === "system") { if (root.dataset.appTheme) { delete root.dataset.theme; delete root.dataset.appTheme; } } else { root.dataset.theme = S.set.theme; root.dataset.appTheme = "1"; }
+  root.style.setProperty("--fs", S.set.font + "px");
+  try { localStorage.setItem("hm-set", JSON.stringify(S.set)); } catch (e) {}
+}
+function picker(anchor, onPick) {
+  closeOverlay(); lastFocus = anchor;
+  const p = document.createElement("div"); p.id = "picker";
+  p.innerHTML = `<div class="emo">${EMOJI.map(([e, n]) => `<button data-e="${e}" title="${n.split(" ")[0]}" aria-label="${n.split(" ")[0]}">${e}</button>`).join("")}</div>`;
+  document.body.append(p); const b = anchor.getBoundingClientRect();
+  p.style.left = Math.max(8, Math.min(innerWidth - 304, b.right - 296)) + "px";
+  p.style.top = (b.top > 180 ? b.top - p.offsetHeight - 5 : b.bottom + 5) + "px";
+  p.onclick = e => { const x = e.target.closest("[data-e]"); if (x) { closeOverlay(); onPick(x.dataset.e); } };
+}
+function userMenu(anchor) {
+  closeOverlay(); lastFocus = anchor;
+  const mn = document.createElement("div"); mn.id = "menu";
+  mn.innerHTML = `<div style="padding:8px"><b>${esc(S.set.name)}</b><div style="color:var(--ink3)">Sample data</div></div><hr>
+    <button data-m="settings">${I.gear}Settings</button><button data-m="offline">${I.wifi}${S.offline ? "Go back online" : "Simulate no connection"}</button>
+    <button data-m="arrive">${I.clock}Simulate a new message</button><button data-m="stress">${I.search}Load 20,000 messages</button><hr><button data-m="onboard">${I.out}Show first run</button>`;
+  document.body.append(mn); const b = anchor.getBoundingClientRect(); mn.style.left = b.left + "px"; mn.style.top = b.bottom + 5 + "px";
+  mn.onclick = e => { const x = e.target.closest("[data-m]"); if (!x) return; closeOverlay(); ({ settings: () => settings(), offline: toggleOffline, stress, onboard: () => onboard(0),
+    arrive: () => { const r = R("r1"); if (!r.invite) incoming(r, "amara", "@Kai one more thing for Thursday: bring the phone build."); } })[x.dataset.m](); };
+}
+function stress() {
+  let r = S.rooms.find(x => x.stress);
+  if (!r) { const who = ["amara", "yuki", "lena", "dev", "me"], say = ["Measured again.", "Row height holds at 55.", "First load under budget.", "Search answered before the next key.", "Switching rooms stays instant.", "Nothing redrawn that did not change.", "Sent while offline, delivered in order."];
+    r = { id: "r" + (++seq), stress: true, name: "Stress test", members: who, power: { me: 100 }, level: "mute", priv: true, topic: "20,000 generated messages, for measuring.", lastRead: Date.now(), ev: [] };
+    for (let k = 0; k < 20000; k++) r.ev.push({ id: "x" + k, t: "m", from: who[(k * 7 + (k >> 3)) % 5], ts: now - (20000 - k) * 3 * M, body: say[k % 7] + " #" + (k + 1), status: "read", rx: {} });
+    S.rooms.push(r); }
+  openRoom(r.id);
+}
+function toggleOffline() {
+  S.offline = !S.offline;
+  if (!S.offline) S.rooms.forEach(r => r.ev.filter(e => e.status === "queued").forEach(e => { e._k = null, e.status = "sending"; deliver(r, e); }));   // Timeline.statusBar
+  drawBanner(); drawTimeline();
+}
+function onboard(step) {
+  let o = $("#onb"); if (!o) { o = document.createElement("div"); o.id = "onb"; document.body.append(o); }
+  const dots = `<div class="steps">${[0, 1, 2].map(i => `<i class="${i <= step ? "on" : ""}"></i>`).join("")}</div>`;
+  o.innerHTML = `<div class="onb">${dots}${[
+    `<h2>Private messages, with no server.</h2><p>No account and no password. Your identity is a key that stays on this device.</p><button class="btn primary" data-n>Get started</button>`,
+    `<h2>What should people call you?</h2><p>You can change this later.</p><input id="nm" type="text" value="${esc(S.set.name)}" aria-label="Your name" maxlength="40"><button class="btn primary" data-n>Continue</button>`,
+    `<h2>Save a recovery kit.</h2><p>Why: this device holds the only copy of your key. How: the kit is a file you keep somewhere safe. What it does: restores your identity on another device.</p><button class="btn primary" data-n>Save the kit</button><button class="btn" data-n>Not now</button>`][step]}</div>`;
+  const f = o.querySelector("input,button"); f.focus();
+  o.onclick = e => { if (!e.target.closest("[data-n]")) return; if (step === 1) { const v = $("#nm").value.trim(); if (v) { S.set.name = v; U.me.n = v; applySet(); } }
+    if (step < 2) onboard(step + 1); else { o.remove(); drawAll(); } };
+  o.onkeydown = e => { if (e.key === "Enter" && e.target.id === "nm") o.querySelector("[data-n]").click(); };
+}
+
+/* ---------- new chat, search, profile, room edit, images ---------- */
+function startDm(id) {                                                                            // Invite.placeholderStep: a chat exists locally before its first message
+  let r = S.rooms.find(x => x.dm === id && !x.invite);
+  if (!r) { r = { id: "r" + (++seq), name: U[id].n, dm: id, members: ["me", id], power: { me: 100, [id]: 100 }, level: "all", lastRead: Date.now(),
+    ev: [{ id: "e" + (++seq), t: "s", from: "me", ts: Date.now(), kind: "created" }] }; S.rooms.push(r); }
+  closeOverlay(); openRoom(r.id);
+}
+function newChat() {
+  dialog(`<header><h3>New chat</h3><button class="icon" data-close aria-label="Close">${I.x}</button></header><div class="c qs"><input type="text" id="np" placeholder="Find a person" autocomplete="off" autofocus><div id="npr"></div>
+    <div class="sect" style="padding-left:0">Or create a room</div><div style="display:flex;gap:8px"><input type="text" id="rn" placeholder="Room name" maxlength="60" aria-label="Room name"><button class="btn primary" id="rc">Create</button></div></div>`, sc => {
+    const draw = () => { const q = $("#np", sc).value.trim().toLowerCase(), ids = Object.keys(U).filter(id => id !== "me" && U[id].n.toLowerCase().includes(q)).slice(0, 5);
+      $("#npr", sc).innerHTML = ids.length ? ids.map(id => `<button class="o" data-dm="${id}">${av(U[id].n)}<span class="grow">${esc(U[id].n)}</span></button>`).join("") : `<div class="empty">Nobody matches.</div>`; };
+    $("#np", sc).oninput = draw; draw();
+    sc.addEventListener("click", e => { const b = e.target.closest("[data-dm]"); if (b) startDm(b.dataset.dm); });
+    const create = () => { const n = $("#rn", sc).value.trim(); if (!n) { $("#rn", sc).focus(); return; }
+      const r = { id: "r" + (++seq), name: n, members: ["me"], power: { me: 100 }, level: "all", priv: true, topic: "", lastRead: Date.now(), ev: [{ id: "e" + (++seq), t: "s", from: "me", ts: Date.now(), kind: "created" }] };
+      S.rooms.push(r); closeOverlay(); openRoom(r.id); };
+    $("#rc", sc).onclick = create; $("#rn", sc).onkeydown = e => { if (e.key === "Enter") create(); };
+  });
+}
+function jump(id) { let el = $(`.msg[data-id="${id}"]`);
+  if (!el) { const r = R(S.cur), all = live(r), k = all.findIndex(e => e.id === id); if (k >= 0) { r.lo = Math.max(0, k - 40); r.hi = k + 41 >= all.length ? null : k + 41; drawTimeline(); el = $(`.msg[data-id="${id}"]`); } }
+  if (el) { el.scrollIntoView({ block: "center" }); el.classList.add("act"); setTimeout(() => el.classList.remove("act"), 1600); } }
+function searchDlg() {
+  let all = !S.cur;
+  dialog(`<header><h3>Search messages</h3><span class="kbd">Esc</span></header><div class="c qs"><input type="text" id="sq" placeholder="Words to find" autocomplete="off" autofocus>
+    <div class="seg" style="grid-template-columns:1fr 1fr"><button data-scope="0" aria-pressed="${!all}">This chat</button><button data-scope="1" aria-pressed="${all}">All chats</button></div><div id="sr"></div></div>`, sc => {
+    const draw = () => { const q = $("#sq", sc).value.trim().toLowerCase(), box = $("#sr", sc);
+      if (q.length < 2) { box.innerHTML = `<div class="empty">Type at least two letters. Search runs on this device.</div>`; return; }
+      const hits = [];
+      for (const r of S.rooms) { if (r.invite || (!all && r.id !== S.cur)) continue; for (const e of r.ev) if (e.t === "m" && !e.del && e.body.toLowerCase().includes(q)) hits.push([r, e]); }
+      hits.sort((a, b) => b[1].ts - a[1].ts);
+      box.innerHTML = hits.length ? `<div class="sect" style="padding-left:0">${hits.length} result${hits.length > 1 ? "s" : ""}</div>` + hits.slice(0, 30).map(([r, e]) => {
+        const i = e.body.toLowerCase().indexOf(q), a = Math.max(0, i - 30);
+        const snip = (a ? "…" : "") + esc(e.body.slice(a, i)) + "<mark>" + esc(e.body.slice(i, i + q.length)) + "</mark>" + esc(e.body.slice(i + q.length, i + q.length + 60));
+        return `<button class="o" data-hit="${r.id}|${e.id}">${av(U[e.from].n)}<span class="grow" style="min-width:0"><b>${esc(e.from === "me" ? "You" : first(e.from))}</b> <span style="color:var(--ink3)">${all ? esc(r.name) + " · " : ""}${listTime(e.ts)}</span><span class="snip">${snip}</span></span></button>`;
+      }).join("") : `<div class="empty">No messages match.</div>`; };
+    $("#sq", sc).oninput = draw; draw();
+    sc.addEventListener("click", e => { let b = e.target.closest("[data-scope]");
+      if (b) { all = b.dataset.scope === "1"; sc.querySelectorAll("[data-scope]").forEach(x => x.setAttribute("aria-pressed", x === b)); draw(); return; }
+      b = e.target.closest("[data-hit]"); if (b) { const [rid, eid] = b.dataset.hit.split("|"); closeOverlay(); if (S.cur !== rid) openRoom(rid); jump(eid); } });
+  });
+}
+function profile(id) {
+  const r = R(S.cur), u = U[id], ver = ["amara", "yuki", "me"].includes(id);
+  const addr = "blake3:" + Array.from({ length: 64 }, (_, i) => "0123456789abcdef"[(hue(u.n) * 7 + i * i * 3 + u.n.charCodeAt(i % u.n.length)) % 16]).join("");
+  const rl = r && role(r.power[id] || 0);
+  dialog(`<header><span class="grow"></span><button class="icon" data-close aria-label="Close">${I.x}</button></header><div class="c" style="align-items:center;text-align:center">
+    ${ver ? `<span class="ring">${av(u.n, "l")}</span>` : av(u.n, "l")}<div><div style="font-size:17px;font-weight:650;color:var(--ink)">${esc(u.n)}${id === "me" ? " (you)" : ""}</div><div>${rl ? rl + " in " + esc(r.name) : ""}</div></div>
+    <div class="note" style="text-align:left;align-self:stretch">${ver ? I.lock : I.info.replace("<svg", '<svg style="color:var(--ink3)"')}<span>${ver ? "Verified. You have confirmed this identity." : "Not verified yet. Compare identities in person or on a call to verify."}</span></div>
+    <div class="addr" style="align-self:stretch;text-align:left">${addr}</div></div>${id === "me" ? "" : `<footer><button class="btn primary" id="pm">Message</button></footer>`}`, sc => { const b = $("#pm", sc); if (b) b.onclick = () => startDm(id); });
+}
+function editRoom() {
+  const r = R(S.cur);                                                                              // Membership.mayEdit
+  dialog(`<header><h3>Edit room</h3></header><div class="c"><label>Name<input type="text" id="en" value="${esc(r.name)}" maxlength="60" autofocus></label><label>Topic<input type="text" id="et" value="${esc(r.topic || "")}" maxlength="140"></label></div>
+    <footer><button class="btn" data-close>Cancel</button><button class="btn primary" id="es">Save</button></footer>`, sc => {
+    $("#es", sc).onclick = () => { const n = $("#en", sc).value.trim(); if (!n) { $("#en", sc).focus(); return; } r.name = n; r.topic = $("#et", sc).value.trim(); saveDraft(); closeOverlay(); drawAll(); }; });
+}
+function viewer(id) {
+  const e = R(S.cur).ev.find(x => x.id === id);
+  dialog(`<header><h3>${esc(e.name || "Image")}</h3><button class="icon" data-close aria-label="Close">${I.x}</button></header><div class="c" style="align-items:center"><img src="${e.img}" alt="" style="max-width:100%;max-height:44vh;border-radius:8px"></div>`);
+}
+document.addEventListener("change", e => {
+  if (e.target.id !== "file") return;
+  const f = e.target.files[0], r = R(S.cur); e.target.value = ""; if (!f || !r) return;
+  if (!/^image\//.test(f.type) || f.size > 8e6) { confirmDlg("That file cannot be sent here", `<p style="margin:0">This prototype sends images up to 8 MB. Other files arrive with the engine's media support.</p>`, "OK", "primary", () => {}); return; }
+  const fr = new FileReader();
+  fr.onload = () => { const ev = m("me", 0, "", { ts: Date.now(), status: S.offline ? "queued" : "sending", img: fr.result, name: f.name }); r.ev.push(ev); if (!S.offline) deliver(r, ev); drawTimeline(true); drawList(); drawBanner(); };
+  fr.readAsDataURL(f);
+});
+
+/* ---------- composer suggestions ---------- */
+function suggest() {
+  const ta = $("#ta"), r = R(S.cur), before = ta.value.slice(0, ta.selectionStart);
+  let mm = before.match(/(^|\s)@([\p{L}]*)$/u), items = [];
+  if (mm) items = r.members.filter(id => id !== "me" && U[id].n.toLowerCase().includes(mm[2].toLowerCase())).map(id => ({ label: U[id].n, html: av(U[id].n, "s") + esc(U[id].n), ins: "@" + first(id) + " ", len: mm[2].length + 1 }));
+  else if ((mm = before.match(/(^|\s):([a-z]{2,})$/))) items = EMOJI.filter(([, n]) => n.includes(mm[2])).slice(0, 6).map(([e, n]) => ({ html: `<span style="font-size:18px">${e}</span>${esc(n.split(" ")[0])}`, ins: e + " ", len: mm[2].length + 1 }));   // Composer.suggestKind
+  S.pop = items.length ? { items, idx: Math.min(S.pop ? S.pop.idx : 0, items.length - 1) } : null; drawPop();
+}
+function drawPop() { const p = $("#pop"); if (!p) return; p.hidden = !S.pop; if (S.pop) p.innerHTML = S.pop.items.map((o, i) => `<button class="o${i === S.pop.idx ? " on" : ""}" data-sug="${i}">${o.html}</button>`).join(""); }
+function complete(i) { const ta = $("#ta"), o = S.pop.items[i], at = ta.selectionStart; ta.value = ta.value.slice(0, at - o.len) + o.ins + ta.value.slice(at); const c = at - o.len + o.ins.length; ta.setSelectionRange(c, c); S.pop = null; drawPop(); grow(); ta.focus(); }
+
+/* ---------- events ---------- */
+const isMac = /Mac|iPhone|iPad/.test(navigator.platform), modKey = isMac ? "⌘" : "Ctrl";
+const touch = matchMedia("(pointer:coarse)").matches;   // on a touch keyboard Enter adds a line and the button sends
+function act(e, name) {
+  const r = R(S.cur), el = e.target.closest(".msg"), ev = r.ev.find(x => x.id === el.dataset.id), ta = $("#ta");
+  if (name === "reply") { S.mode = { type: "reply", id: ev.id }; drawCtx(); ta.focus(); }
+  else if (name === "edit") { saveDraft(); S.mode = { type: "edit", id: ev.id }; ta.value = ev.body; grow(); drawCtx(); ta.focus(); }
+  else if (name === "copy") { navigator.clipboard && navigator.clipboard.writeText(ev.body).catch(() => {}); }
+  else if (name === "react") picker(e.target.closest("button"), k => react(ev, k));
+  else if (name === "remove") confirmDlg("Delete this message?", `<p style="margin:0">Why this asks: deleting cannot be undone.</p><p style="margin:0">What happens: the message is removed for everyone in ${esc(r.name)}.</p>`, "Delete", "danger", () => { ev.del = true; r.delN = (r.delN || 0) + 1; drawTimeline(); drawList(); });
+}
+function react(ev, k) { ev._k = null; const a = ev.rx[k] || (ev.rx[k] = []); const i = a.indexOf("me"); i < 0 ? a.push("me") : a.splice(i, 1); drawTimeline(); }
+document.addEventListener("click", e => {
+  const t = e.target, q = sel => t.closest(sel);
+  if (!q("#menu") && !q("#meBtn") && $("#menu")) $("#menu").remove();
+  if (!q("#picker") && !q("[data-emoji]") && !q('[data-act="react"]') && $("#picker")) $("#picker").remove();
+  let b;
+  if ((b = q("[data-room]"))) openRoom(b.dataset.room);
+  else if ((b = q("[data-accept]"))) { const r = R(b.dataset.accept); delete r.invite; r.members.push("me"); r.ev.push({ id: "e" + (++seq), t: "s", from: "me", ts: Date.now(), kind: "join" }); openRoom(r.id); }
+  else if ((b = q("[data-decline]"))) { S.rooms = S.rooms.filter(r => r.id !== b.dataset.decline); drawList(); }
+  else if (q("#meBtn")) userMenu($("#meBtn"));
+  else if (q("#newBtn")) newChat();
+  else if (q("[data-find]")) searchDlg();
+  else if ((b = q("[data-user]"))) profile(b.dataset.user);
+  else if (q("[data-editroom]")) editRoom();
+  else if ((b = q("[data-view]"))) viewer(b.dataset.view);
+  else if (q("[data-back]")) { saveDraft(); S.cur = null; $("#app").classList.remove("in-room"); drawRoom(); drawList(); drawPanel(); }
+  else if (q("[data-panel]")) { S.panel = !S.panel; drawPanel(); const pb = $("#room [data-panel]"); if (pb) pb.setAttribute("aria-pressed", S.panel); }
+  else if ((b = q("[data-level]"))) { R(S.cur).level = b.dataset.level; drawPanel(); drawList(); }
+  else if (q("[data-leave]")) { const r = R(S.cur), admins = r.members.filter(x => (r.power[x] || 0) >= 100);
+    const warn = myPower(r) >= 100 && admins.length <= 1 ? "You are the only admin. If you leave, nobody can manage this room." : r.priv ? "This room is private. You will need a new invitation to come back." : "";   // Membership.leaveWarning
+    confirmDlg(`Leave ${r.name}?`, `<p style="margin:0">What happens: the chat is removed from your list on all your devices.</p>${warn ? `<p style="margin:0;color:var(--warn);font-weight:600">${warn}</p>` : ""}`, "Leave", "danger",
+      () => { S.rooms = S.rooms.filter(x => x !== r); S.cur = null; S.panel = false; $("#app").classList.remove("in-room"); drawAll(); }); }
+  else if ((b = q("[data-act]"))) act(e, b.dataset.act);
+  else if ((b = q("[data-rx]"))) react(R(S.cur).ev.find(x => x.id === q(".msg").dataset.id), b.dataset.rx);
+  else if (q("[data-retry]")) { const r = R(S.cur), ev = r.ev.find(x => x.id === q(".msg").dataset.id); ev._k = null, ev.status = S.offline ? "queued" : "sending"; if (!S.offline) deliver(r, ev); drawTimeline(); }
+  else if ((b = q("[data-jump]"))) { const el = $(`.msg[data-id="${b.dataset.jump}"]`); if (el) { el.scrollIntoView({ block: "center" }); el.classList.add("act"); setTimeout(() => el.classList.remove("act"), 1200); } }
+  else if ((b = q("[data-expand]"))) { R(S.cur).open = true; drawTimeline(); }
+  else if (q("[data-latest]")) drawTimeline(true);
+  else if (q("[data-cancel]")) cancelMode();
+  else if (q("[data-emoji]")) picker(q("[data-emoji]"), k => { const ta = $("#ta"); ta.setRangeText(k, ta.selectionStart, ta.selectionEnd, "end"); grow(); ta.focus(); });
+  else if (q("[data-attach]")) $("#file").click();
+  else if (q("#send")) send();
+  else if ((b = q("[data-sug]"))) complete(+b.dataset.sug);
+  else if (q("[data-close]")) closeOverlay();
+  else if ((b = q(".msg")) && !q("a,button")) { const on = b.classList.contains("act"); document.querySelectorAll(".msg.act").forEach(x => x.classList.remove("act")); if (!on && touch) b.classList.add("act"); }
+  else if ((b = q("[data-tab]"))) settings(b.dataset.tab);
+  else if ((b = q("[data-theme-set]"))) { S.set.theme = b.dataset.themeSet; applySet(); settings("look"); }
+  else if ((b = q("[data-font]"))) { S.set.font = Math.max(12, Math.min(24, S.set.font + +b.dataset.font)); applySet(); settings("look"); }   // Settings.fontSize
+  else if ((b = q("[data-sw]"))) { S.set[b.dataset.sw] = !S.set[b.dataset.sw]; applySet(); settings(b.dataset.sw === "previews" ? "look" : "notify"); drawList(); if (S.cur) { saveDraft(); drawRoom(); } }
+});
+function cancelMode() { if (!S.mode) return; const wasEdit = S.mode.type === "edit"; S.mode = null; if (wasEdit) { $("#ta").value = S.drafts[S.cur] || ""; grow(); } drawCtx(); }
+document.addEventListener("input", e => { if (e.target.id === "ta") { grow(); suggest(); } else if (e.target.id === "filter") drawList(); });
+document.addEventListener("keydown", e => {
+  const mod = isMac ? e.metaKey : e.ctrlKey, k = e.key;
+  if (mod && k.toLowerCase() === "k") { e.preventDefault(); switcher(); return; }                    // Keys.globalAction
+  if (mod && k.toLowerCase() === "f" && !$("#onb")) { e.preventDefault(); searchDlg(); return; }
+  if (mod && k === ".") { e.preventDefault(); if (S.cur) { S.panel = !S.panel; drawPanel(); } return; }
+  if (e.altKey && (k === "ArrowUp" || k === "ArrowDown") && !$("#scrim")) { e.preventDefault(); const l = S.rooms.filter(r => !r.invite).sort((a, b) => -sortsBefore(a, b)); if (!l.length) return;
+    const i = l.findIndex(r => r.id === S.cur), n = l[(i + (k === "ArrowDown" ? 1 : l.length - 1) + (i < 0 && k === "ArrowUp" ? 1 : 0)) % l.length]; openRoom(n.id); return; }
+  if (k === "Escape") { if ($("#scrim") || $("#picker") || $("#menu")) { closeOverlay(); return; }                                   // Overlay.escapeCloses
+    if (e.target.id === "ta") { if (S.pop) { S.pop = null; drawPop(); } else cancelMode(); } return; }                                // Composer.escapeStep
+  if (k === "Tab" && $("#scrim")) { const f = [...$("#scrim").querySelectorAll("button,input,[tabindex]")].filter(x => !x.disabled); if (!f.length) return;
+    const i = f.indexOf(document.activeElement); e.preventDefault(); f[(i + (e.shiftKey ? f.length - 1 : 1)) % f.length].focus(); return; }   // Overlay.focusTrapped
+  if (e.target.id !== "ta") return;
+  const ta = e.target;
+  if (S.pop && (k === "ArrowDown" || k === "ArrowUp")) { e.preventDefault(); const n = S.pop.items.length; S.pop.idx = (S.pop.idx + (k === "ArrowDown" ? 1 : n - 1)) % n; drawPop(); return; }
+  if (S.pop && k === "Tab") { e.preventDefault(); complete(S.pop.idx); return; }
+  if (k === "Enter" && !e.isComposing) { const a = enterAction(e.shiftKey, mod, S.set.modSend || touch, !!S.pop);
+    if (a === 3) { e.preventDefault(); complete(S.pop.idx); } else if (a === 1) { e.preventDefault(); send(); } return; }
+  if (k === "ArrowUp" && !ta.value && !S.pop) { const r = R(S.cur), own = [...r.ev].reverse().find(x => x.t === "m" && x.from === "me" && !x.del);   // Composer.upEditsPrevious
+    if (own) { e.preventDefault(); S.mode = { type: "edit", id: own.id }; ta.value = own.body; grow(); drawCtx(); } }
+});
+addEventListener("resize", () => drawPanel());
+function drawAll() { S.epoch++; $("#meBtn").innerHTML = av(S.set.name); $("#kHint").textContent = modKey + " K"; drawList(); drawRoom(); drawPanel(); }
+try { Object.assign(S.set, JSON.parse(localStorage.getItem("hm-set") || "{}")); } catch (e) {}
+U.me.n = S.set.name; applySet(); drawAll();
+if (panes(innerWidth) > 1) openRoom("r1");
+setTimeout(() => { const r = R("r3"); if (r && S.cur !== "r3") incoming(r, "sofia", "New run: first load is down to 138 KB."); }, 9000);
+</script>
+</body>
+</html>
