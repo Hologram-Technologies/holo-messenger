@@ -1,30 +1,30 @@
 # Phase 1 interface coverage
 
-Scope: the 227 Phase 1 items a person can see or use (features, journeys and surfaces; capabilities are left out), judged against `client/index.html` at commit 602671f, on 2026-11-18.
+Scope: the 227 Phase 1 items a person can see or use (features, journeys and surfaces; capabilities are left out), judged against `client/index.html` at the commit that last changed this file, on 2026-11-18.
 
-How it was judged: each item was read against the page's code and given the lower verdict when torn. A first pass judged all 227. The 113 it marked partly were then built out and judged again by reviewers who had not written the code. Two of those (HM-SUR-064, HM-FEA-119) were fixed after that second pass and checked in a browser. The page uses sample data: nothing is stored beyond this browser, encrypted or sent, and that does not count against an item. Items marked adapt in the inventory were judged on their adapted intent. Where a static page cannot do the real thing, it offers a substitute that says what it is.
+How it was judged: each item was read against the page's code and given the lower verdict when torn. A first pass judged all 227. The items it did not mark built were then built out and judged again by reviewers who had not written the code. Six items were fixed after their second review; their rows say so, and those fixes were checked in a browser by the builder or by the session lead, not reviewed a third time. The page uses sample data: nothing is stored beyond this browser, encrypted or sent, and that does not count against an item. A strip at the top of the page says so at all times. Items marked adapt in the inventory were judged on their adapted intent. Where a static page cannot do the real thing, it offers a substitute that says what it is.
+
+Not exercised by anyone: scanning a code with a camera, camera capture, real touch gestures, sending or playing video, real key presses, a real network drop, and any browser other than one Chromium.
 
 - built: the behaviour is present on sample data, with its main states.
 - partly: some of it is present; the last column says what is absent.
 - not built: nothing in the page does this.
 
-The six not built verdicts are from the first pass and were not judged again after batch three, which may have added some of them (a start-up loading screen, a file progress bar, saved list sort and filter).
-
 | Domain | items | built | partly | not built |
 |---|---|---|---|---|
 | identity and devices | 10 | 10 | 0 | 0 |
-| onboarding and recovery | 15 | 13 | 0 | 2 |
+| onboarding and recovery | 15 | 15 | 0 | 0 |
 | rooms and membership | 28 | 28 | 0 | 0 |
-| encryption and verification | 16 | 15 | 1 | 0 |
+| encryption and verification | 16 | 16 | 0 | 0 |
 | moderation | 2 | 2 | 0 | 0 |
 | timeline and events | 34 | 34 | 0 | 0 |
 | composer | 24 | 24 | 0 | 0 |
-| media and attachments | 16 | 13 | 2 | 1 |
+| media and attachments | 16 | 16 | 0 | 0 |
 | search | 12 | 12 | 0 | 0 |
 | notifications | 11 | 11 | 0 | 0 |
-| settings | 18 | 17 | 1 | 0 |
-| navigation and layout | 41 | 37 | 1 | 3 |
-| Total | 227 | 216 | 5 | 6 |
+| settings | 18 | 18 | 0 | 0 |
+| navigation and layout | 41 | 39 | 2 | 0 |
+| Total | 227 | 225 | 2 | 0 |
 
 | HM ID | domain | name | verdict | where in the page | absent |
 |---|---|---|---|---|---|
@@ -46,11 +46,11 @@ The six not built verdicts are from the first pass and were not judged again aft
 | HM-JRN-016 | onboarding and recovery | Set up recovery | built | createKit(): kit shown, Copy, Save as a file, Confirm your kit | - |
 | HM-JRN-023 | onboarding and recovery | Post-login onboarding | built | onboard() step 3 notification screen, skippable; kit step skipped when saved | - |
 | HM-JRN-024 | onboarding and recovery | Verify by recovery key | built | restore(): paste kit, inline "not a valid kit", confirmed() | - |
-| HM-SUR-015 | onboarding and recovery | Loading and splash screens | not built | no spinner or splash anywhere in the page | no starting spinner or slow-start splash |
+| HM-SUR-015 | onboarding and recovery | Loading and splash screens | built | #boot "Loading…" removed on DOMContentLoaded; busy() slow start offers Sign out, simulation labelled | - |
 | HM-SUR-016 | onboarding and recovery | Fatal error page | built | "This browser is too old" page, Try again; error dialog Reload | - |
 | HM-SUR-017 | onboarding and recovery | Welcome page | built | onboard(0): Create my identity, I have a recovery kit | - |
 | HM-SUR-018 | onboarding and recovery | Auth page frame | built | stage() frame shared by all first-run screens | - |
-| HM-SUR-024 | onboarding and recovery | Encryption setup after registration | not built | onboard(1) sets identity at once, no progress shown | no progress view and no error with retry while the identity is made |
+| HM-SUR-024 | onboarding and recovery | Encryption setup after registration | built | makeId: real key pair under a progress bar held 400 ms; failure with Try again (fixed after review, timed by the builder) | - |
 | HM-SUR-028 | onboarding and recovery | Session restore error dialog | built | userMenu "rerr" dialog: Clear this device, Try again | - |
 | HM-SUR-029 | onboarding and recovery | Storage evicted dialog | built | userMenu "evict" dialog: browser removed data, Restore from a kit | - |
 | HM-FEA-021 | rooms and membership | Direct chats | built | newChat "New group chat" runs groupChat(), pickPeople(), makeRoom() with several members | - |
@@ -85,7 +85,7 @@ The six not built verdicts are from the first pass and were not judged again aft
 | HM-FEA-122 | encryption and verification | Verification | built | verifyFlow(): Compare pictures or Scan a code, for people and devices | - |
 | HM-FEA-123 | encryption and verification | Recovery | built | restore() valid kit leads to confirmed() and chat list | - |
 | HM-JRN-040 | encryption and verification | Verify own session by emoji | built | verifyFlow() wait, emoji, done, cancel; "They do not match" | - |
-| HM-JRN-041 | encryption and verification | Verify own session by QR | partly | verifyFlow "scan" step: type six digits under a sample picture | no code is scanned; the code is typed, and the page says so |
+| HM-JRN-041 | encryption and verification | Verify own session by QR | built | verifyFlow qr/scan steps: real QR via qr(), scanCode camera reader, typed fallback | - |
 | HM-JRN-046 | encryption and verification | Confirm identity on a new device | built | restore(): kit entry or "Confirm from another device", then confirmed() | - |
 | HM-SUR-119 | encryption and verification | Encryption and verification card | built | verifyFlow() steps start, wait, emoji, done, cancel | - |
 | HM-SUR-121 | encryption and verification | Recovery key entry dialog | built | restore(): "Choose the kit file" reader, live kitState, "Start again" reset link | - |
@@ -115,7 +115,7 @@ The six not built verdicts are from the first pass and were not judged again aft
 | HM-SUR-061 | timeline and events | Timeline | built | load and error tiles, #ubar jump, stress(1e5) with 80 to 240 row window | - |
 | HM-SUR-062 | timeline and events | Event tile | built | ghost() deleted line; .lk lock button on each sender header | - |
 | HM-SUR-063 | timeline and events | Message action bar | built | .acts toolbar: React, Reply, Edit, Copy, More, Delete | - |
-| HM-SUR-064 | timeline and events | Message context menu | built | msgMenu: react, quote, forward, pin, report; openHash opens a copied message link | - |
+| HM-SUR-064 | timeline and events | Message context menu | built | msgMenu: react, quote, forward, pin, report; openHash opens a copied message link (fixed after review) | - |
 | HM-SUR-065 | timeline and events | Text message body | built | rich() //spoiler// button; "/me" italic emote; .body.nt notice via /note | - |
 | HM-SUR-067 | timeline and events | Undecryptable, hidden, redacted and error bodies | built | ghost() deleted, no key, damaged; "Hidden: you blocked" line; media error line | - |
 | HM-SUR-068 | timeline and events | State and system event tiles | built | say() rows: name, topic, picture, encryption on, "You verified", pins, roles | - |
@@ -140,7 +140,7 @@ The six not built verdicts are from the first pass and were not judged again aft
 | HM-FEA-099 | composer | Formatting | built | #fbar on selection calls fmt(); rich() strikethrough, quote, lists | - |
 | HM-FEA-105 | composer | Setting: modifier+Enter to send | built | "Send with Ctrl Enter" switch; enterAction() in keydown | - |
 | HM-FEA-110 | composer | Setting: typing notifications | built | S.out[1] count for sending; "Show typing notices" hides the typing row | - |
-| HM-FEA-119 | composer | Draft restore | built | saveDraft and openRoom keep text, reply target and an open edit per chat | - |
+| HM-FEA-119 | composer | Draft restore | built | saveDraft and openRoom keep text, reply target and an open edit per chat (fixed after review) | - |
 | HM-JRN-038 | composer | Send a message | built | send(), deliver(): Sending, Sent, Read; failed row; read-only composer | - |
 | HM-JRN-039 | composer | Edit or delete own message | built | startEdit() puts #ed in the message with Save and Cancel; deleteDlg() reason | - |
 | HM-SUR-097 | composer | Typing indicator row | built | #typing row shows small avatar and first name | - |
@@ -164,14 +164,14 @@ The six not built verdicts are from the first pass and were not judged again aft
 | HM-FEA-147 | media and attachments | Paste or drop media | built | paste and drop listeners call previewSend() | - |
 | HM-FEA-148 | media and attachments | Captions | built | saveEdit() saves an empty caption on a picture or file | - |
 | HM-JRN-050 | media and attachments | Send a file or image | built | upload() reads file in pieces, moves progress bar; data-upx Cancel | - |
-| HM-SUR-141 | media and attachments | Image, video, file and audio bodies | partly | "Picture hidden. Show it"; error listener line for broken picture or video | placeholder is only a background colour; audio and files have no error state |
-| HM-SUR-146 | media and attachments | Upload bar | not built | none; a sending file only shows "Sending" on the message | no bar with name, progress, remaining count or cancel |
+| HM-SUR-141 | media and attachments | Image, video, file and audio bodies | built | phSt shows a blurred thumbnail, then the picture; error lines for picture, video, audio, file (fixed after review) | - |
+| HM-SUR-146 | media and attachments | Upload bar | built | drawUp: file name, progress, count waiting, Cancel; "A slow file" shows it, labelled simulated (fixed after review) | - |
 | HM-SUR-147 | media and attachments | File drop target | built | #drop "Drop to send" overlay shown on dragover | - |
 | HM-SUR-153 | media and attachments | Upload confirm and failure dialogs | built | previewSend(): each file listed, "Send N", too-large notice | - |
 | HM-SUR-154 | media and attachments | Image viewer overlay | built | viewer(): wheel, keys, pinch, swipe, right-click menu | - |
 | HM-SUR-155 | media and attachments | Shortcut: upload file | built | keydown Ctrl+Shift+U clicks the #file input | - |
 | HM-SUR-156 | media and attachments | Avatar source sheet | built | pickPic() menu: photo, library, file, remove; used for room and profile | - |
-| HM-SUR-157 | media and attachments | Timeline item: image / video / sticker | partly | .play overlay with duration; hidden-media button; caption below | no thumbnail placeholder that sharpens; only a background colour before load |
+| HM-SUR-157 | media and attachments | Timeline item: image / video / sticker | built | thumb and phSt: thumbnail first, fade to the sharp picture; play mark, duration, caption (fixed after review) | - |
 | HM-SUR-161 | media and attachments | Avatar preview | built | data-avbig on room header, details and timeline avatars opens .full dialog | - |
 | HM-FEA-167 | search | Message search | built | searchDlg: this chat or all chats, snippets, click jumps to message | - |
 | HM-FEA-168 | search | Encrypted message search (desktop) | built | Settings, Encryption tab: "Search index" count with Rebuild button | - |
@@ -213,14 +213,14 @@ The six not built verdicts are from the first pass and were not judged again aft
 | HM-SUR-238 | settings | Room settings: General | built | editRoom General: pickPic picture, name, topic, Save, "Leave room" button | - |
 | HM-SUR-243 | settings | Room settings: Notifications | built | editRoom data-rlevel segment sets the room level | - |
 | HM-SUR-249 | settings | Toast: update available | built | toastMsg "An update is ready" with Update now and Later | - |
-| HM-SUR-267 | settings | Licences screens | partly | legal("lic"): licence list and full MIT text shown | Apache 2.0 text is not shown or linked, only a file name |
+| HM-SUR-267 | settings | Licences screens | built | legal("lic"): licence list, full MIT text, link to Apache 2.0 text | - |
 | HM-FEA-256 | navigation and layout | Message previews in room list | built | drawList shows preview(r) under each chat name | - |
 | HM-FEA-257 | navigation and layout | Keyboard shortcuts | built | keydown handlers cover each shortcut listed in the Keyboard tab | - |
 | HM-FEA-258 | navigation and layout | Landmark navigation | built | F6 handler moves focus: filter, timeline, message box, details | - |
 | HM-FEA-262 | navigation and layout | Setting: room list | built | Preferences "Sort chats by" segment and list menu; listOrder; previews switch | - |
 | HM-FEA-263 | navigation and layout | Setting: room list display | built | Preferences "Sort chats by" segment (setSort) and "Message previews" switch | - |
 | HM-FEA-264 | navigation and layout | Internal state: recents | built | saveUi keeps REC and SQ in hm-ui; hm-emoji; shown by switcher and sqChips | - |
-| HM-FEA-265 | navigation and layout | Internal state: room list layout | not built | no sort, panel size or filter is saved | sort, panel size, hidden-list state and filter all reset on reload |
+| HM-FEA-265 | navigation and layout | Internal state: room list layout | partly | saveUi keeps sort, width, hidden list, filter and favourites across a reload | custom sections and a background picture do not exist to be saved |
 | HM-FEA-266 | navigation and layout | Internal state: panels and viewers | built | r.ph card stack per chat saved by saveUi in drawPanel, restored at start | - |
 | HM-FEA-267 | navigation and layout | Offline indicator | built | #banner "No connection"; queued messages show "Waiting for a connection" | - |
 | HM-JRN-075 | navigation and layout | Lose and regain connection | built | toggleOffline: banner with waiting count; queued messages send on return | - |
@@ -229,7 +229,7 @@ The six not built verdicts are from the first pass and were not judged again aft
 | HM-SUR-281 | navigation and layout | Left panel | built | data-nolist buttons in list and room bars, noList(); works on phones; shortcut listed | - |
 | HM-SUR-282 | navigation and layout | User menu | built | userMenu "Theme:" entry cycles system, light, dark; Profile, Settings, Sign out | - |
 | HM-SUR-283 | navigation and layout | Room list header | built | #newBtn opens listMenu: New chat, Create a room, Sort by, Show | - |
-| HM-SUR-284 | navigation and layout | Room list | partly | drawList: Loading state, #flt chips, empty state with button, content-visibility on rows | List is not windowed: every row is rebuilt on each redraw |
+| HM-SUR-284 | navigation and layout | Room list | built | drawList: keyed rows, window above 200 chats, #flt chips, loading, empty states | drag overlay for list rows (minor); 60 fps not measured as frames |
 | HM-SUR-285 | navigation and layout | Room list item | built | drawList row: avatar, name, preview, time, badge; right-click menu | - |
 | HM-SUR-289 | navigation and layout | Home page | built | drawRoom home view: "Pick a chat" with New chat, Create a room | - |
 | HM-SUR-290 | navigation and layout | Room header | built | drawRoom bar: avatar, name, people count, search and details buttons | - |
@@ -237,7 +237,7 @@ The six not built verdicts are from the first pass and were not judged again aft
 | HM-SUR-292 | navigation and layout | Right panel empty state | built | Files and Pins panel cards render the shared ".empty" block when empty | - |
 | HM-SUR-293 | navigation and layout | Room context menu | built | contextmenu on chat row: read, Favourite, Invite people, settings, Details, levels, Leave | - |
 | HM-SUR-294 | navigation and layout | Generic menus and base | built | MutationObserver focuses first menu button; capture keydown arrows, Home, End, Tab trap; Esc | - |
-| HM-SUR-296 | navigation and layout | Server offline dialog | not built | only a "No connection" banner exists | no dialog listing likely causes with a retry |
+| HM-SUR-296 | navigation and layout | Server offline dialog | built | netDlg from banner "Why?": causes, browser's online report, Try again | - |
 | HM-SUR-297 | navigation and layout | Generic dialogs | built | dialog() frame used by confirmDlg, error, and input dialogs | - |
 | HM-SUR-298 | navigation and layout | Modal manager | built | dialog(keep) pushes to STACK; closeTop restores the dialog under; Tab trapped | - |
 | HM-SUR-300 | navigation and layout | Toast containers | built | toastMsg: waiting notices prepend to #toasts, plain ones go to #notes corner | - |
@@ -252,6 +252,6 @@ The six not built verdicts are from the first pass and were not judged again aft
 | HM-SUR-310 | navigation and layout | Shortcut: accessibility keys | built | capture keydown: arrows, Home, End in menus, tabs, segments; Ctrl S saves; Backspace chips | - |
 | HM-SUR-311 | navigation and layout | Right panel card frame | built | block-six drawPanel frames Files, Pins, Roles cards with Back, title, Close | - |
 | HM-SUR-312 | navigation and layout | Small shared structures | built | pickPeople #iq typed chips, data-unpick, Backspace removes; scroll-edge gradients in CSS | - |
-| HM-SUR-313 | navigation and layout | Home tab bar | not built | only a "Chats" header; no tab bar or side rail | no chats and spaces tabs at any width |
+| HM-SUR-313 | navigation and layout | Home tab bar | partly | #nav: Chats and Search tabs under 768 px, kept inside a chat | no side rail on wide screens; no Spaces tab (later phase) |
 | HM-SUR-314 | navigation and layout | Home banners | built | #homeBanner "Save a recovery kit" with Set up and Not now | - |
 | HM-SUR-316 | navigation and layout | Global indicators | built | busy() #boot full-screen overlay at start, slow start and index build | - |
