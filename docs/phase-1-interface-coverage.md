@@ -8,6 +8,8 @@ How it was judged: each item was read against the page's code and given the lowe
 - partly: some of it is present; the last column says what is absent.
 - not built: nothing in the page does this.
 
+The six not built verdicts are from the first pass and were not judged again after batch three, which may have added some of them (a start-up loading screen, a file progress bar, saved list sort and filter).
+
 | Domain | items | built | partly | not built |
 |---|---|---|---|---|
 | identity and devices | 10 | 10 | 0 | 0 |
@@ -83,7 +85,7 @@ How it was judged: each item was read against the page's code and given the lowe
 | HM-FEA-122 | encryption and verification | Verification | built | verifyFlow(): Compare pictures or Scan a code, for people and devices | - |
 | HM-FEA-123 | encryption and verification | Recovery | built | restore() valid kit leads to confirmed() and chat list | - |
 | HM-JRN-040 | encryption and verification | Verify own session by emoji | built | verifyFlow() wait, emoji, done, cancel; "They do not match" | - |
-| HM-JRN-041 | encryption and verification | Verify own session by QR | partly | verifyFlow "scan" step: type six digits under a sample picture | no code is scanned; says the page cannot use the camera, which is untrue |
+| HM-JRN-041 | encryption and verification | Verify own session by QR | partly | verifyFlow "scan" step: type six digits under a sample picture | no code is scanned; the code is typed, and the page says so |
 | HM-JRN-046 | encryption and verification | Confirm identity on a new device | built | restore(): kit entry or "Confirm from another device", then confirmed() | - |
 | HM-SUR-119 | encryption and verification | Encryption and verification card | built | verifyFlow() steps start, wait, emoji, done, cancel | - |
 | HM-SUR-121 | encryption and verification | Recovery key entry dialog | built | restore(): "Choose the kit file" reader, live kitState, "Start again" reset link | - |
