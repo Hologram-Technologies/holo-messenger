@@ -27,7 +27,7 @@ A proof shows a definition has the stated property. It does not show the propert
 
 ## Known limits
 
-- Thresholds and budgets in the modules are placeholders, kept as they are for now (decided 2026-11-18); none is measured or tuned.
+- Thresholds and budgets in the modules are the accepted Phase 1 values (2026-11-18). None is measured; the 150 KB first load has no build to test it against.
 - Membership status numbers match `Comms.Rules` on the uor-comms `phase-1-room-core` branch by inspection; nothing imports that module yet.
 - 35 client-side Phase 1 items have no formal rule; most are frames, text or lists with no decision to state.
 - `app/` is a hand-written LexLean project scaffolded by `prism-code init`; `lexlean.toml` still carries the scaffold's project name. How these modules reach a Prism app build is undecided.
