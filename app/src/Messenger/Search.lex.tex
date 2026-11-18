@@ -1,0 +1,60 @@
+\begin{lexlean}{Messenger.Search}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Boolean}
+\begin{semanticmodule}
+definition{
+  name: searchStep,
+  parameters: [state : Nat, signal : Nat],
+  result: Nat,
+  body: (if (signal =? 1) then 0 else (if (signal =? 0) then 1 else (if (state =? 1) then (if (signal =? 2) then 2 else (if (signal =? 3) then 3 else (if (signal =? 4) then 4 else 1))) else (if (4 <? state) then 0 else state))))
+}
+
+definition{
+  name: switcherShows,
+  parameters: [queryLength : Nat, isRecent : Nat, matches : Nat],
+  result: Nat,
+  body: (if (queryLength =? 0) then (if (1 <=? isRecent) then 1 else 0) else (if (1 <=? matches) then 1 else 0))
+}
+
+theorem{
+  name: clearAlwaysIdle,
+  parameters: [state : Nat],
+  statement: ((searchStep state 1) = 0),
+  proof: linear_arithmetic{definitions: [searchStep]},
+  axioms: [propext]
+}
+
+theorem{
+  name: queryAlwaysSearches,
+  parameters: [state : Nat],
+  statement: ((searchStep state 0) = 1),
+  proof: linear_arithmetic{definitions: [searchStep]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: noResultsFromIdle,
+  parameters: [signal : Nat],
+  statement: (((searchStep 0 signal) =? 2) = false),
+  proof: linear_arithmetic{definitions: [searchStep]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: searchStateInRange,
+  parameters: [state : Nat, signal : Nat],
+  statement: (((searchStep state signal) <=? 4) = true),
+  proof: linear_arithmetic{definitions: [searchStep]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: emptyQueryShowsOnlyRecents,
+  parameters: [matches : Nat],
+  statement: ((switcherShows 0 0 matches) = 0),
+  proof: linear_arithmetic{definitions: [switcherShows]},
+  axioms: [Quot.sound, propext]
+}
+\end{semanticmodule}
+\end{lexlean}

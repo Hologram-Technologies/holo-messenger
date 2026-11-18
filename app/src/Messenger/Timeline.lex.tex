@@ -1,0 +1,144 @@
+\begin{lexlean}{Messenger.Timeline}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Boolean}
+\begin{semanticmodule}
+definition{
+  name: shown,
+  parameters: [deleted : Nat, ignoredSender : Nat, known : Nat, showDeleted : Nat],
+  result: Nat,
+  body: (if (1 <=? ignoredSender) then 0 else (if (known =? 0) then 0 else (if (1 <=? deleted) then (if (1 <=? showDeleted) then 1 else 0) else 1)))
+}
+
+definition{
+  name: dividerBefore,
+  parameters: [previousDay : Nat, day : Nat, isFirst : Nat],
+  result: Nat,
+  body: (if (1 <=? isFirst) then 1 else (if (previousDay <? day) then 1 else (if (day <? previousDay) then 1 else 0)))
+}
+
+definition{
+  name: collapses,
+  parameters: [kindA : Nat, kindB : Nat, sameDay : Nat],
+  result: Nat,
+  body: (if (kindA =? 0) then 0 else (if (sameDay =? 0) then 0 else (if (kindA =? kindB) then 1 else 0)))
+}
+
+definition{
+  name: asksBeforeOpening,
+  parameters: [textIsLink : Nat, sameTarget : Nat],
+  result: Nat,
+  body: (if (textIsLink =? 0) then 0 else (if (sameTarget =? 0) then 1 else 0))
+}
+
+definition{
+  name: statusBar,
+  parameters: [connected : Nat, unsent : Nat],
+  result: Nat,
+  body: (if (connected =? 0) then 1 else (if (1 <=? unsent) then 2 else 0))
+}
+
+definition{
+  name: startsReply,
+  parameters: [drag : Nat],
+  result: Bool,
+  body: (64 <=? drag)
+}
+
+theorem{
+  name: ignoredSenderNeverShown,
+  parameters: [deleted : Nat, known : Nat, showDeleted : Nat],
+  statement: ((shown deleted 1 known showDeleted) = 0),
+  proof: linear_arithmetic{definitions: [shown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unknownEventNeverShown,
+  parameters: [deleted : Nat, ignoredSender : Nat, showDeleted : Nat],
+  statement: ((shown deleted ignoredSender 0 showDeleted) = 0),
+  proof: linear_arithmetic{definitions: [shown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: deletedHiddenByDefault,
+  parameters: [ignoredSender : Nat, known : Nat],
+  statement: ((shown 1 ignoredSender known 0) = 0),
+  proof: linear_arithmetic{definitions: [shown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: sameDayHasNoDivider,
+  parameters: [day : Nat],
+  statement: ((dividerBefore day day 0) = 0),
+  proof: linear_arithmetic{definitions: [dividerBefore]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: firstItemHasDivider,
+  parameters: [previousDay : Nat, day : Nat],
+  statement: ((dividerBefore previousDay day 1) = 1),
+  proof: linear_arithmetic{definitions: [dividerBefore]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: messagesNeverCollapse,
+  parameters: [kindB : Nat, sameDay : Nat],
+  statement: ((collapses 0 kindB sameDay) = 0),
+  proof: linear_arithmetic{definitions: [collapses]},
+  axioms: [propext]
+}
+
+theorem{
+  name: collapseStaysWithinDay,
+  parameters: [kindA : Nat, kindB : Nat],
+  statement: ((collapses kindA kindB 0) = 0),
+  proof: linear_arithmetic{definitions: [collapses]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: matchingLinkNeverAsks,
+  parameters: [textIsLink : Nat],
+  statement: ((asksBeforeOpening textIsLink 1) = 0),
+  proof: linear_arithmetic{definitions: [asksBeforeOpening]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: plainTextNeverAsks,
+  parameters: [sameTarget : Nat],
+  statement: ((asksBeforeOpening 0 sameTarget) = 0),
+  proof: linear_arithmetic{definitions: [asksBeforeOpening]},
+  axioms: [propext]
+}
+
+theorem{
+  name: offlineAlwaysShown,
+  parameters: [unsent : Nat],
+  statement: ((statusBar 0 unsent) = 1),
+  proof: linear_arithmetic{definitions: [statusBar]},
+  axioms: [propext]
+}
+
+theorem{
+  name: quietWhenConnectedAndSent,
+  parameters: [],
+  statement: ((statusBar 1 0) = 0),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: shortDragNeverReplies,
+  parameters: [],
+  statement: ((startsReply 63) = false),
+  proof: reflexivity{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

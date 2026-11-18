@@ -1,0 +1,72 @@
+\begin{lexlean}{Messenger.Budget}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Boolean}
+\begin{semanticmodule}
+definition{
+  name: firstLoadBytes,
+  parameters: [],
+  result: Nat,
+  body: 153600
+}
+
+definition{
+  name: interactiveMs,
+  parameters: [],
+  result: Nat,
+  body: 1000
+}
+
+definition{
+  name: sendEchoMs,
+  parameters: [],
+  result: Nat,
+  body: 16
+}
+
+definition{
+  name: roomSwitchMs,
+  parameters: [],
+  result: Nat,
+  body: 100
+}
+
+definition{
+  name: motionMs,
+  parameters: [],
+  result: Nat,
+  body: 200
+}
+
+definition{
+  name: within,
+  parameters: [measured : Nat, budget : Nat],
+  result: Bool,
+  body: (measured <=? budget)
+}
+
+theorem{
+  name: overBudgetFails,
+  parameters: [budget : Nat],
+  statement: ((within (budget + 1) budget) = false),
+  proof: linear_arithmetic{definitions: [within]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: atBudgetPasses,
+  parameters: [budget : Nat],
+  statement: ((within budget budget) = true),
+  proof: linear_arithmetic{definitions: [within]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: echoFitsOneFrame,
+  parameters: [],
+  statement: ((within (sendEchoMs) 16) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}
