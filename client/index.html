@@ -725,7 +725,7 @@ function onboard(step) {
 /* ---------- new chat, search, profile, room edit, images ---------- */
 function startDm(id) {                                                                            // Invite.placeholderStep: a chat exists locally before its first message
   let r = S.rooms.find(x => x.dm === id && !x.invite);
-  if (!r) { r = { id: "r" + (++seq), name: U[id].n, dm: id, members: ["me", id], power: { me: 100, [id]: 100 }, level: "all", lastRead: Date.now(),
+  if (!r) { r = { id: "r" + (++seq), name: U[id].n, dm: id, members: ["me", id], power: { me: 100, [id]: 100 }, level: S.set.defaultLevel || "all", lastRead: Date.now(),
     ev: [{ id: "e" + (++seq), t: "s", from: "me", ts: Date.now(), kind: "created" }] }; S.rooms.push(r); }
   closeOverlay(); openRoom(r.id);
 }
@@ -737,7 +737,7 @@ function newChat() {
     $("#np", sc).oninput = draw; draw();
     sc.addEventListener("click", e => { const b = e.target.closest("[data-dm]"); if (b) startDm(b.dataset.dm); });
     const create = () => { const n = $("#rn", sc).value.trim(); if (!n) { $("#rn", sc).focus(); return; }
-      const r = { id: "r" + (++seq), name: n, members: ["me"], power: { me: 100 }, level: "all", priv: true, topic: "", lastRead: Date.now(), ev: [{ id: "e" + (++seq), t: "s", from: "me", ts: Date.now(), kind: "created" }] };
+      const r = { id: "r" + (++seq), name: n, members: ["me"], power: { me: 100 }, level: S.set.defaultLevel || "all", priv: true, topic: "", lastRead: Date.now(), ev: [{ id: "e" + (++seq), t: "s", from: "me", ts: Date.now(), kind: "created" }] };
       S.rooms.push(r); closeOverlay(); openRoom(r.id); };
     $("#rc", sc).onclick = create; $("#rn", sc).onkeydown = e => { if (e.key === "Enter") create(); };
   });
