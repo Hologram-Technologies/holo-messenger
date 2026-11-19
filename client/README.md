@@ -1,6 +1,6 @@
 # Client
 
-The Holo Messenger interface: one static page, no build step, no dependencies. It loads itself, plus the rules holo and its loader from the same site, and nothing from anywhere else.
+The Holo Messenger interface: one static page, no build step, no dependencies. It loads itself, plus the rules holo and its loader from the same site, and nothing from anywhere else, except in engine mode, which fetches the pinned uor-comms engine from uor-foundation.github.io and runs it only once every file matches its BLAKE3 (the repository README, "Engine").
 
 Open `index.html` in a browser, or serve this folder with any static file server.
 

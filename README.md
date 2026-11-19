@@ -4,7 +4,7 @@ A serverless messenger client with the feature set of Element, built on uor-comm
 
 ## Status
 
-Step 1 (reading, mapping, inventory) and the client-only Phase 1 rules are done. The interface exists as a prototype on sample data in `client/`; nothing in it is stored, encrypted or sent.
+Step 1 (reading, mapping, inventory) and the client-only Phase 1 rules are done. The interface exists as a prototype on sample data in `client/`; nothing in it is stored, encrypted or sent. An opt-in engine mode runs its rooms on the uor-comms engine inside the browser tab (see Engine).
 
 This repository is an instance of `UOR-Foundation/template`. Its Prism application, `Messenger rules`, answers eleven client questions with the rules proved here.
 
@@ -20,6 +20,18 @@ uor-comms is the canonical reference; Holo Messenger is a downstream client of i
 - `host/README.md`: the host's calls and what the caller supplies.
 
 This repository owns only the client: the interface in `client/`, the client rules in `app/`, and the inventory of what a person sees and does. Its documents about uor-comms (`docs/inventory/matrix-to-uor-comms-map.md`, `docs/reading/uor-comms-report.md`, and the inventory's "uor-comms need" and "engine standing" columns) are dated snapshots kept for the record. The engine's own phase plan, when uor-comms publishes one, decides when each engine-backed item can be built.
+
+## Engine
+
+The interface can run rooms, membership, sending and the timeline on the uor-comms engine, inside one browser tab, with the sample people. It is opt-in: You, Try a situation, "Run on the uor-comms engine, in this tab", or `#engine` on the page's address for testing. Sample mode stays the default until uor-comms ships persistence and a transport: this engine version keeps nothing across a reload, so a default engine mode would lose a person's chats on every reload.
+
+Pinned: version `bc14eda300b0c914932b52ecc67c0b22e080383911f49f2f2e5ce379516e925b`, built from uor-comms commit `a283752696b4b15e23364d78dd7cf0ab2bed73fa`, the version with the direct-chat rule (two people, equal power, no third member). Help and about in the page names both.
+
+How the page loads it, as uor-comms `host/README.md` says: it fetches `manifest.json` and the six files from `uor-foundation.github.io/uor-comms/engine/<version>/`, checks that the manifest names the pinned version and commit (the commit is the manifest's own claim: the version's BLAKE3 does not cover it), that each file's BLAKE3 is the manifest's, and that the version is the BLAKE3 of the manifest's file list. It imports the five modules from blobs made of the checked bytes, with their relative imports pointed at the checked siblings' blobs. Only one import form is allowed: a whole line `import { names } from "./sibling.mjs";` naming a sibling already checked. If anything else in a module's text, comments and strings included, reads as an import or a re-export (`import`, `export *`, `export { … } from`, `from "…"`), engine mode does not start. Every bypass the review found (an import with no `from`, one without spaces, one after a comment on the same line), a dynamic import, `export * from`, `export { x } from`, a renamed relative import, a second import on an allowed line and an import inside a string were each re-pinned and refused. It loads `room-kernel.holo` with prism-code's `loadArchive` and requires it to verify. BLAKE3 and `loadArchive` come from the site's own `worker-runtime/`, the copy of prism-code the page already loads its holo with. If anything fails, engine mode does not start, the page stays on sample data, and a dialog says what failed. The engine files, 79,140 bytes, are fetched only when engine mode starts.
+
+On the engine in engine mode: the chat list (`rooms()`), members and roles (`members()`), creating a room and a direct chat (an existing one is reused through the host's `findDirect`), invite, join, decline and leave, remove, ban, lift a ban, change of role, sending (content version 1: text, mentions as identities, the reply, forwarded), the timeline in the host's order, and receiving. Whether a direct chat offers an invitation is the kernel's answer (operation 0e); it says no, and an invitation asked anyway is refused with the engine's word, "direct". The engines are all in the tab, so engine chats send with or without a connection. Each sample person, and you, is a separate engine with its own memory store, a 32-byte identity and device made in the tab, and a P-256 key pair; the in-tab transport hands each announcement to every other engine, so every event is admitted or refused by each of them. The device verdict answers from a table of the devices made in this tab (not the sample device list in Settings); Prism ID is not wired. The sample people's scripted joins and answers are real events from their engines.
+
+On the page only, and sample in engine mode (About lists them; each is labelled where it shows, unread counts in their accessible name and title): room names, pictures and descriptions (this engine version has no room settings), attachments, typing, receipts, unread counts, pins, and edits and reactions, because uor-comms states no rule for how they combine (`docs/STATUS.md`, "Message content, in full"). Delete is not offered for a message on the engine: this version refuses redactions. Neither Edit nor Delete is offered while a message is still being sent. Engine mode writes none of the sample's saved state.
 
 ## What is here
 
@@ -83,7 +95,7 @@ The acceptance vectors are tested, not proved, and only when `prismpm verify` ru
 
 ## Known limits
 
-- Thresholds and budgets in the modules are the accepted Phase 1 values (2026-11-18). None is measured in a gate. Against the 150 KB first load, `client/index.html` on 2026-11-19 is 316,806 bytes raw and 101,491 gzipped at level 9, measured by hand; the holo and its loader are not counted.
+- Thresholds and budgets in the modules are the accepted Phase 1 values (2026-11-18). None is measured in a gate. Against the 150 KB first load, `client/index.html` on 2026-11-19, with engine mode, is 345,632 bytes raw and 110,770 gzipped at level 9, measured by hand; the holo and its loader are not counted, nor the 79,140 bytes of engine files fetched only when engine mode starts.
 - The named sizes in `Budget` come from `docs/whatsapp-study.md`, with text sizes divided by the 1.3 text enlargement of the phone measured. The interface carries 15 of the 16 as CSS tokens with the same values, written by hand, not read from the model; `textScaleNoted` has no token.
 - Membership status numbers match `Comms.Rules` in uor-comms by inspection; nothing imports that module.
 - 10 client-side Phase 1 items have no formal rule: five are fixed content, three are code structure and two wait on the engine. `docs/phase-1-client-coverage.md` gives the reason for each.

@@ -4,6 +4,8 @@ Re-judged on 2026-11-19 against the reworked `client/index.html`: every row was 
 
 Verifying another person moved to Phase 2 on 2026-11-19: HM-SUR-119 left this list, and four verification rows are now scoped to your own devices. The page still shows the people path on sample data.
 
+2026-11-19, verdicts unchanged: in the opt-in engine mode (README, "Engine") these rows also run on the uor-comms engine in the browser tab, with sample people: HM-FEA-021, HM-FEA-037, HM-FEA-039, HM-FEA-041, HM-FEA-042, HM-FEA-046, HM-FEA-047, HM-FEA-048, HM-FEA-050, HM-FEA-056, HM-FEA-085, HM-FEA-097, HM-JRN-025, HM-JRN-026, HM-JRN-027, HM-JRN-028, HM-JRN-032, HM-JRN-038, HM-SUR-005, HM-SUR-041, HM-SUR-061, HM-SUR-068, HM-SUR-096. Edits, reactions and deletion stay on sample data there.
+
 Scope: the 226 Phase 1 items a person can see or use (features, journeys and surfaces; capabilities are left out), judged against `client/index.html` at the commit that last changed this file, on 2026-11-19.
 
 How it was judged: each item was read against the page's code and given the lower verdict when torn. A first pass judged all 227. The items it did not mark built were then built out and judged again by reviewers who had not written the code. Six items were fixed after their second review; their rows say so, and those fixes were checked in a browser by the builder or by the session lead, not reviewed a third time. The page uses sample data: nothing is stored beyond this browser, encrypted or sent, and that does not count against an item. A strip at the top of the page says so at all times. Items marked adapt in the inventory were judged on their adapted intent. Where a static page cannot do the real thing, it offers a substitute that says what it is.
