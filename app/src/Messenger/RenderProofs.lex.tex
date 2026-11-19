@@ -51,5 +51,85 @@ theorem{
   proof: reflexivity{},
   axioms: []
 }
+
+theorem{
+  name: unresolvedNameStaysText,
+  parameters: [isDirect : Nat],
+  statement: ((Messenger.Render::mentionPill 0 0 isDirect) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Render::mentionPill]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: roomWordNeverPillsInDirect,
+  parameters: [isRoomWord : Nat, isDirect : Nat],
+  statement: (((1 <=? isDirect) && (1 <=? (Messenger.Render::mentionPill 0 isRoomWord isDirect))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Render::mentionPill]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: memberAlwaysPills,
+  parameters: [joinedMember : Nat, isRoomWord : Nat, isDirect : Nat],
+  statement: (((1 <=? joinedMember) && (((Messenger.Render::mentionPill joinedMember isRoomWord isDirect) <? 1) || (1 <? (Messenger.Render::mentionPill joinedMember isRoomWord isDirect)))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Render::mentionPill]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: mentionPillInRange,
+  parameters: [joinedMember : Nat, isRoomWord : Nat, isDirect : Nat],
+  statement: (((Messenger.Render::mentionPill joinedMember isRoomWord isDirect) <=? 2) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Render::mentionPill]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unclosedMarkStaysText,
+  parameters: [mark : Nat],
+  statement: (((mark <=? 5) && (1 <=? (Messenger.Render::formatApplied mark 0))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Render::formatApplied]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unknownMarkStaysText,
+  parameters: [mark : Nat, closed : Nat],
+  statement: (((8 <=? mark) && (1 <=? (Messenger.Render::formatApplied mark closed))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Render::formatApplied]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: lineMarkNeedsNoClosing,
+  parameters: [mark : Nat, closed : Nat],
+  statement: (((6 <=? mark) && ((mark <=? 7) && ((Messenger.Render::formatApplied mark closed) =? 0))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Render::formatApplied]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: closedMarkApplies,
+  parameters: [mark : Nat, closed : Nat],
+  statement: (((mark <=? 5) && ((1 <=? closed) && ((Messenger.Render::formatApplied mark closed) =? 0))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Render::formatApplied]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: formatAppliedInRange,
+  parameters: [mark : Nat, closed : Nat],
+  statement: (((Messenger.Render::formatApplied mark closed) <=? 1) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Render::formatApplied]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: pillAndMarkExamples,
+  parameters: [],
+  statement: ((((Messenger.Render::mentionPill 1 0 1) =? (Messenger.Render::pillMember)) && (((Messenger.Render::mentionPill 0 1 0) =? (Messenger.Render::pillRoom)) && (((Messenger.Render::mentionPill 0 1 1) =? (Messenger.Render::pillNone)) && (((Messenger.Render::formatApplied (Messenger.Render::fmtBold) 1) =? 1) && (((Messenger.Render::formatApplied (Messenger.Render::fmtHidden) 0) =? 0) && (((Messenger.Render::formatApplied (Messenger.Render::fmtLink) 1) =? 1) && (((Messenger.Render::formatApplied (Messenger.Render::fmtQuoteLine) 0) =? 1) && ((Messenger.Render::formatApplied (Messenger.Render::fmtListLine) 0) =? 1)))))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
 \end{semanticmodule}
 \end{lexlean}

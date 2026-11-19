@@ -83,5 +83,36 @@ definition{
   result: Nat,
   body: (if (1 <=? hasText) then 0 else (if (1 <=? voiceBuilt) then 1 else 0))
 }
+
+definition{name: sectionRecents, parameters: [], result: Nat, body: 1}
+
+definition{name: sectionCategories, parameters: [], result: Nat, body: 2}
+
+definition{name: sectionHits, parameters: [], result: Nat, body: 3}
+
+definition{name: sectionNoMatch, parameters: [], result: Nat, body: 4}
+
+definition{name: recentCap, parameters: [], result: Nat, body: 8}
+
+definition{
+  name: pickerSection,
+  parameters: [queryLength : Nat, recentCount : Nat, hits : Nat],
+  result: Nat,
+  body: (if (queryLength =? 0) then (if (1 <=? recentCount) then 1 else 2) else (if (1 <=? hits) then 3 else 4))
+}
+
+definition{
+  name: recentsAfterPick,
+  parameters: [count : Nat, wasRecent : Nat],
+  result: Nat,
+  body: (if (1 <=? wasRecent) then (if (count =? 0) then 1 else (if (8 <? count) then 8 else count)) else (if (8 <=? count) then 8 else (count + 1)))
+}
+
+definition{
+  name: toneApplied,
+  parameters: [isHand : Nat, tone : Nat],
+  result: Nat,
+  body: (if (isHand =? 0) then 0 else (if (tone <=? 5) then tone else 0))
+}
 \end{semanticmodule}
 \end{lexlean}

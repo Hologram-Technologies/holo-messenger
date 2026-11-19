@@ -77,5 +77,57 @@ definition{
   result: Nat,
   body: (if (modifier =? 0) then 0 else (if (key =? 12) then 1 else (if (key =? 13) then 2 else (if (key =? 14) then 3 else (if (key =? 15) then (if (1 <=? shift) then 5 else 4) else (if (key =? 16) then 5 else (if (key =? 9) then 6 else (if (key =? 10) then 7 else 0))))))))
 }
+
+definition{name: keyL, parameters: [], result: Nat, body: 17}
+
+definition{name: keyLeft, parameters: [], result: Nat, body: 18}
+
+definition{name: keyRight, parameters: [], result: Nat, body: 19}
+
+definition{name: keyEnter, parameters: [], result: Nat, body: 20}
+
+definition{name: keySpace, parameters: [], result: Nat, body: 21}
+
+definition{name: keyTab, parameters: [], result: Nat, body: 22}
+
+definition{name: keyS, parameters: [], result: Nat, body: 23}
+
+definition{name: listNone, parameters: [], result: Nat, body: 0}
+
+definition{name: listToggle, parameters: [], result: Nat, body: 1}
+
+definition{name: listShrink, parameters: [], result: Nat, body: 2}
+
+definition{name: listGrow, parameters: [], result: Nat, body: 3}
+
+definition{name: ctlNone, parameters: [], result: Nat, body: 0}
+
+definition{name: ctlNext, parameters: [], result: Nat, body: 1}
+
+definition{name: ctlPrevious, parameters: [], result: Nat, body: 2}
+
+definition{name: ctlFirst, parameters: [], result: Nat, body: 3}
+
+definition{name: ctlLast, parameters: [], result: Nat, body: 4}
+
+definition{name: ctlActivate, parameters: [], result: Nat, body: 5}
+
+definition{name: ctlClose, parameters: [], result: Nat, body: 6}
+
+definition{name: ctlSave, parameters: [], result: Nat, body: 7}
+
+definition{
+  name: listPanelKey,
+  parameters: [key : Nat, modifier : Nat, shift : Nat, alt : Nat, overlayOpen : Nat],
+  result: Nat,
+  body: (if (1 <=? overlayOpen) then 0 else (if (shift =? 0) then 0 else (if (1 <=? modifier) then (if (1 <=? alt) then 0 else (if (key =? 17) then 1 else 0)) else (if (alt =? 0) then 0 else (if (key =? 18) then 2 else (if (key =? 19) then 3 else 0))))))
+}
+
+definition{
+  name: controlKey,
+  parameters: [key : Nat, modifier : Nat, shift : Nat],
+  result: Nat,
+  body: (if (1 <=? modifier) then (if (key =? 23) then 7 else 0) else (if (key =? 6) then 1 else (if (key =? 5) then 2 else (if (key =? 22) then (if (1 <=? shift) then 2 else 1) else (if (key =? 9) then 3 else (if (key =? 10) then 4 else (if (key =? 20) then 5 else (if (key =? 21) then 5 else (if (key =? 11) then 6 else 0)))))))))
+}
 \end{semanticmodule}
 \end{lexlean}

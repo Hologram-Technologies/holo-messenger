@@ -123,5 +123,95 @@ theorem{
   proof: reflexivity{},
   axioms: []
 }
+
+theorem{
+  name: recoveryBeforeVerify,
+  parameters: [unverified : Nat, verifyDismissed : Nat],
+  statement: ((Messenger.Session::homeBanner 0 0 unverified verifyDismissed) = 1),
+  proof: linear_arithmetic{
+    definitions: [Messenger.Session::homeBanner, Messenger.Session::recoveryBanner]
+  },
+  axioms: [propext]
+}
+
+theorem{
+  name: dismissedRecoveryStaysHidden,
+  parameters: [recoverySet : Nat, recoveryDismissed : Nat, unverified : Nat, verifyDismissed : Nat],
+  statement: (((1 <=? recoveryDismissed) && ((Messenger.Session::homeBanner recoverySet recoveryDismissed unverified verifyDismissed) =? 1)) = false),
+  proof: linear_arithmetic{
+    definitions: [Messenger.Session::homeBanner, Messenger.Session::recoveryBanner]
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: dismissedVerifyStaysHidden,
+  parameters: [recoverySet : Nat, recoveryDismissed : Nat, unverified : Nat, verifyDismissed : Nat],
+  statement: (((1 <=? verifyDismissed) && ((Messenger.Session::homeBanner recoverySet recoveryDismissed unverified verifyDismissed) =? 2)) = false),
+  proof: linear_arithmetic{
+    definitions: [Messenger.Session::homeBanner, Messenger.Session::recoveryBanner]
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: verifiedDevicesNeverAsked,
+  parameters: [recoverySet : Nat, recoveryDismissed : Nat, verifyDismissed : Nat],
+  statement: (((Messenger.Session::homeBanner recoverySet recoveryDismissed 0 verifyDismissed) =? 2) = false),
+  proof: linear_arithmetic{
+    definitions: [Messenger.Session::homeBanner, Messenger.Session::recoveryBanner]
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: homeBannerInRange,
+  parameters: [recoverySet : Nat, recoveryDismissed : Nat, unverified : Nat, verifyDismissed : Nat],
+  statement: (((Messenger.Session::homeBanner recoverySet recoveryDismissed unverified verifyDismissed) <=? 2) = true),
+  proof: linear_arithmetic{
+    definitions: [Messenger.Session::homeBanner, Messenger.Session::recoveryBanner]
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: homeBannerExamples,
+  parameters: [],
+  statement: ((((Messenger.Session::homeBanner 1 0 1 0) =? (Messenger.Session::bannerVerify)) && (((Messenger.Session::homeBanner 0 1 1 0) =? (Messenger.Session::bannerVerify)) && (((Messenger.Session::homeBanner 0 0 1 0) =? (Messenger.Session::bannerRecovery)) && ((Messenger.Session::homeBanner 1 0 0 0) =? (Messenger.Session::bannerNone))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: failureAlwaysOffersReload,
+  parameters: [rootFailed : Nat, partFailed : Nat],
+  statement: (((1 <=? (rootFailed + partFailed)) && ((Messenger.Session::failureView rootFailed partFailed) =? 0)) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Session::failureView]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: noFailureNoNotice,
+  parameters: [],
+  statement: ((Messenger.Session::failureView 0 0) = 0),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: partFailureKeepsThePage,
+  parameters: [partFailed : Nat],
+  statement: (((Messenger.Session::failureView 0 partFailed) <=? 1) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Session::failureView]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: failureViewInRange,
+  parameters: [rootFailed : Nat, partFailed : Nat],
+  statement: (((Messenger.Session::failureView rootFailed partFailed) <=? 2) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Session::failureView]},
+  axioms: [Quot.sound, propext]
+}
 \end{semanticmodule}
 \end{lexlean}

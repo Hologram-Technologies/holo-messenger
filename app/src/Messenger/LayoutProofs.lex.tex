@@ -275,5 +275,175 @@ theorem{
   proof: reflexivity{},
   axioms: []
 }
+
+theorem{
+  name: ownTypingNeverShows,
+  parameters: [isDirect : Nat, othersTyping : Nat, selfTyping : Nat, typingShown : Nat],
+  statement: ((Messenger.Layout::headerLine isDirect othersTyping selfTyping typingShown) = (Messenger.Layout::headerLine isDirect othersTyping 0 typingShown)),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::headerLine]},
+  axioms: [propext]
+}
+
+theorem{
+  name: quietDirectShowsNothing,
+  parameters: [isDirect : Nat, selfTyping : Nat, typingShown : Nat],
+  statement: (((1 <=? isDirect) && (1 <=? (Messenger.Layout::headerLine isDirect 0 selfTyping typingShown))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::headerLine]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: quietRoomShowsPeople,
+  parameters: [selfTyping : Nat, typingShown : Nat],
+  statement: ((Messenger.Layout::headerLine 0 0 selfTyping typingShown) = 1),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::headerLine]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: directNeverNamesTyper,
+  parameters: [isDirect : Nat, othersTyping : Nat, selfTyping : Nat, typingShown : Nat],
+  statement: (((1 <=? isDirect) && (3 <=? (Messenger.Layout::headerLine isDirect othersTyping selfTyping typingShown))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::headerLine]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: manyTypersCounted,
+  parameters: [othersTyping : Nat, selfTyping : Nat, typingShown : Nat],
+  statement: (((3 <=? othersTyping) && ((1 <=? typingShown) && ((Messenger.Layout::headerLine 0 othersTyping selfTyping typingShown) <? 5))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::headerLine]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: typingOffNeverShowsTyping,
+  parameters: [isDirect : Nat, othersTyping : Nat, selfTyping : Nat],
+  statement: ((2 <=? (Messenger.Layout::headerLine isDirect othersTyping selfTyping 0)) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::headerLine]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: headerLineInRange,
+  parameters: [isDirect : Nat, othersTyping : Nat, selfTyping : Nat, typingShown : Nat],
+  statement: (((Messenger.Layout::headerLine isDirect othersTyping selfTyping typingShown) <=? 5) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::headerLine]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: headerLineExamples,
+  parameters: [],
+  statement: ((((Messenger.Layout::headerLine 0 1 0 1) =? (Messenger.Layout::lineOneName)) && (((Messenger.Layout::headerLine 0 2 1 1) =? (Messenger.Layout::lineTwoNames)) && (((Messenger.Layout::headerLine 0 7 0 1) =? (Messenger.Layout::lineCount)) && (((Messenger.Layout::headerLine 1 1 0 1) =? (Messenger.Layout::lineTyping)) && (((Messenger.Layout::headerLine 0 0 1 1) =? (Messenger.Layout::linePeople)) && ((Messenger.Layout::headerLine 1 0 1 1) =? (Messenger.Layout::lineNothing))))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: closedPanelShowsNothing,
+  parameters: [roomOpen : Nat, depth : Nat, items : Nat],
+  statement: ((Messenger.Layout::panelShows 0 roomOpen depth items) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::panelShows]},
+  axioms: [propext]
+}
+
+theorem{
+  name: noRoomNoPanel,
+  parameters: [isOpen : Nat, depth : Nat, items : Nat],
+  statement: ((Messenger.Layout::panelShows isOpen 0 depth items) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::panelShows]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: emptyCardShowsPlaceholder,
+  parameters: [isOpen : Nat, roomOpen : Nat, depth : Nat],
+  statement: (((1 <=? isOpen) && ((1 <=? roomOpen) && ((1 <=? depth) && (((Messenger.Layout::panelShows isOpen roomOpen depth 0) <? 3) || (3 <? (Messenger.Layout::panelShows isOpen roomOpen depth 0)))))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::panelShows]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: panelShowsInRange,
+  parameters: [isOpen : Nat, roomOpen : Nat, depth : Nat, items : Nat],
+  statement: (((Messenger.Layout::panelShows isOpen roomOpen depth items) <=? 3) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::panelShows]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: panelAlwaysHasWayOut,
+  parameters: [depth : Nat, paneCount : Nat],
+  statement: ((1 <=? ((Messenger.Layout::panelBack depth paneCount) + (Messenger.Layout::panelClose paneCount))) = true),
+  proof: linear_arithmetic{
+    definitions: [Messenger.Layout::panelBack, Messenger.Layout::panelClose]
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: cardAlwaysGoesBackToInfo,
+  parameters: [depth : Nat, paneCount : Nat],
+  statement: (((1 <=? depth) && (((Messenger.Layout::panelBack depth paneCount) <? 2) || (2 <? (Messenger.Layout::panelBack depth paneCount)))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::panelBack]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: wideInfoHasNoBack,
+  parameters: [paneCount : Nat],
+  statement: (((2 <=? paneCount) && (1 <=? (Messenger.Layout::panelBack 0 paneCount))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::panelBack]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: panelFrameExamples,
+  parameters: [],
+  statement: ((((Messenger.Layout::panelBack 0 1) =? (Messenger.Layout::frameBackToChat)) && (((Messenger.Layout::panelClose 1) =? 0) && (((Messenger.Layout::panelClose 3) =? 1) && (((Messenger.Layout::panelBack 2 3) =? (Messenger.Layout::frameBackToInfo)) && (((Messenger.Layout::panelShows 1 1 0 0) =? (Messenger.Layout::bodyInfo)) && (((Messenger.Layout::panelShows 1 1 1 4) =? (Messenger.Layout::bodyCard)) && ((Messenger.Layout::panelShows 1 1 1 0) =? (Messenger.Layout::bodyEmpty)))))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: listStepInRange,
+  parameters: [step : Nat, grow : Nat],
+  statement: (((Messenger.Layout::listAfterResize step grow) <=? 3) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::listAfterResize]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: growNeverShrinks,
+  parameters: [step : Nat],
+  statement: (((step <=? 3) && ((Messenger.Layout::listAfterResize step 1) <? step)) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::listAfterResize]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: shrinkNeverGrows,
+  parameters: [step : Nat],
+  statement: ((step <? (Messenger.Layout::listAfterResize step 0)) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::listAfterResize]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: narrowestShrinksToCollapsed,
+  parameters: [],
+  statement: ((Messenger.Layout::listAfterResize 1 0) = 0),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: widestStaysWidest,
+  parameters: [],
+  statement: ((Messenger.Layout::listAfterResize 3 1) = 3),
+  proof: reflexivity{},
+  axioms: []
+}
 \end{semanticmodule}
 \end{lexlean}

@@ -13,6 +13,11 @@ Feature: rules
     Then mainNeedsIdentity in Messenger/SessionProofs.lex.tex states (((Messenger.Session::rootView supported started 0 holdsLock) =? 2) = false)
     And mainNeedsLock in Messenger/SessionProofs.lex.tex states (((Messenger.Session::rootView supported started hasIdentity 0) =? 2) = false)
     And unsupportedIsFatal in Messenger/SessionProofs.lex.tex states ((Messenger.Session::rootView 0 started hasIdentity holdsLock) = 4)
+    And recoveryBeforeVerify in Messenger/SessionProofs.lex.tex states ((Messenger.Session::homeBanner 0 0 unverified verifyDismissed) = 1)
+    And dismissedRecoveryStaysHidden in Messenger/SessionProofs.lex.tex states (((1 <=? recoveryDismissed) && ((Messenger.Session::homeBanner recoverySet recoveryDismissed unverified verifyDismissed) =? 1)) = false)
+    And dismissedVerifyStaysHidden in Messenger/SessionProofs.lex.tex states (((1 <=? verifyDismissed) && ((Messenger.Session::homeBanner recoverySet recoveryDismissed unverified verifyDismissed) =? 2)) = false)
+    And verifiedDevicesNeverAsked in Messenger/SessionProofs.lex.tex states (((Messenger.Session::homeBanner recoverySet recoveryDismissed 0 verifyDismissed) =? 2) = false)
+    And failureAlwaysOffersReload in Messenger/SessionProofs.lex.tex states (((1 <=? (rootFailed + partFailed)) && ((Messenger.Session::failureView rootFailed partFailed) =? 0)) = false)
 
   @MR-02 @build
   Scenario: A muted room, an own message and the room being viewed never notify
@@ -44,6 +49,10 @@ Feature: rules
     And openPopupEnterCompletes in Messenger/ComposerProofs.lex.tex states ((Messenger.Composer::enterAction shift modifier requireModifier 1) = 3)
     And textAlwaysGivesSend in Messenger/ComposerProofs.lex.tex states (((1 <=? hasText) && (1 <=? (Messenger.Composer::mainButton hasText voiceBuilt))) = false)
     And withoutVoiceAlwaysSend in Messenger/ComposerProofs.lex.tex states ((Messenger.Composer::mainButton hasText 0) = 0)
+    And pickerNeverBlank in Messenger/ComposerProofs.lex.tex states ((1 <=? (Messenger.Composer::pickerSection queryLength recentCount hits)) = true)
+    And searchHidesRecents in Messenger/ComposerProofs.lex.tex states (((1 <=? queryLength) && ((Messenger.Composer::pickerSection queryLength recentCount hits) <=? 2)) = false)
+    And recentsNeverAboveCap in Messenger/ComposerProofs.lex.tex states (((Messenger.Composer::recentsAfterPick count wasRecent) <=? 8) = true)
+    And toneOnlyOnHands in Messenger/ComposerProofs.lex.tex states ((Messenger.Composer::toneApplied 0 tone) = 0)
 
   @MR-06 @build
   Scenario: Unknown markup never renders and an unsafe link scheme never opens
@@ -51,6 +60,10 @@ Feature: rules
     When the Lean kernel checks the theorems of RenderProofs during prismpm verify
     Then unknownMarkupNeverRenders in Messenger/RenderProofs.lex.tex states (((4 <=? kind) && (1 <=? (Messenger.Render::markupAllowed kind))) = false)
     And unsafeSchemeNeverOpens in Messenger/RenderProofs.lex.tex states (((3 <=? scheme) && (1 <=? (Messenger.Render::schemeAllowed scheme))) = false)
+    And unresolvedNameStaysText in Messenger/RenderProofs.lex.tex states ((Messenger.Render::mentionPill 0 0 isDirect) = 0)
+    And roomWordNeverPillsInDirect in Messenger/RenderProofs.lex.tex states (((1 <=? isDirect) && (1 <=? (Messenger.Render::mentionPill 0 isRoomWord isDirect))) = false)
+    And unclosedMarkStaysText in Messenger/RenderProofs.lex.tex states (((mark <=? 5) && (1 <=? (Messenger.Render::formatApplied mark 0))) = false)
+    And unknownMarkStaysText in Messenger/RenderProofs.lex.tex states (((8 <=? mark) && (1 <=? (Messenger.Render::formatApplied mark closed))) = false)
 
   @MR-07 @build
   Scenario: The layout has one to three panes, and a phone never shows the list and the timeline together
@@ -99,6 +112,24 @@ Feature: rules
     And heightsOnGrid in Messenger/BudgetProofs.lex.tex states ((((prim remainder (Messenger.Budget::rowHeight) (Messenger.Budget::gridStep) 0 : Nat) =? 0) && (((prim remainder (Messenger.Budget::pictureSize) (Messenger.Budget::gridStep) 0 : Nat) =? 0) && (((prim remainder (Messenger.Budget::tabBarHeight) (Messenger.Budget::gridStep) 0 : Nat) =? 0) && (((prim remainder (Messenger.Budget::searchHeight) (Messenger.Budget::gridStep) 0 : Nat) =? 0) && (((prim remainder (Messenger.Budget::chipHeight) (Messenger.Budget::gridStep) 0 : Nat) =? 0) && (((prim remainder (Messenger.Budget::composerHeight) (Messenger.Budget::gridStep) 0 : Nat) =? 0) && (((prim remainder (Messenger.Budget::roundButtonSize) (Messenger.Budget::gridStep) 0 : Nat) =? 0) && ((prim remainder (Messenger.Budget::touchTarget) (Messenger.Budget::gridStep) 0 : Nat) =? 0)))))))) = true)
     And bubbleFitsWidth in Messenger/BudgetProofs.lex.tex states (((Messenger.Budget::bubbleMaxPercent) <=? 100) = true)
     And sizeExamples in Messenger/BudgetProofs.lex.tex states ((((Messenger.Budget::titleSize) =? 20) && (((Messenger.Budget::nameSize) =? 16) && (((Messenger.Budget::previewSize) =? 15) && (((Messenger.Budget::messageSize) =? 16) && (((Messenger.Budget::metaSize) =? 12) && (((Messenger.Budget::rowHeight) =? 72) && (((Messenger.Budget::pictureSize) =? 52) && (((Messenger.Budget::tabBarHeight) =? 84) && (((Messenger.Budget::searchHeight) =? 52) && (((Messenger.Budget::chipHeight) =? 32) && (((Messenger.Budget::composerHeight) =? 52) && (((Messenger.Budget::roundButtonSize) =? 52) && (((Messenger.Budget::touchTarget) =? 48) && (((Messenger.Budget::gridStep) =? 4) && (((Messenger.Budget::bubbleMaxPercent) =? 80) && ((Messenger.Budget::textScaleNoted) =? 130)))))))))))))))) = true)
+    And ownTypingNeverShows in Messenger/LayoutProofs.lex.tex states ((Messenger.Layout::headerLine isDirect othersTyping selfTyping typingShown) = (Messenger.Layout::headerLine isDirect othersTyping 0 typingShown))
+    And directNeverNamesTyper in Messenger/LayoutProofs.lex.tex states (((1 <=? isDirect) && (3 <=? (Messenger.Layout::headerLine isDirect othersTyping selfTyping typingShown))) = false)
+    And typingOffNeverShowsTyping in Messenger/LayoutProofs.lex.tex states ((2 <=? (Messenger.Layout::headerLine isDirect othersTyping selfTyping 0)) = false)
+    And emptyCardShowsPlaceholder in Messenger/LayoutProofs.lex.tex states (((1 <=? isOpen) && ((1 <=? roomOpen) && ((1 <=? depth) && (((Messenger.Layout::panelShows isOpen roomOpen depth 0) <? 3) || (3 <? (Messenger.Layout::panelShows isOpen roomOpen depth 0)))))) = false)
+    And panelAlwaysHasWayOut in Messenger/LayoutProofs.lex.tex states ((1 <=? ((Messenger.Layout::panelBack depth paneCount) + (Messenger.Layout::panelClose paneCount))) = true)
+    And listStepInRange in Messenger/LayoutProofs.lex.tex states (((Messenger.Layout::listAfterResize step grow) <=? 3) = true)
+    And unknownChipFallsToAll in Messenger/RoomListProofs.lex.tex states (((4 <=? saved) && (1 <=? (Messenger.RoomList::restoredChip saved))) = false)
+    And systemLineNeverEmpty in Messenger/TimelineProofs.lex.tex states ((1 <=? (Messenger.Timeline::systemLine kind)) = true)
+    And unknownChangeIsNeutral in Messenger/TimelineProofs.lex.tex states (((9 <=? kind) && (((Messenger.Timeline::systemLine kind) <? 10) || (10 <? (Messenger.Timeline::systemLine kind)))) = false)
+    And connectedNeverShowsOfflineDialog in Messenger/TimelineProofs.lex.tex states (((1 <=? connected) && (1 <=? (Messenger.Timeline::offlineDialog connected tried))) = false)
+    And retryAlwaysAnswered in Messenger/TimelineProofs.lex.tex states (((1 <=? tried) && (((Messenger.Timeline::offlineDialog 0 tried) <? 2) || (2 <? (Messenger.Timeline::offlineDialog 0 tried)))) = false)
+    And unshiftedKeyNeverMovesList in Messenger/KeysProofs.lex.tex states ((Messenger.Keys::listPanelKey key modifier 0 alt overlayOpen) = 0)
+    And openOverlayBlocksListKeys in Messenger/KeysProofs.lex.tex states (((1 <=? overlayOpen) && (1 <=? (Messenger.Keys::listPanelKey key modifier shift alt overlayOpen))) = false)
+    And escapeAlwaysCloses in Messenger/KeysProofs.lex.tex states ((Messenger.Keys::controlKey 11 0 shift) = 6)
+    And saveNeedsModifier in Messenger/KeysProofs.lex.tex states (((Messenger.Keys::controlKey key 0 shift) =? 7) = false)
+    And keyboardRowWideOnly in Messenger/SettingsProofs.lex.tex states (((panes <=? 1) && (1 <=? (Messenger.Settings::rowShown 7 panes))) = false)
+    And unknownRowNeverShown in Messenger/SettingsProofs.lex.tex states (((9 <=? row) && (1 <=? (Messenger.Settings::rowShown row panes))) = false)
+    And subScreenAlwaysHasBack in Messenger/SettingsProofs.lex.tex states (((1 <=? onSubScreen) && ((Messenger.Settings::settingsBack onSubScreen openedFromChats) =? 0)) = false)
 
   @MR-08 @build
   Scenario: The application answers each of its eleven questions with the function the theorems are about, and invalid request for anything else

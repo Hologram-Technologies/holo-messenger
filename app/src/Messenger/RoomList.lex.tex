@@ -108,5 +108,12 @@ definition{
   result: Nat,
   body: (if (kind <=? 6) then kind else 0)
 }
+
+definition{
+  name: restoredChip,
+  parameters: [saved : Nat],
+  result: Nat,
+  body: (if (saved <=? 3) then saved else 0)
+}
 \end{semanticmodule}
 \end{lexlean}

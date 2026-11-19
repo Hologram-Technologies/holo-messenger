@@ -75,5 +75,85 @@ theorem{
   proof: reflexivity{},
   axioms: []
 }
+
+theorem{
+  name: unshiftedKeyNeverMovesList,
+  parameters: [key : Nat, modifier : Nat, alt : Nat, overlayOpen : Nat],
+  statement: ((Messenger.Keys::listPanelKey key modifier 0 alt overlayOpen) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Keys::listPanelKey]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: openOverlayBlocksListKeys,
+  parameters: [key : Nat, modifier : Nat, shift : Nat, alt : Nat, overlayOpen : Nat],
+  statement: (((1 <=? overlayOpen) && (1 <=? (Messenger.Keys::listPanelKey key modifier shift alt overlayOpen))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Keys::listPanelKey]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: shiftAloneNeverMovesList,
+  parameters: [key : Nat, shift : Nat, overlayOpen : Nat],
+  statement: ((Messenger.Keys::listPanelKey key 0 shift 0 overlayOpen) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Keys::listPanelKey]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: listPanelKeyInRange,
+  parameters: [key : Nat, modifier : Nat, shift : Nat, alt : Nat, overlayOpen : Nat],
+  statement: (((Messenger.Keys::listPanelKey key modifier shift alt overlayOpen) <=? 3) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Keys::listPanelKey]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: listPanelKeyExamples,
+  parameters: [],
+  statement: ((((Messenger.Keys::listPanelKey (Messenger.Keys::keyL) 1 1 0 0) =? (Messenger.Keys::listToggle)) && (((Messenger.Keys::listPanelKey (Messenger.Keys::keyLeft) 0 1 1 0) =? (Messenger.Keys::listShrink)) && (((Messenger.Keys::listPanelKey (Messenger.Keys::keyRight) 0 1 1 0) =? (Messenger.Keys::listGrow)) && ((Messenger.Keys::listPanelKey (Messenger.Keys::keyL) 1 1 0 1) =? (Messenger.Keys::listNone))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: controlKeyInRange,
+  parameters: [key : Nat, modifier : Nat, shift : Nat],
+  statement: (((Messenger.Keys::controlKey key modifier shift) <=? 7) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Keys::controlKey]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: escapeAlwaysCloses,
+  parameters: [shift : Nat],
+  statement: ((Messenger.Keys::controlKey 11 0 shift) = 6),
+  proof: linear_arithmetic{definitions: [Messenger.Keys::controlKey]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: saveNeedsModifier,
+  parameters: [key : Nat, shift : Nat],
+  statement: (((Messenger.Keys::controlKey key 0 shift) =? 7) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Keys::controlKey]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: modifierOnlySaves,
+  parameters: [key : Nat, modifier : Nat, shift : Nat],
+  statement: (((1 <=? modifier) && ((1 <=? (Messenger.Keys::controlKey key modifier shift)) && ((Messenger.Keys::controlKey key modifier shift) <? 7))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Keys::controlKey]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: controlKeyExamples,
+  parameters: [],
+  statement: ((((Messenger.Keys::controlKey (Messenger.Keys::keyDown) 0 0) =? (Messenger.Keys::ctlNext)) && (((Messenger.Keys::controlKey (Messenger.Keys::keyUp) 0 0) =? (Messenger.Keys::ctlPrevious)) && (((Messenger.Keys::controlKey (Messenger.Keys::keyTab) 0 0) =? (Messenger.Keys::ctlNext)) && (((Messenger.Keys::controlKey (Messenger.Keys::keyTab) 0 1) =? (Messenger.Keys::ctlPrevious)) && (((Messenger.Keys::controlKey (Messenger.Keys::keyHome) 0 0) =? (Messenger.Keys::ctlFirst)) && (((Messenger.Keys::controlKey (Messenger.Keys::keyEnd) 0 0) =? (Messenger.Keys::ctlLast)) && (((Messenger.Keys::controlKey (Messenger.Keys::keyEnter) 0 0) =? (Messenger.Keys::ctlActivate)) && (((Messenger.Keys::controlKey (Messenger.Keys::keySpace) 0 0) =? (Messenger.Keys::ctlActivate)) && (((Messenger.Keys::controlKey (Messenger.Keys::keyEscape) 0 0) =? (Messenger.Keys::ctlClose)) && (((Messenger.Keys::controlKey (Messenger.Keys::keyS) 1 0) =? (Messenger.Keys::ctlSave)) && ((Messenger.Keys::controlKey (Messenger.Keys::keyS) 0 0) =? (Messenger.Keys::ctlNone)))))))))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
 \end{semanticmodule}
 \end{lexlean}

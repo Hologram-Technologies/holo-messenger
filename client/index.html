@@ -113,12 +113,14 @@ button.rw:hover,.inv:hover{background:var(--hover)} .ri.on,.ri.sel{background:va
 .rw .n{display:block;flex:1;min-width:0;font-weight:600;font-size:var(--name);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rw .tm{font-size:var(--meta);color:var(--ink3);flex:none;font-variant-numeric:tabular-nums} .rw .tm.hi{color:var(--accent);font-weight:600}
 .rw .p{display:block;flex:1;min-width:0;color:var(--ink2);font-size:var(--preview);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rw .p svg{width:16px;height:16px;vertical-align:-3px;margin-right:4px} .dr{color:var(--accent);font-weight:600} .tk.hi{color:var(--accent)}
+.rw .p svg{width:16px;height:16px;vertical-align:-3px;margin-right:4px} .dr{color:var(--accent);font-weight:600} .ty{color:var(--accent)} .tk.hi{color:var(--accent)}
 .ri.sel:before{content:"✓";position:absolute;left:52px;top:calc(50% + 8px);width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-size:12px;font-weight:700;display:grid;place-items:center;box-shadow:0 0 0 2px var(--sel)}
 .badge{min-width:1.25rem;height:1.25rem;padding:0 6px;border-radius:99px;background:var(--accent);color:var(--accent-ink);font-size:var(--meta);font-weight:700;display:grid;place-items:center;flex:none;font-variant-numeric:tabular-nums}
 .badge.bad{background:var(--bad);color:var(--bg)} .badge.dot{min-width:10px;width:10px;height:10px;padding:0}
 .mut{color:var(--ink3);width:16px;height:16px}
 .chev{display:none;color:var(--ink3)} @media (hover:hover) and (min-width:768px){.ri:hover .chev{display:grid}}
+.hb{width:auto;margin:0 8px 4px;padding-left:8px;border-radius:var(--r);background:var(--hover)} .hb .p{white-space:normal}
+#fx{position:absolute;left:0;top:50%;width:var(--touch);height:var(--touch);margin-top:calc(var(--touch) / -2)} .search #fx svg{position:static;margin:0;color:var(--ink2)} #list.find .search>svg{display:none}
 .inv{padding-right:8px} .inv .who{display:flex;gap:12px;align-items:center;flex:1;min-width:0;text-align:left} .inv .ok{background:var(--accent);color:var(--accent-ink)}
 .empty{color:var(--ink3);padding:24px 16px;text-align:center} .empty .btn{margin-top:12px}
 #fab{position:absolute;right:16px;bottom:16px;width:var(--round);height:var(--round);border-radius:16px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;box-shadow:var(--shadow);z-index:2} #fab svg{width:24px;height:24px}
@@ -293,7 +295,7 @@ button.mem:hover{background:var(--hover)} .mem .role{margin-left:auto;font-size:
 /* room and people dialogs */
 .quick{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 .pr{display:flex;gap:4px;align-items:center} .pr>.o,.pr>.mem{flex:1;min-width:0;width:auto}
-#gbar{margin:0 24px 12px;flex:none;flex-wrap:wrap;align-items:center}
+#gbar,#fnote{margin:0 24px 12px;flex:none;flex-wrap:wrap;align-items:center}
 
 /* messages: lists, hidden text, the full-screen viewer */
 .bq,.li{display:block} .bq{border-left:2px solid var(--ink3);padding-left:8px;color:var(--ink2)} .li{padding-left:12px}
@@ -330,7 +332,7 @@ progress{width:88px;accent-color:var(--accent)}
 #demo{position:fixed;inset:0 0 auto;z-index:120;padding:4px 12px;background:var(--hl);border-bottom:1px solid var(--line);font-size:var(--meta);text-align:center}
 .lz{opacity:0;transition:opacity .2s} .lz.in{opacity:1}
 /* under a finger everything pressed is at least a touch high; the picture viewer's bar gives up its gaps so six buttons fit 320 px */
-@media (pointer:coarse){.icon{width:var(--touch);height:var(--touch)} .btn,.dlg footer .btn,.seg button,.pop .o,.qs .o{min-height:var(--touch)} .full header{gap:0;padding:4px 4px 4px 12px}}
+@media (pointer:coarse){.icon,#toEnd{width:var(--touch);height:var(--touch)} .btn,.dlg footer .btn,.seg button,.pop .o,.qs .o{min-height:var(--touch)} .full header{gap:0;padding:4px 4px 4px 12px}}
 </style>
 </head>
 <body>
@@ -343,6 +345,7 @@ progress{width:88px;accent-color:var(--accent)}
     <label class="search"><span class="sr">Search chats and messages</span>
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4-4"/></svg>
       <input id="filter" type="search" placeholder="Search" autocomplete="off">
+      <button class="icon" id="fx" type="button" hidden aria-label="Close search" title="Close search"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
     </label>
     <div id="flt" role="group" aria-label="Show"></div>
     <nav id="rooms"><div class="empty" role="status">Loading chats…</div></nav>
@@ -446,8 +449,8 @@ const S = {
       ] },
     { id: "r3", name: "Lab notes", members: ["me", "sofia", "omar", "dev"], power: { sofia: 100, me: 50 }, level: "mentions", priv: true,
       topic: "Measurements and what we learned. One finding per message.", lastRead: 0, ev: [
-        s("sofia", 6 * D, "created"), s("omar", 6 * D - H, "join"), s("dev", 6 * D - 2 * H, "join"), s("sofia", 6 * D - 2 * H - M, "note", "Sofia changed the name to Lab notes"),
-        s("tomas", 6 * D - 2 * H - 5 * M, "join"), s("sofia", 6 * D - 2 * H - 9 * M, "note", "Sofia changed the description"), s("tomas", 6 * D - 2 * H - 20 * M, "leave"),
+        s("sofia", 6 * D, "created"), s("omar", 6 * D - H, "join"), s("dev", 6 * D - 2 * H, "join"), s("sofia", 6 * D - 2 * H - M, "renamed", "Lab notes"),
+        s("tomas", 6 * D - 2 * H - 5 * M, "join"), s("sofia", 6 * D - 2 * H - 9 * M, "topic"), s("tomas", 6 * D - 2 * H - 20 * M, "leave"),
         m("sofia", D + 2 * H, "First load came in at 141 KB on the test build. Budget is 150."),
         m("omar", D + H, "Room switch is under 100 ms on the old laptop. `timeline` render is the largest part."),
         m("omar", 19 * H, "", { err: 1 }), m("sofia", 7 * H, "Measurements run every night at 02:00.", { notice: 1 }),
@@ -508,8 +511,8 @@ for (const [k, v] of Object.entries({ h12: false, showReceipts: true, sendReceip
 U.me.n = S.set.name;
 /* ---------- history of visited chats (Navigation.goForward, canGoBack) and what was open last ---------- */
 const HIST = []; let hpos = -1, hnav = false;
-const UI = store.get("hm-ui", null) || {}; let REC = UI.rec || [], SQ = UI.sq || [], uiWas = ""; for (const k of UI.fav || []) if (R(k)) R(k).fav = true; for (const k of UI.pin || ["r2"]) if (R(k)) R(k).pin = true;   // kept after a reload: the chat and panel last open, each chat's panel history, the chats opened lately, recent searches
-const saveUi = () => { const v = JSON.stringify({ cur: S.cur, panel: S.panel, rec: REC, sq: SQ, fav: S.rooms.filter(r => r.fav).map(r => r.id), pin: S.rooms.filter(r => r.pin).map(r => r.id), ph: Object.fromEntries(S.rooms.filter(r => r.ph && r.ph.length).map(r => [r.id, r.ph])) }); if (v !== uiWas) { uiWas = v; try { localStorage.setItem("hm-ui", v); } catch (e) {} } };
+const UI = store.get("hm-ui", null) || {}; let REC = UI.rec || [], SQ = UI.sq || [], uiWas = ""; for (const k of UI.fav || []) if (R(k)) R(k).fav = true; for (const k of UI.pin || ["r2"]) if (R(k)) R(k).pin = true; for (const k in UI.dr || {}) if (R(k)) S.drafts[k] = UI.dr[k];   // kept after a reload: the chat and panel last open, each chat's panel history, the chats opened lately, recent searches, favourites, pins, drafts
+const saveUi = () => { const v = JSON.stringify({ cur: S.cur, panel: S.panel, rec: REC, sq: SQ, fav: S.rooms.filter(r => r.fav).map(r => r.id), pin: S.rooms.filter(r => r.pin).map(r => r.id), dr: S.drafts, ph: Object.fromEntries(S.rooms.filter(r => r.ph && r.ph.length).map(r => [r.id, r.ph])) }); if (v !== uiWas) { uiWas = v; try { localStorage.setItem("hm-ui", v); } catch (e) {} } };
 const addSq = v => { if (v) { SQ = [v, ...SQ.filter(x => x !== v)].slice(0, 5); saveUi(); } };
 const sqChips = () => SQ.length ? `<div class="sect" style="padding:0">Recent searches</div><div class="quick" style="justify-content:flex-start">${SQ.map(v => `<button class="btn small" data-sq="${esc(v)}">${esc(v)}</button>`).join("")}</div>` : "";
 let lockCh = null, holdsLock = true, booting = true;   // one tab at a time (Session.lockStep)
@@ -550,10 +553,35 @@ let bubbleSide = own => own >= 1 ? 1 : 0;                                       
 let tailShown = firstOfGroup => firstOfGroup >= 1 ? 1 : 0;                                                                                  // Timeline.tailShown
 let groupsWith = (sameSender, sameDay, minutesApart, previousIsMessage) => !sameSender || !sameDay || !previousIsMessage ? 0 : minutesApart < 5 ? 1 : 0;   // Timeline.groupsWith, groupMinutes 5
 let surfaceFor = (kind, panes) => kind === 2 ? 2 : kind === 1 ? (panes <= 1 ? 1 : 0) : 0;                                                   // Overlay.surfaceFor: a menu 0, a choice 1, a blocking question 2 show anchored 0, as a sheet 1, centred 2
+let recoveryBanner = (recoverySet, dismissed) => recoverySet === 0 ? (dismissed === 0 ? 1 : 0) : 0;                                           // Session.recoveryBanner: the reminder shows until a kit is saved or the reminder is dismissed
+let homeBanner = (recoverySet, recoveryDismissed, unverified, verifyDismissed) => recoveryBanner(recoverySet, recoveryDismissed) === 1 ? 1 : unverified === 0 ? 0 : verifyDismissed === 0 ? 2 : 0;   // Session.homeBanner: 0 none, 1 recovery kit, 2 verify the other device
+let failureView = (rootFailed, partFailed) => rootFailed >= 1 ? 2 : partFailed >= 1 ? 1 : 0;                                                // Session.failureView: 0 nothing, 1 a part failed and the page stays, 2 the page failed. 1 and 2 both offer a reload
+let systemLine = kind => kind <= 8 ? kind + 1 : 10;                                                                                         // Timeline.systemLine: the sentence for a change 0 to 8, and 10, the neutral line, for any other
+let offlineDialog = (connected, tried) => connected >= 1 ? 0 : tried >= 1 ? 2 : 1;                                                          // Timeline.offlineDialog: 0 closed, 1 the causes, 2 the causes and "still offline"
+let headerLine = (isDirect, othersTyping, selfTyping, typingShown) =>                                                                       // Layout.headerLine: 0 nothing, 1 the people count, 2 "typing…", 3 one name, 4 two names, 5 a count
+  typingShown === 0 || othersTyping === 0 ? (isDirect >= 1 ? 0 : 1) : isDirect >= 1 ? 2 : othersTyping === 1 ? 3 : othersTyping === 2 ? 4 : 5;
+let panelShows = (isOpen, roomOpen, depth, items) => isOpen === 0 || roomOpen === 0 ? 0 : depth === 0 ? 1 : items === 0 ? 3 : 2;            // Layout.panelShows: 0 nothing, 1 the info, 2 a card, 3 a card that says it is empty
+let panelBack = (depth, paneCount) => depth >= 1 ? 2 : paneCount <= 1 ? 1 : 0;                                                              // Layout.panelBack: 0 no back, 1 back to the chat, 2 back to the info
+let panelClose = paneCount => paneCount >= 2 ? 1 : 0;                                                                                       // Layout.panelClose
+let listAfterResize = (step, grow) => grow >= 1 ? (step >= 3 ? 3 : step + 1) : step <= 1 ? 0 : step === 2 ? 1 : 2;                          // Layout.listAfterResize: steps 0 collapsed, 1 240, 2 320, 3 384
+let mentionPill = (joinedMember, isRoomWord, isDirect) => joinedMember >= 1 ? 1 : isRoomWord === 0 ? 0 : isDirect === 0 ? 2 : 0;            // Render.mentionPill: 0 plain text, 1 a member, 2 the whole room
+let formatApplied = (mark, closed) => mark <= 5 ? (closed >= 1 ? 1 : 0) : mark <= 7 ? 1 : 0;                                                // Render.formatApplied: marks 0 bold, 1 italic, 2 strike, 3 code, 4 hidden, 5 link, 6 quote line, 7 list line
+let pickerSection = (queryLength, recentCount, hits) => queryLength === 0 ? (recentCount >= 1 ? 1 : 2) : hits >= 1 ? 3 : 4;                 // Composer.pickerSection: 1 recents then categories, 2 categories, 3 hits, 4 no match
+let recentsAfterPick = (count, wasRecent) => wasRecent >= 1 ? (count === 0 ? 1 : count > 8 ? 8 : count) : count >= 8 ? 8 : count + 1;       // Composer.recentsAfterPick, recentCap 8
+let toneApplied = (isHand, tone) => isHand === 0 ? 0 : tone <= 5 ? tone : 0;                                                                // Composer.toneApplied: tone 0 none, 1 to 5
+let listPanelKey = (key, modifier, shift, alt, overlayOpen) =>                                                                              // Keys.listPanelKey: 0 nothing, 1 toggle, 2 shrink, 3 grow. Keys: L 17, Left 18, Right 19
+  overlayOpen >= 1 || shift === 0 ? 0 : modifier >= 1 ? (alt >= 1 ? 0 : key === 17 ? 1 : 0) : alt === 0 ? 0 : key === 18 ? 2 : key === 19 ? 3 : 0;
+let controlKey = (key, modifier, shift) =>                                                                                                  // Keys.controlKey: 0 nothing, 1 next, 2 previous, 3 first, 4 last, 5 activate, 6 close, 7 save
+  modifier >= 1 ? (key === 23 ? 7 : 0) : key === 6 ? 1 : key === 5 ? 2 : key === 22 ? (shift >= 1 ? 2 : 1) : key === 9 ? 3 : key === 10 ? 4 : key === 20 || key === 21 ? 5 : key === 11 ? 6 : 0;
+const KEYCODE = { ArrowUp: 5, ArrowDown: 6, Home: 9, End: 10, Escape: 11, l: 17, ArrowLeft: 18, ArrowRight: 19, Enter: 20, " ": 21, Tab: 22, s: 23 }, keyCode = e => KEYCODE[e.key.length === 1 ? e.key.toLowerCase() : e.key] ?? 99;   // the model's key codes; 99 is no key it names
+let rowShown = (row, panes) => row === 7 ? (panes >= 2 ? 1 : 0) : row <= 8 ? 1 : 0;                                                         // Settings.rowShown: rows 0 profile, 1 account, 2 privacy, 3 devices, 4 chats, 5 notifications, 6 storage, 7 keyboard, 8 about
+let settingsBack = (onSubScreen, openedFromChats) => onSubScreen === 0 ? 0 : openedFromChats >= 1 ? 2 : 1;                                  // Settings.settingsBack: 0 no back, 1 back to You, 2 back to Chats
+let restoredChip = saved => saved <= 3 ? saved : 0;                                                                                         // RoomList.restoredChip
 const TICK = ["none", "clock", "one", "two", "accent"], STATE = { queued: 1, sending: 1, sent: 2, read: 4 };
 const tick = e => { const t = e.from === "me" && !e.gone && !e.up ? tickShown(STATE[e.status] || 0, KNOWS.delivery, KNOWS.read) : 0;   // the one mark of a message you sent: in a chat row now, in a bubble next. Never two ticks while the engine cannot know
   const i = [I.clock, I.check, I.read, I.read][t - 1]; return i ? mark(i, ["Waiting to send", "Shown as sent (sample)", "Delivered", "Read"][t - 1], t > 3 ? "tk hi" : "tk") : ""; };
 /* ---------- rules from the verified holo ---------- */
+const COPIES = ["the line under a chat's name", "the reminder over the chats", "the sentence for a change to a room", "mention pills", "which formatting marks apply", "the emoji picker's sections, recents and skin tone", "the offline dialog", "what a failure shows", "the keys for the chat list's width", "the chat list's width steps", "the keys in menus and lists", "which settings rows show and where Back goes", "the side panel's body, Back and Close", "the chip restored after a reload"].join(", ");   // the 14 newer rules held as built-in copies: Layout.headerLine, Session.homeBanner, Timeline.systemLine, Render.mentionPill, Render.formatApplied, Composer.pickerSection, Timeline.offlineDialog, Session.failureView, Keys.listPanelKey, Layout.listAfterResize, Keys.controlKey, Settings.rowShown, Layout.panelShows, RoomList.restoredChip
 const RULES = { source: "the built-in copy", asked: 0, fresh: 0, newQ: 0, got: [], differ: [], note: "the holo has not been asked yet" };   // asked: answers compared for the first questions; fresh and newQ: answers compared, and questions answered, of the four newer ones
 const schemeClass = u => /^https:/i.test(u) ? 0 : /^http:/i.test(u) ? 1 : /^mailto:/i.test(u) ? 2 : /^javascript:/i.test(u) ? 3 : /^data:/i.test(u) ? 4 : 5;
 async function loadRules() {
@@ -628,7 +656,7 @@ const shortId = a => a.slice(0, 11) + "…" + a.slice(-4);
 const idOf = a => Object.keys(U).find(k => (U[k].addr || addrOf(U[k].n)) === a);
 const personFor = a => { let id = idOf(a); if (!id) { id = "x" + (++seq); U[id] = { n: shortId(a), addr: a }; } return id; };   // a person known only by ID shows by that ID
 const mine = (kind, x) => Object.assign({ id: "e" + (++seq), t: "s", from: "me", ts: Date.now(), kind }, x);   // a line that says what you did
-const say = (r, text) => r.ev.push(mine("note", { text }));
+const say = (r, kind, x) => r.ev.push(mine(kind, x));   // kind: one of CHANGE, or any other word for a change the model does not name
 const canPin = r => !!r && !r.invite && (!!r.dm || myPower(r) >= 50);
 const pinsOf = r => (r.pins || []).map(id => r.ev.find(e => e.id === id && !e.del)).filter(Boolean);
 const copyText = (t, title, text) => { const no = () => toastMsg("Could not copy", "Select the text and copy it by hand.", [], 4000); navigator.clipboard ? navigator.clipboard.writeText(t).then(() => toastMsg(title, text, [], 3000)).catch(no) : no(); };
@@ -682,15 +710,24 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.`;
 
 /* ==================== drawing ==================== */
+/* ---------- formatting (Render.formatApplied): a mark applies only when it is closed; one left open stays as it was typed. Any mark not listed in the rule stays text ---------- */
+const pair = (h, mark, d, on) => { const p = h.split(d); let out = p[0];   // marks that open and close with the same sign: code, strike, hidden
+  for (let i = 1; i < p.length; i += 2) { const end = i + 1 < p.length; out += formatApplied(mark, end && p[i] ? 1 : 0) ? on(p[i]) + p[i + 1] : d + p[i] + (end ? d + p[i + 1] : ""); } return out; };
+function stars(s) {   // bold and italic, one inside the other either way. Two signs end the bold around an italic that was left open
+  const o = [], open = [], T = ["", "i", "b"];   // open: the marks waiting for their end, as [width, place in o]
+  s.split(/(\*+)/).forEach((x, k, t) => { if (!(k & 1)) return o.push(x); let n = x.length, did = 0; const sp = !t[k - 1] || /\s$/.test(t[k - 1]), nx = /^\S/.test(t[k + 1] || "");
+    while (n && open.length && !(sp && nx)) { const [w, at] = open[open.length - 1]; if (n < w) break; if (w === 1 && n === 2 && open.length > 1) { open.pop(); continue; } if (formatApplied(2 - w, 1)) { o[at] = "<" + T[w] + ">"; o.push("</" + T[w] + ">"); } else o.push("*".repeat(w)); open.pop(); n -= w; }
+    while (nx && n > 1) { open.push([2, o.push("**") - 1]); n -= 2; did = 1; }
+    if (nx && n && (sp || did)) { open.push([1, o.push("*") - 1]); n = 0; }
+    if (n) o.push("*".repeat(n)); });
+  return o.join(""); }   // a mark still open at the end was never replaced: formatApplied(mark, 0) is 0, it stays as typed
 /* ---------- links whose text hides where they go (Timeline.asksBeforeOpening) ---------- */
 function rich(text, r) {
-  const links = [], t2 = text.replace(/\[([^\]\n]{1,80})\]\((https?:\/\/[^\s)]+)\)/g, (all, label, url) => { links.push([label, url]); return "\u0002" + (links.length - 1) + "\u0003"; });
-  let h = esc(t2);
-  h = h.replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>").replace(/(^|\s)\*([^*\s][^*]*)\*/g, "$1<i>$2</i>").replace(/~~([^~]+)~~/g, "<s>$1</s>")
-    .replace(/\|\|([^|]+)\|\|/g, '<button class="spoil" data-spoil aria-label="Hidden text. Show it">$1</button>')
-    .replace(/^(?:&gt; ?(.*)|(?:[-*]|(\d+)\.) (.*))\n?/gm, (a, q, n, t) => q != null ? `<span class="bq">${q}</span>` : `<span class="li">${n ? n + "." : "•"} ${t}</span>`);
+  const links = [], t2 = text.replace(/\[([^\]\n]{1,80})\](?:\((https?:\/\/[^\s)]+)\))?/g, (all, label, url) => { if (!formatApplied(5, url ? 1 : 0)) return all; links.push([label, url]); return "\u0002" + (links.length - 1) + "\u0003"; });   // a link is closed by its address
+  let h = pair(pair(stars(pair(esc(t2), 3, "`", x => `<code>${x}</code>`)), 2, "~~", x => `<s>${x}</s>`), 4, "||", x => `<button class="spoil" data-spoil aria-label="Hidden text. Show it">${x}</button>`)
+    .replace(/^(?:&gt; ?(.*)|(?:[-*]|(\d+)\.) (.*))\n?/gm, (a, q, n, t) => !formatApplied(q != null ? 6 : 7, 0) ? a : q != null ? `<span class="bq">${q}</span>` : `<span class="li">${n ? n + "." : "•"} ${t}</span>`);   // a quote line and a list line need no closing mark
   h = h.replace(/\bhttps?:\/\/[^\s<]+/g, u => schemeAllowed(u) ? `<a href="${u}" target="_blank" rel="noopener noreferrer">${u}</a>` : u);
-  h = h.replace(/@([\p{L}]+)/gu, (all, n) => { const id = r.members.find(x => first(x) === n); return id || (n === "room" && !r.dm) ? `<span class="pill${id && id !== "me" ? "" : " me"}">@${n}</span>` : all; })
+  h = h.replace(/@([\p{L}]+)/gu, (all, n) => { const id = r.members.find(x => first(x) === n), p = mentionPill(id ? 1 : 0, n === "room" ? 1 : 0, r.dm ? 1 : 0); return p ? `<span class="pill${p === 1 && id !== "me" ? "" : " me"}">@${n}</span>` : all; })   // Render.mentionPill
     .replace(/(^|\s)#([\p{L}\d_]+)/gu, (all, sp, n) => { const x = S.rooms.find(x => !x.dm && x.name.replace(/\s+/g, "_") === n); return x ? `${sp}<button class="pill" data-room="${x.id}">#${esc(x.name)}</button>` : all; });
   return h.replace(/\u0002(\d+)\u0003/g, (all, i) => { const [label, url] = links[+i]; return schemeAllowed(url) ? `<a href="${esc(url)}" data-ask="1" target="_blank" rel="noopener noreferrer">${esc(label)}</a>` : esc(label); });
 }
@@ -698,14 +735,15 @@ const emojiOnly = t => /^(\p{Extended_Pictographic}|️|‍|\s){1,12}$/u.test(t)
 const preview = r => { const e = last(r); if (!e) return ""; if (e.t === "s") return esc(sysText(e, r));   // RoomList.previewKind: the row names what the newest message is: text, a photo, a video, a file, or a note that it was deleted
   const f = e.file, own = e.from === "me", t = esc(e.body.replace(/\s+/g, " ")), g = e.gone ? "Message deleted" : e.undec || e.err ? "Message cannot be shown" : "";
   return tick(e) + esc(r.dm ? "" : own ? "You: " : first(e.from) + ": ") + (g ? `<i>${g}</i>` : e.img ? I.photo + (t || "Photo") : f ? f.kind === "video" ? I.video + (t || "Video") : fileIcon + esc(f.name) : t); };
-const sysText = (e, r) => e.kind === "created" ? `${e.from === "me" ? "You" : first(e.from)} created this ${r.dm ? "chat" : "room"}` : e.kind === "join" ? `${e.from === "me" ? "You" : first(e.from)} joined`
-  : e.kind === "leave" ? `${first(e.from)} left` : e.kind === "invited" ? `${e.from === "me" ? "You" : first(e.from)} invited ${first(e.to)}` : e.text || "";
+const CHANGE = ["created", "join", "leave", "invited", "removed", "banned", "renamed", "topic", "picture"];   // the nine changes the model names, by its codes 0 to 8; any other kind is code 9
+const sysText = (e, r) => { const w = e.from === "me" ? "You" : first(e.from), k = CHANGE.indexOf(e.kind), to = e.to ? first(e.to) : "someone";   // Timeline.systemLine picks the sentence: never an empty line
+  return [, `${w} created this ${r.dm ? "chat" : "room"}`, `${w} joined`, `${w} left`, `${w} invited ${to}`, `${w} removed ${to}`, `${w} banned ${to}`, `${w} changed the name${e.text ? " to " + e.text : ""}`, `${w} changed the description`, `${w} changed the picture`, `${w} changed the room`][systemLine(k < 0 ? 9 : k)]; };   // 10, the neutral line, for any change the model does not name
 
 /* ---------- chat list ---------- */
 /* Rows are kept by a key of what they show, as in the timeline: a row whose key is unchanged keeps its DOM node.
    Past 200 chats only the rows near what is in view are built; a gap of the right height stands in for the rest. */
 const SEL = new Set(), MS = { q: "", h: [] }, CHIPS = ["All", "Unread", "Favourites", "Groups"];   // the chats a long press selected; what the search field found in a long history; the chips over the list
-S.tab = "chats"; S.flt = [1, 2, 3].includes(S.set.chip) ? S.set.chip : 0;   // the chip is kept after a reload, like the sort order and the list's width
+S.tab = "chats"; S.flt = restoredChip(Number.isInteger(S.set.chip) && S.set.chip >= 0 ? S.set.chip : 4);   // RoomList.restoredChip: anything that is not a saved chip is All   // the chip is kept after a reload, like the sort order and the list's width
 const muted = r => lvl(r) === "mute", chipOf = (c, r) => chipMatches(c, unread(r) > 0, !!r.fav, !r.dm, !!r.invite);
 const findMsgs = (q, rooms) => { const h = []; for (const r of rooms) if (!r.st) for (const e of r.ev) if (e.t === "m" && !e.del && lc(e).includes(q)) h.push([r, e]); return h.sort((a, b) => b[1].ts - a[1].ts); };
 const snip = (e, q, lead = 30) => { const i = lc(e).indexOf(q), a = Math.max(0, i - lead); return (a ? "…" : "") + esc(e.body.slice(a, i)) + "<mark>" + esc(e.body.slice(i, i + q.length)) + "</mark>" + esc(e.body.slice(i + q.length, i + q.length + 60)); };
@@ -715,38 +753,49 @@ function drawBar() {   // the title line: the name and one menu, or, while chats
   $("#lbar").innerHTML = n ? `<button class="icon" data-sel="x" aria-label="Cancel the selection">${I.back}</button><h1 class="grow" style="padding-left:16px" aria-live="polite" aria-label="${n} selected">${n}</h1>` + [["pin", pinIcon, pin ? "Pin" : "Unpin"], ["mute", I.mute, mu ? "Mute" : "Unmute"], ["leave", I.trash, "Leave"], ["more", I.more, "More"]].map(([a, i, t]) => `<button class="icon" data-sel="${a}" aria-label="${t}" title="${t}">${i}</button>`).join("")
     : `<h1 class="grow">Holo Messenger</h1><button class="icon wide" data-nolist aria-label="Hide the chat list" title="Hide the chat list">${I.back}</button><button class="icon wide" data-home aria-label="New chat" title="New chat">${I.edit}</button><button class="icon" id="moreBtn" aria-haspopup="menu" aria-label="More" title="More">${I.more}</button>`;
 }
+/* Search.switcherShows, one path for the switcher and the home search field: the chats you opened last come first, then people you have no chat with, then the hand-off to message search */
+const finds = v => { const q = v.trim().toLowerCase(), has = n => n.toLowerCase().includes(q), seen = r => REC.indexOf(r.id) + 1 || 99;
+  return { chats: S.rooms.filter(r => !r.invite && has(r.name)).sort((a, b) => seen(a) - seen(b) || listOrder(a, b)), people: q ? Object.keys(U).filter(id => id !== "me" && has(U[id].n) && !S.rooms.some(r => r.dm === id)).slice(0, 5) : [], msgs: v.trim().length > 1 }; };
+const findOn = () => !!S.find && panes(innerWidth) === 1;   // on one pane the search field is the switcher: it opens when the field takes the focus and holds one history state, so Back closes it
+const closeFind = () => { const f = $("#filter"), had = $(".search").contains(document.activeElement); S.find = false; f.value = ""; drawList(); hsync(); const b = had && $("#rooms .ri"); b ? b.focus({ preventScroll: true }) : had && f.blur(); };
+/* one reminder at a time on top of the chats, the recovery kit first: it opens its flow, its close button dismisses it for good, and it is gone once done */
+const bannerRow = () => { if (!ID.created) return null; const d = ID.devices.find(x => !x.verified);   // Session.homeBanner decides which, if any
+  return [null, ["kit", I.key, "Save a recovery kit", "A sample step: the kit restores nothing yet."], d && ["dev", I.dev, "Verify your other device", d.name + " is a sample device, made up for this prototype. It is not verified yet."]][homeBanner(ID.kit ? 1 : 0, ID.bannerOff ? 1 : 0, d ? 1 : 0, ID.verifyOff ? 1 : 0)]; };
 function drawList() {
   const box = $("#rooms"), t0 = performance.now(), W = S.lw || (S.lw = { h: 72, top: 0 });
   const fe = document.activeElement, go = W.go; W.go = 0; W.f = go || fe && fe.classList.contains("ri") && box.contains(fe) && fe.dataset.room;   // the chat that holds the focus, or is about to: its row stays built wherever the window is
   drawBar(); drawNav(); drawYou();
-  if (S.loading) { box.innerHTML = `<div class="empty" role="status">Loading chats…</div>`; reminders(); return; }
-  const q = $("#filter").value.trim().toLowerCase(), flt = $("#flt"), fc = fe && fe.dataset && fe.dataset.flt, items = [];
-  const ch = q ? "" : CHIPS.map((t, c) => { const n = c % 2 ? S.rooms.filter(r => chipOf(c, r)).length : 0; return `<button class="fc" data-flt="${c}" aria-pressed="${c === S.flt}">${t}${n ? `<i>${n}</i>` : ""}</button>`; }).join("");   // a count shows inside its chip, and only above zero. While searching, the chips step aside
-  flt.hidden = !!q; if (S.ck !== ch) { flt.innerHTML = S.ck = ch; const b = fc && $(`[data-flt="${fc}"]`); if (b) b.focus(); }
-  const rooms = S.rooms.filter(r => q ? r.name.toLowerCase().includes(q) : chipOf(S.flt, r)).sort(listOrder), inv = rooms.filter(r => r.invite), rest = rooms.filter(r => !r.invite);
+  const find = findOn(); $("#list").classList.toggle("find", find); $("#fx").hidden = !find;
+  if (S.loading) { box.innerHTML = `<div class="empty" role="status">Loading chats…</div>`; return; }
+  const v = $("#filter").value.trim(), q = v.toLowerCase(), flt = $("#flt"), fc = fe && fe.dataset && fe.dataset.flt, items = [], F = (q || find) && finds(v), hb = !F && bannerRow();
+  const ch = F ? "" : CHIPS.map((t, c) => { const n = c % 2 ? S.rooms.filter(r => chipOf(c, r)).length : 0; return `<button class="fc" data-flt="${c}" aria-pressed="${c === S.flt}">${t}${n ? `<i>${n}</i>` : ""}</button>`; }).join("");   // a count shows inside its chip, and only above zero. While searching, the chips step aside
+  flt.hidden = !!F; if (S.ck !== ch) { flt.innerHTML = S.ck = ch; const b = fc && $(`[data-flt="${fc}"]`); if (b) b.focus(); }
+  const rooms = F ? [...S.rooms.filter(r => r.invite && q && r.name.toLowerCase().includes(q)), ...(q ? F.chats : F.chats.slice(0, 8))] : S.rooms.filter(r => chipOf(S.flt, r)).sort(listOrder), inv = rooms.filter(r => r.invite), rest = rooms.filter(r => !r.invite);   // while finding: the switcher's chats, in its order; before a letter is typed, the eight opened last
   const sect = (t, x = "") => items.push(["c" + t + x, `<div class="sect">${t}${x}</div>`]);
   const gap = (k, n) => n > 0 && items.push([k + n * W.h, `<div style="height:${n * W.h}px"></div>`]);
-  const row = r => { const on = S.cur === r.id, sel = SEL.has(r.id), n = unread(r), lv = lvl(r), mu = lv === "mute", mk = rowMark(n, mu, lv === "mentions", highlight(r)), tm = listTime(last(r).ts);
-    const p = S.set.previews ? S.drafts[r.id] && !on ? `<b class="dr">Draft:</b> ${esc(S.drafts[r.id])}` : preview(r) : ""; let uns = 0;   // a mark for a message that failed to send: only the newest 34 events are looked at
+  const row = r => { const on = S.cur === r.id, sel = SEL.has(r.id), n = unread(r), lv = lvl(r), mu = lv === "mute", mk = rowMark(n, mu, lv === "mentions", highlight(r)), tm = listTime(last(r).ts), ty = typingText(r);
+    const p = ty ? `<span class="ty">${esc(ty)}</span>` : S.set.previews ? S.drafts[r.id] && !on ? `<b class="dr">Draft:</b> ${esc(S.drafts[r.id])}` : preview(r) : ""; let uns = 0;   // a mark for a message that failed to send: only the newest 34 events are looked at
     for (let k = r.ev.length - 1; k >= 0 && k > r.ev.length - 35; k--) if (r.ev[k].status === "failed" && !r.ev[k].del) uns = 1;
     items.push(["r" + r.id + keyOf([on, sel, SEL.size > 0, r.name, r.pic ? r.pic.length : 0, tm, p, n, mk, mu, !!r.pin, uns].join("\u0001")), () => `<button class="rw ri${on ? " on" : ""}${sel ? " sel" : ""}" data-room="${r.id}"${on ? ' aria-current="true"' : ""}${SEL.size ? ` aria-pressed="${sel}"` : ""}>${rav(r)}
       <span class="grow"><span class="t"><span class="n">${esc(r.name)}</span><span class="tm${timeAccented(n, mu) ? " hi" : ""}">${tm}</span></span>
       <span class="row2"><span class="p">${p}</span>${uns ? `<span class="badge bad" title="Not sent" aria-label="A message was not sent">!</span>` : ""}${r.pin ? mark(pinIcon, "Pinned") : ""}${mu ? mark(I.mute, "Muted") : ""}${["", `<span class="badge dot" title="New messages" aria-label="New messages"></span>`, `<span class="badge" aria-label="${n} unread">${n > 99 ? "99+" : n}</span>`, `<span class="badge" aria-label="You were mentioned">@</span>`][mk]}<span class="chev" data-chev title="Menu" aria-hidden="true">${I.down}</span></span></span></button>`]); };
+  if (hb) items.push(["hb" + hb[0] + hb[3], `<div class="rw inv hb"><button class="who" data-hb="${hb[0]}"><span class="av ic">${hb[1]}</span><span class="grow"><span class="n">${hb[2]}</span><span class="p">${esc(hb[3])}</span></span></button><button class="icon" data-hbx="${hb[0]}" aria-label="Dismiss: ${hb[2]}" title="Dismiss">${I.x}</button></div>`]);
+  if (find && !q && SQ.length) items.push(["sq" + SQ.join("\u0001"), `<div style="padding:0 16px">${sqChips()}</div>`]);
   if (inv.length) { sect("Invitations", `<span class="badge" aria-label="${inv.length} waiting">${inv.length}</span>`); for (const r of inv) items.push(["v" + r.id + keyOf(r.name + r.invite), `<div class="rw inv"><button class="who" data-room="${r.id}">${rav(r)}<span class="grow"><span class="n">${esc(r.name)}</span><span class="p">${esc(first(r.invite))} invited you</span></span></button>
     <button class="icon ok" data-accept="${r.id}" aria-label="Accept" title="Accept">${I.check}</button><button class="icon" data-decline="${r.id}" aria-label="Decline" title="Decline">${I.x}</button></div>`]); }
   let a = 0, z = rest.length, i0 = 0, none = !rooms.length; box.classList.toggle("big", W.big = z > 200); W.ids = rest.map(r => r.id);
   if (W.big) { W.a = Math.floor((box.scrollTop - W.top) / W.h) - 13; a = Math.max(0, Math.min(W.a, z - 1)); z = Math.min(z, a + Math.ceil(box.clientHeight / W.h) + 26); }
-  if (z) { const fi = W.big ? rest.findIndex(r => r.id === W.f) : -1; if (inv.length || q) sect("Chats"); if (fi >= 0 && fi < a) { gap("sf", fi); row(rest[fi]); gap("sa", a - fi - 1); } else gap("sa", a);
+  if (z) { const fi = W.big ? rest.findIndex(r => r.id === W.f) : -1; if (inv.length || F) sect(q || !find ? "Chats" : "Recent"); if (fi >= 0 && fi < a) { gap("sf", fi); row(rest[fi]); gap("sa", a - fi - 1); } else gap("sa", a);
     i0 = items.length; for (let k = a; k < z; k++) row(rest[k]); if (fi >= z) { gap("sg", fi - z); row(rest[fi]); gap("sz", rest.length - fi - 1); } else gap("sz", rest.length - z); }
-  if (q) { const ppl = Object.keys(U).filter(id => id !== "me" && U[id].n.toLowerCase().includes(q) && !S.rooms.some(r => r.dm === id)).slice(0, 5), rs = S.rooms.filter(r => !r.invite); let hs = [];   // under the chats: people you have no chat with, then messages
-    if (ppl.length) { sect("People"); for (const id of ppl) items.push(["u" + id, `<button class="rw ri" data-dm="${id}">${av(U[id].n)}<span class="grow"><span class="n">${esc(U[id].n)}</span><span class="p">No chat yet</span></span></button>`]); }
+  if (q) { const ppl = F.people, rs = S.rooms.filter(r => !r.invite); let hs = [];   // under the chats: people you have no chat with, the hand-off to message search, then the messages found so far
+    if (ppl.length) { sect("People"); for (const id of ppl) items.push(["u" + id, `<button class="rw ri" data-dm="${id}">${av(U[id].n)}<span class="grow"><span class="n">${esc(U[id].n)}</span><span class="p">No chat yet</span></span><span class="tag">Start chat</span></button>`]); }
+    if (F.msgs) items.push(["sm" + v, `<button class="rw ri" data-allhits><span class="av" style="background:none;color:var(--ink2)">${I.search}</span><span class="grow"><span class="n" style="font-weight:400">Search messages for "${esc(v)}"</span></span></button>`]);
     if (q.length < 2) MS.q = "";
     else if (rs.reduce((n, r) => n + r.ev.length, 0) < 5000) hs = findMsgs(q, rs);   // a short history is searched at each key; a long one after a pause in the typing
     else if (MS.q === q) hs = MS.h;
     else { hs = null; clearTimeout(MS.t); MS.t = setTimeout(() => { MS.q = q; MS.h = findMsgs(q, rs); drawList(); }, 200); }
     if (!hs) items.push(["busy", `<div class="empty" role="status">Searching messages…</div>`]);
-    else if (hs.length) { sect("Messages", " · " + hs.length); for (const [r, e] of hs.slice(0, 20)) items.push(["h" + e.id + q, `<button class="rw ri" data-hit="${r.id}|${e.id}">${rav(r)}<span class="grow"><span class="t"><span class="n">${esc(r.name)}</span><span class="tm">${listTime(e.ts)}</span></span><span class="p">${esc(e.from === "me" ? "You" : first(e.from))}: ${snip(e, q, 12)}</span></span></button>`]);
-      if (hs.length > 20) items.push(["hm" + q + hs.length, `<div class="empty" style="padding-top:0"><button class="btn" data-allhits>Show all ${hs.length}</button></div>`]); }
+    else if (hs.length) { sect("Messages", " · " + hs.length); for (const [r, e] of hs.slice(0, 20)) items.push(["h" + e.id + q, `<button class="rw ri" data-hit="${r.id}|${e.id}">${rav(r)}<span class="grow"><span class="t"><span class="n">${esc(r.name)}</span><span class="tm">${listTime(e.ts)}</span></span><span class="p">${esc(e.from === "me" ? "You" : first(e.from))}: ${snip(e, q, 12)}</span></span></button>`]); }
     none = none && !ppl.length && !!hs && !hs.length; }
   if (none) items.push(["e" + q + S.flt, `<div class="empty">${q ? `Nothing matches "${esc(q)}".` : ["No chats yet.", "Nothing is unread.", "No favourites yet.", "No groups yet."][S.flt]}<div><button class="btn primary" ${q || S.flt ? "data-clear>Show all chats" : "data-home>New chat"}</button></div></div>`]);
   const keep = new Set(items.map(x => x[0])), old = new Map(), nodes = []; for (const n of [...box.children]) keep.has(n.dataset.k) ? old.set(n.dataset.k, n) : n.remove();   // rows that left go first, so a row that stays is never moved and keeps the focus
@@ -759,21 +808,11 @@ function drawList() {
   Object.assign(S.perf, { list: performance.now() - t0, lb: built, ln: nodes.length });
   const total = S.rooms.reduce((a, r) => a + (muted(r) ? 0 : unread(r)), 0);
   document.title = (total ? `(${total}) ` : "") + "Holo Messenger";
-  reminders();   // notices that wait for an answer show once their reason holds
-}
-/* ---------- reminders as notices, each shown once its reason holds: save a kit, verify your other device ---------- */
-let remKit = null, remVer = null;
-function reminders() {
-  if (!ID.created || $("#onb")) return; const again = () => setTimeout(reminders);
-  if (remKit && ID.kit) remKit.remove();
-  if (!remKit && !ID.kit && !ID.bannerOff) remKit = toastMsg("Save a recovery kit", "A sample step: the kit restores nothing yet.", [["Set up", () => { createKit(); again(); }], ["Not now", () => { ID.bannerOff = true; saveId(); again(); }]], 8000);   // it leaves on its own, so it never covers a chat for good; the kit stays under You, Account
-  const d = ID.devices.find(x => !x.verified); if (remVer && !d) remVer.remove();
-  if (!remVer && d && !ID.verifyOff && !(remKit && remKit.isConnected)) remVer = toastMsg("Verify your other device", `${d.name} is a sample device, made up for this prototype. It is not verified yet.`, [["Verify", () => verifyFlow({ kind: "device", id: d.id, name: d.name })], ["Later", () => { ID.verifyOff = true; saveId(); }]], 8000);
 }
 
 /* ---------- room ---------- */
 function saveDraft() { const ta = $("#ta"); if (!ta || !S.cur) return; const d = S.edit ? S.edWas || "" : ta.value;   // a draft keeps the message it replies to, and an open edit with its text. While an edit is open, the draft it pushed aside is the one kept
-  d.trim() ? S.drafts[S.cur] = d : delete S.drafts[S.cur]; S.mode ? S.rep[S.cur] = S.mode : delete S.rep[S.cur]; S.edit ? S.eds[S.cur] = [S.edit, ta.value] : delete S.eds[S.cur]; }
+  d.trim() ? S.drafts[S.cur] = d : delete S.drafts[S.cur]; S.mode ? S.rep[S.cur] = S.mode : delete S.rep[S.cur]; S.edit ? S.eds[S.cur] = [S.edit, ta.value] : delete S.eds[S.cur]; saveUi(); }
 function drawRoom() {
   const r = R(S.cur), el = $("#room"); dropSel();
   if (!r) { S.edit = null; el.innerHTML = `<div class="home"><div><p>Pick a chat to read it here.</p><div><button class="btn primary" data-home>New chat</button></div></div></div>`; showBtn(); return; }
@@ -795,16 +834,25 @@ function drawRoom() {
 }
 function drawRbar() {   // the top bar of a chat: back, the picture and name that open its info, search, and one menu. While messages are selected: their count and what can be done to them
   const bar = $("#rbar"), r = R(S.cur); if (!bar || !r) return; const l = selEvs(), n = l.length;
-  if (n) { const a = msgActs(l), rest = Object.keys(a).some(k => !BARACT.includes(k));
+  if (n) { const a = msgActs(l), B = barActs(l), rest = Object.keys(a).some(k => !B.includes(k));
     bar.innerHTML = `<button class="icon" data-msel="x" aria-label="Cancel the selection" title="Cancel">${I.back}</button><h2 class="grow" style="padding-left:12px" aria-live="polite" aria-label="${n} selected">${n}</h2>`
-      + BARACT.filter(k => a[k]).map(k => `<button class="icon" data-msel="${k}" aria-label="${a[k][0]}" title="${a[k][0]}">${a[k][1]}</button>`).join("") + (rest ? `<button class="icon" id="roomMore" data-msel="more" aria-haspopup="menu" aria-label="More" title="More">${I.more}</button>` : ""); }
+      + B.filter(k => a[k]).map(k => `<button class="icon" data-msel="${k}" aria-label="${a[k][0]}" title="${a[k][0]}">${a[k][1]}</button>`).join("") + (rest ? `<button class="icon" id="roomMore" data-msel="more" aria-haspopup="menu" aria-label="More" title="More">${I.more}</button>` : ""); }
   else { const who = `${rav(r)}<span class="grow"><b>${esc(r.name)}</b><span class="sub" id="sub" aria-live="polite"></span></span>`;
     bar.innerHTML = `<button class="icon back" data-back aria-label="Back to chats">${I.back}</button>${r.invite ? `<div class="who grow">${who}</div>` : `<button class="who grow" data-panel aria-label="${esc(r.name)}: info" title="Info (${modKey} .)">${who}</button>
       <button class="icon" data-find aria-label="Search messages" title="Search messages (${modKey} F)">${I.search}</button><button class="icon" id="roomMore" data-rmore aria-haspopup="menu" aria-label="More" title="More">${I.more}</button>`}`; drawSub(); }
   showBtn();
 }
-function drawSub() { const s = $("#sub"), r = R(S.cur); if (!s || !r) return; const ty = S.set.showTyping !== false && S.typing[r.id];   // one quiet line under the name: who is typing, or how many people. Never what the page cannot know, such as "online"
-  s.textContent = ty ? r.dm ? "typing…" : first(ty) + " is typing…" : r.dm ? "" : r.members.length + " people"; }
+/* who is typing in a chat (sample): never you, and nobody while typing notices are not shown. One line says it: under the chat's name, and in the chat's row of the list in place of the preview */
+const subLine = r => { const all = S.typing[r.id] || [], l = all.filter(id => id !== "me"), n = l.length, v = headerLine(r.dm ? 1 : 0, n, all.length - n ? 1 : 0, S.set.showTyping !== false ? 1 : 0);   // Layout.headerLine picks the line; the words are written here
+  return [v, v < 2 ? "" : v === 2 ? "typing…" : v === 3 ? first(l[0]) + " is typing…" : v === 4 ? `${first(l[0])} and ${first(l[1])} are typing…` : n + " people are typing…"]; };
+const typingText = r => subLine(r)[1];
+function setTyping(r, ids) { S.typing[r.id] = ids; drawSub(); drawList(); }
+function typingDemo() { const r = S.rooms.find(x => !x.dm && !x.invite && !x.st && x.members.length > 3), w = r && r.members.filter(x => x !== "me");   // a situation: one, then two, then three people type in a room, then one of them writes
+  if (!r) return toastMsg("No room with three other people", "Join or create one, then try again.", [], 4000);
+  [1, 2, 3].forEach((n, i) => setTimeout(() => setTyping(r, w.slice(0, n)), i * 3000)); setTimeout(() => { setTyping(r, null); incoming(r, w[0], "Sorry, that took a while to write. All good for Thursday."); }, 9000);
+  toastMsg("People are typing in " + r.name + " (sample)", "One person, then two, then three. Then a message arrives.", [["Open", () => openRoom(r.id)]], 9000); }
+function drawSub() { const s = $("#sub"), r = R(S.cur); if (!s || !r) return;   // one quiet line under the name: who is typing, or how many people. Never what the page cannot know, such as "online"
+  const [v, t] = subLine(r); s.textContent = v === 1 ? r.members.length + " people" : t; }
 function showBtn() {   // while the list is hidden, the way back to it sits where the eye is
   const old = $("#room [data-nolist]"), bar = $("#room .bar"), home = $("#room .home > div"); if (old) old.remove(); if (!$("#app").classList.contains("nolist")) return;
   if (bar) bar.insertAdjacentHTML("afterbegin", `<button class="icon" data-nolist aria-label="Show the chat list" title="Show the chat list" style="transform:scaleX(-1)">${I.back}</button>`);
@@ -932,24 +980,25 @@ const linkOf = e => e.body.includes("http") && (/https?:\/\/[^\s)]+/.exec(e.body
 const shared = r => r.ev.filter(e => e.t === "m" && !e.del && (e.img || e.file || linkOf(e)));   // what a chat holds besides text: pictures, files, and messages with a link
 const personRows = id => { const me = id === "me", ver = me || ID.verified.includes(id);   // what is known of a person, the same rows in a chat's info and on a person's card
   return (me ? "" : irow(ver ? "" : `data-pa="verify:${id}"`, I.lock, "Verification", ver ? "Marked verified (sample)" : "Not verified"))
-    + irow(`data-pa="copy:${id}"`, I.copy, "Holo ID", shortId(addrFor(id)) + (U[id].addr ? "" : " · sample, not a real hash")) + irow(`data-pa="share:${id}"`, I.qr, me ? "Show my code" : "Share contact")
+    + irow(`data-pa="copy:${id}"`, I.copy, "Holo ID", shortId(addrFor(id)) + (U[id].addr ? "" : " · sample, not a real hash")) + (me ? "" : irow(`data-pa="share:${id}"`, I.qr, "Share contact"))
     + (!me && inviteRooms(id).length ? irow(`data-pa="invite:${id}"`, I.addp, "Invite to a room") : ""); };
 function drawPanel() {
   const p = $("#panel"), r = R(S.cur), docked = panes(innerWidth) === 3, old = $("#mq"), keep = old && !old.hidden ? old.value : null, kf = old && document.activeElement === old;      // Layout.rightPanelMode. A redraw keeps the search for a person, and how far the screen was scrolled
-  const show = S.panel && !!r; p.hidden = !show; $("#app").classList.toggle("panel-docked", show && docked); saveUi(); hsync();
+  const ck = r && (r.ph || []).slice(-1)[0], top = r && CARDS[ck], c = top && top(r), n = panes(innerWidth);   // a card's own function gives its title, how many items it holds, their rows, and what to say when it holds none
+  const show = panelShows(S.panel ? 1 : 0, r ? 1 : 0, top ? r.ph.length : 0, c ? c[1] : 0); p.hidden = !show; $("#app").classList.toggle("panel-docked", !!show && docked); saveUi(); hsync();   // Layout.panelShows: 0 nothing, 1 the info, 2 a card, 3 a card that says it is empty
   if (!show) return;
-  const ck = (r.ph || []).slice(-1)[0], top = CARDS[ck], view = r.id + (top ? ck : ""), sb = $(".pbody", p), y = sb && p.dataset.v === view ? sb.scrollTop : 0, X = `<button class="icon wide" data-panel aria-label="Close info" title="Close">${I.x}</button>`;
+  const view = r.id + (top ? ck : ""), sb = $(".pbody", p), y = sb && p.dataset.v === view ? sb.scrollTop : 0, back = panelBack(top ? r.ph.length : 0, n);   // Layout.panelBack: 0 no back, 1 back to the chat, 2 back to the info
+  const B = back ? `<button class="icon" ${back === 2 ? "data-pback" : "data-panel"} aria-label="Back to ${back === 2 ? "info" : "the chat"}" title="Back">${I.back}</button>` : "", X = panelClose(n) ? `<button class="icon" data-panel aria-label="Close info" title="Close">${I.x}</button>` : "";   // Layout.panelClose
   p.dataset.v = view;
-  if (top) { const [title, body] = top(r);   // the card's own function writes it; here it is framed for the panel
-    p.innerHTML = `<div class="bar" style="padding:0 4px;gap:0"><button class="icon" data-pback aria-label="Back to info" title="Back">${I.back}</button><h2 class="grow" style="padding-left:12px">${title}</h2>${X}</div><div class="pbody">${body}</div>`; }
+  if (top) p.innerHTML = `<div class="bar" style="padding:0 4px;gap:0">${B}<h2 class="grow" style="padding-left:12px">${c[0]}</h2>${X}</div><div class="pbody">${show === 3 ? `<div class="empty">${c[3]}</div>` : c[2]}</div>`;   // one placeholder for every empty card: never a blank body
   else { const id = r.dm, kind = id ? "Chat" : "Room", mod = !id && myPower(r) >= 50, mu = r.level === "mute", others = r.members.filter(x => x !== "me"), nv = others.filter(x => ID.verified.includes(x)).length, n1 = id && esc(first(id));
-    p.innerHTML = `<div class="bar" style="padding:0 4px;gap:0"><button class="icon narrow" data-panel aria-label="Back to the chat" title="Back">${I.back}</button><h2 class="grow" style="padding-left:12px"><span class="wide">${id ? "Contact" : "Room"} info</span></h2><button class="icon" data-editroom aria-label="${kind} settings" title="${kind} settings">${I.edit}</button>${X}</div><div class="pbody">
+    p.innerHTML = `<div class="bar" style="padding:0 4px;gap:0">${B}<h2 class="grow" style="padding-left:12px"><span class="wide">${id ? "Contact" : "Room"} info</span></h2><button class="icon" data-editroom aria-label="${kind} settings" title="${kind} settings">${I.edit}</button>${X}</div><div class="pbody">
     <div class="hero"><button data-avbig="${id || "room"}" aria-label="Show picture full size">${rav(r, "xl")}</button><h3>${esc(r.name)}${id ? trust(id) : ""}</h3><p>${id ? shortId(addrFor(id)) + (U[id].addr ? "" : " · sample ID") : `Room · ${r.members.length} people`}</p></div>
     ${r.topic ? `<button class="topic" data-topic title="Show the whole description">${esc(r.topic)}</button>` : mod ? '<button class="topic add" data-editroom>Add a description</button>' : ""}
     <div class="qa">${qact("data-find", I.search, "Search")}${qact(`data-mute aria-pressed="${mu}"`, mu ? I.bell : I.mute, mu ? "Unmute" : "Mute")}</div>
     ${irow("data-files", I.photo, "Media, links and files", "", "", shared(r).length)}${irow("data-pins", pinIcon, "Pinned messages", "", "", pinsOf(r).length)}
     ${id ? "" : `<hr><div class="sect" style="padding:4px 4px 4px 16px"><span class="grow" id="mc"></span><button class="icon" data-mfind aria-label="Find a person here" title="Find a person">${I.search}</button></div><input class="pin" type="search" id="mq" hidden placeholder="Find a person here" aria-label="Find a person in this room" autocomplete="off" style="margin:0 16px 8px;width:calc(100% - 32px)"><div id="ml"></div>`}
-    <hr>${irow("data-levels", I.bell, "Notifications", LEVELS.find(x => x[0] === r.level)[1])}${irow(`data-fav aria-pressed="${!!r.fav}"`, I.star, r.fav ? "Remove from favourites" : "Add to favourites")}${irow('data-why="lock"', I.info, "Not encrypted yet", "Encryption is planned")}
+    <hr>${irow("data-levels", I.bell, "Notifications", mu ? "Muted" : LEVELS.find(x => x[0] === r.level)[1])}${irow(`data-fav aria-pressed="${!!r.fav}"`, I.star, r.fav ? "Remove from favourites" : "Add to favourites")}${irow('data-why="lock"', I.info, "Not encrypted yet", "Encryption is planned")}
     ${id ? personRows(id) : irow("", I.lock, "Verification", others.length ? `${nv} of ${others.length} other ${others.length > 1 ? "people" : "person"} marked verified (sample)` : "Nobody else is here yet") + irow("data-roles", I.key, "Roles and permissions", ACCESS[accessOf(r)][0] + (r.sendPower ? " · only moderators send" : ""))}
     <hr>${id ? irow(`data-pa="block:${id}"`, I.x, (ID.blocked.includes(id) ? "Unblock " : "Block ") + n1, "", " bad") : ""}${irow("data-leave", I.out, `Leave ${kind.toLowerCase()}`, "", " bad")}${id ? "" : irow("data-report", I.info, "Report room", "", " bad")}</div>`;
     if (!id) { if (keep != null) { const q = $("#mq"); q.hidden = false; q.value = keep; if (kf) q.focus(); } memList(); } }
@@ -964,17 +1013,17 @@ function memList() {   // the people of a room: you first, then by role, then by
   box.innerHTML = (q ? "" : act("data-invite", I.addp, "Add people") + act("data-share", I.qr, "Invite by link"))
     + (mem.map(id => row(id, role(lv(id)))).join("") + (r.invited || []).filter(hit).map(id => row(id, "Invited")).join("") + (myPower(r) >= 50 ? (r.banned || []).filter(hit).map(id => row(id, "Banned")).join("") : "") || `<div class="empty">Nobody here matches "${esc(q)}".</div>`);
 }
-const CARDS = {   // what each card holds: its title and its body
+const CARDS = {   // what each card holds: its title, how many items, their rows, and the words for when it holds none
   files(r) { const l = shared(r).reverse();
-    return ["Media, links and files", `<div class="yp" style="gap:0">${l.length ? l.map(e => { const u = !e.img && !e.file && linkOf(e);
-      return `<button class="pv" style="width:100%;text-align:left" data-goto="${e.id}">${e.img ? `<img src="${e.img}" alt="">` : `<span class="ph">${u ? I.clip : fileIcon}</span>`}<span><b>${esc(u || e.name || "Picture")}</b><small>${esc(e.from === "me" ? "You" : first(e.from))} · ${listTime(e.ts)}${e.file ? " · " + fmtSize(e.file.size) : ""}</small></span></button>`; }).join("")
-    : `<div class="empty">Nothing yet. Pictures, links and files sent in this ${r.dm ? "chat" : "room"} are listed here.</div>`}</div>`]; },
+    return ["Media, links and files", l.length, `<div class="yp" style="gap:0">${l.map(e => { const u = !e.img && !e.file && linkOf(e);
+      return `<button class="pv" style="width:100%;text-align:left" data-goto="${e.id}">${e.img ? `<img src="${e.img}" alt="">` : `<span class="ph">${u ? I.clip : fileIcon}</span>`}<span><b>${esc(u || e.name || "Picture")}</b><small>${esc(e.from === "me" ? "You" : first(e.from))} · ${listTime(e.ts)}${e.file ? " · " + fmtSize(e.file.size) : ""}</small></span></button>`; }).join("")}</div>`,
+      `Nothing yet. Pictures, links and files sent in this ${r.dm ? "chat" : "room"} are listed here.`]; },
   pins(r) { const l = pinsOf(r), can = canPin(r);
-    return ["Pinned messages", `<div class="yp" style="gap:0;padding:8px">${l.length ? l.map(e => `<div class="pr"><button class="mem" data-goto="${e.id}">${av(U[e.from].n)}<span style="flex:1;min-width:0"><b>${esc(e.from === "me" ? "You" : first(e.from))}</b><span class="snip">${esc(e.body || e.name || "Picture")}</span></span></button>${can ? `<button class="btn small" data-unpin="${e.id}">Unpin</button>` : ""}</div>`).join("")
-    : `<div class="empty">Nothing is pinned. ${can ? "Open the menu of a message and choose Pin." : "Moderators can pin messages everyone should see."}</div>`}</div>`]; },
+    return ["Pinned messages", l.length, `<div class="yp" style="gap:0;padding:8px">${l.map(e => `<div class="pr"><button class="mem" data-goto="${e.id}">${av(U[e.from].n)}<span style="flex:1;min-width:0"><b>${esc(e.from === "me" ? "You" : first(e.from))}</b><span class="snip">${esc(e.body || e.name || "Picture")}</span></span></button>${can ? `<button class="btn small" data-unpin="${e.id}">Unpin</button>` : ""}</div>`).join("")}</div>`,
+      `Nothing is pinned. ${can ? "Open the menu of a message and choose Pin." : "Moderators can pin messages everyone should see."}`]; },
   roles(r) { const admin = myPower(r) >= 100, who = (lo, hi) => r.members.filter(id => (r.power[id] || 0) >= lo && (r.power[id] || 0) < hi).sort(byName).map(id => id === "me" ? "You" : first(id)).join(", ") || "Nobody";
     const g = (t, x, can) => `<div class="grp"><h4>${t}</h4><div style="color:var(--ink)">${x}</div><small>${can}</small></div>`;
-    return ["Roles and permissions", `<div class="yp">${g("Who can join", ACCESS[accessOf(r)][0], ACCESS[accessOf(r)][1] + ".")}${g("Admins", esc(who(100, 1e9)), "Can do everything: change roles and who can send, and remove anyone below them.")}${g("Moderators", esc(who(50, 100)), "Can change the name, description and picture, pin and delete messages, and remove or ban members.")}${g("Members", esc(who(0, 50)), "Can read, send, react and invite.")}
+    return ["Roles and permissions", 5, `<div class="yp">${g("Who can join", ACCESS[accessOf(r)][0], ACCESS[accessOf(r)][1] + ".")}${g("Admins", esc(who(100, 1e9)), "Can do everything: change roles and who can send, and remove anyone below them.")}${g("Moderators", esc(who(50, 100)), "Can change the name, description and picture, pin and delete messages, and remove or ban members.")}${g("Members", esc(who(0, 50)), "Can read, send, react and invite.")}
     <div class="grp"><h4>Who can send messages</h4><div class="seg">${[[0, "Everyone"], [50, "Moderators only"]].map(([v, t]) => `<button data-sendp="${v}" aria-pressed="${(r.sendPower || 0) === v}"${admin ? "" : " disabled"}>${t}</button>`).join("")}</div>${admin ? "" : "<small>Only admins can change this.</small>"}</div></div>`]; } };
 const card = k => { const h = R(S.cur).ph || (R(S.cur).ph = []); if (h[h.length - 1] !== k) h.push(k); S.panel = true; drawPanel(); const b = $("#panel [data-pback]"); if (b) b.focus(); };
 function levelDlg(at) { const r = R(S.cur), d = LEVELS.find(x => x[0] === (S.set.defaultLevel || "all"))[1].toLowerCase();   // a chat's notification level: a choice, opened from its info
@@ -1058,7 +1107,7 @@ const sheet = (html, onMount, keep) => dialog(html, sc => { const d = sc.firstCh
   d.addEventListener("touchend", () => { if (y0 == null) return; y0 = null; if (dy > 80) closeTop(); else d.style.transform = ""; });
   if (onMount) onMount(sc); }, keep, 1);
 function choose(title, body, onMount, at, right, keep) {   // Overlay.surfaceFor: a choice is a sheet on one pane; on more it hangs from what was pressed
-  if (surfaceFor(1, panes(innerWidth)) === 1) return sheet(`<header><h3>${title}</h3>${CLOSE}</header><div class="c qs">${body}</div>`, onMount, keep);
+  if (surfaceFor(1, panes(innerWidth)) === 1) return sheet(`<header><h3>${title}</h3>${CLOSE}</header><div class="c qs" role="menu">${body}</div>`, onMount, keep);
   const b = at && at.getBoundingClientRect ? at.getBoundingClientRect() : at || { left: innerWidth / 2, right: innerWidth / 2, bottom: innerHeight / 3 };
   const mn = menuAt(right ? b.right : b.left, b.bottom + 4, `<div class="sect">${title}</div>${body}`, null, right, keep); if (onMount) onMount(mn);
   if (b.top > innerHeight / 2) mn.style.top = Math.max(8, b.top - mn.offsetHeight - 4) + "px";   // low on the screen it opens upward
@@ -1084,20 +1133,20 @@ function guardLeave(e, then) {
 /* ---------- menus ---------- */
 /* ---------- emoji picker with search and recents ---------- */
 function picker(anchor, onPick) {   // every emoji: a sheet on a phone, a box at its button on a wide screen
-  const low = surfaceFor(1, panes(innerWidth)) === 1, rec = store.get("hm-emoji", []), p = document.createElement("div"); p.className = "pk"; let tone = store.get("hm-tone", "");
+  const low = surfaceFor(1, panes(innerWidth)) === 1, rec = store.get("hm-emoji", []), p = document.createElement("div"); p.className = "pk"; let tone = store.get("hm-tone", ""); const TONES = ["", "🏻", "🏼", "🏽", "🏾", "🏿"];
   if (low) sheet(`<header><h3>Emoji</h3>${CLOSE}</header><div class="c"></div>`, sc => $(".c", sc).append(p)); else { closeOverlay(); lastFocus = anchor; p.id = "picker"; document.body.append(p); }
-  const sk = ([e, n, c]) => [c === 1 ? e.replace("️", "") + tone : e, n];   // a skin tone applies to hands
+  const sk = ([e, n, c]) => { const a = toneApplied(c === 1 ? 1 : 0, TONES.indexOf(tone) < 0 ? 6 : TONES.indexOf(tone)); return [a ? e.replace("️", "") + TONES[a] : e, n]; };   // Composer.toneApplied: a skin tone applies to hands only, and a tone that is not one of the five is ignored
   const grid = l => `<div class="emo">${l.map(([e, n]) => `<button data-e="${e}" title="${n.split(" ")[0]}" aria-label="${n.split(" ")[0]}">${e}</button>`).join("")}</div>`, sect = t => `<div class="sect">${t}</div>`;
   p.innerHTML = `<input type="text" id="eq" placeholder="Search emoji" aria-label="Search emoji"><div class="emo" id="et" role="group" aria-label="Skin tone for hands"></div><div id="eg"></div><div class="sect" id="ep" aria-live="polite">Pick an emoji</div>`;
-  const draw = () => { const q = $("#eq", p).value.trim().toLowerCase(), hit = EMOJI.filter(([, n]) => n.includes(q)).map(sk);
-    $("#eg", p).innerHTML = q ? hit.length ? grid(hit) : '<div class="empty">No emoji match.</div>' : (rec.length ? sect("Recent") + grid(rec.map(k => [k, (EMOJI.find(x => k.startsWith(x[0].replace("️", ""))) || [0, k])[1]])) : "") + ECAT.map((t, c) => sect(t) + grid(EMOJI.filter(x => x[2] === c).map(sk))).join("");
-    $("#et", p).innerHTML = ["", "🏻", "🏼", "🏽", "🏾", "🏿"].map((t, i) => `<button data-tone="${t}" aria-pressed="${t === tone}" aria-label="Skin tone ${i + 1} of 6" style="font-size:1rem${t === tone ? ";background:var(--sel)" : ""}">✋${t}</button>`).join(""); };
+  const draw = () => { const q = $("#eq", p).value.trim().toLowerCase(), hit = EMOJI.filter(([, n]) => n.includes(q)).map(sk), sec = pickerSection(q.length, rec.length, hit.length);   // Composer.pickerSection
+    $("#eg", p).innerHTML = sec === 3 ? grid(hit) : sec === 4 ? '<div class="empty">No emoji match.</div>' : (sec === 1 ? sect("Recent") + grid(rec.map(k => [k, (EMOJI.find(x => k.startsWith(x[0].replace("️", ""))) || [0, k])[1]])) : "") + ECAT.map((t, c) => sect(t) + grid(EMOJI.filter(x => x[2] === c).map(sk))).join("");
+    $("#et", p).innerHTML = TONES.map((t, i) => `<button data-tone="${t}" aria-pressed="${t === tone}" aria-label="Skin tone ${i + 1} of 6" style="font-size:1rem${t === tone ? ";background:var(--sel)" : ""}">✋${t}</button>`).join(""); };
   draw(); const b = anchor && anchor.isConnected ? anchor.getBoundingClientRect() : { top: innerHeight / 2, bottom: innerHeight / 2, left: innerWidth / 2 - 148 };
   if (!low) { p.style.left = Math.max(8, Math.min(innerWidth - 304, b.left)) + "px"; p.style.top = Math.max(8, Math.min(b.top > p.offsetHeight + 12 ? b.top - p.offsetHeight - 4 : b.bottom + 4, innerHeight - p.offsetHeight - 8)) + "px"; }
   $("#eq", p).oninput = draw; p.onmouseover = p.onfocusin = e => { const x = e.target.closest("[data-e]"); if (x) $("#ep", p).textContent = x.dataset.e + " " + x.title; };
   p.onclick = e => { let x = e.target.closest("[data-tone]"); if (x) { e.stopPropagation(); tone = x.dataset.tone; store.set("hm-tone", tone); draw(); $(`[data-tone="${tone}"]`, p).focus(); return; }
-    x = e.target.closest("[data-e]"); if (!x) return; const k = x.dataset.e; store.set("hm-emoji", [k, ...rec.filter(y => y !== k)].slice(0, 8)); closeOverlay(); onPick(k); };
-  if (!touch) $("#eq", p).focus();
+    x = e.target.closest("[data-e]"); if (!x) return; const k = x.dataset.e; store.set("hm-emoji", [k, ...rec.filter(y => y !== k)].slice(0, recentsAfterPick(rec.length, rec.includes(k) ? 1 : 0))); closeOverlay(); onPick(k); };
+  if (!touch) $("#eq", p).focus();   // Composer.recentsAfterPick, above: at most eight are kept, and picking one that is there adds none
 }
 /* ---------- the shell: the tabs, the You screen, the home menu, what a chat row can do, situations ---------- */
 const TAB = { chats: ["Chats", I.chat], you: ["You"] };   // a tab the rule shows is drawn once it has an entry here, which it gets when its feature is built
@@ -1107,19 +1156,20 @@ function drawNav() {   // icon over label, a pill behind the one you are on, the
   $("#nav").innerHTML = tabsShown(FEATURES.calls, FEATURES.spaces, FEATURES.status).filter(t => TAB[t]).map(t => { const [name, icon] = TAB[t], b = t === "chats" && n;
     return `<button data-nav="${t}" title="${name}" aria-label="${name}${b ? `, ${n} waiting` : ""}"${S.tab === t ? ' aria-current="page"' : ""}><span class="pl">${icon || myFace()}${b ? `<span class="badge">${n > 99 ? "99+" : n}</span>` : ""}</span><span class="narrow" aria-hidden="true">${name}</span></button>`; }).join("");
 }
-function setTab(t) { const was = (document.activeElement || document.body).closest("#nav"); S.tab = t; SEL.clear(); $("#app").classList.toggle("you", t === "you"); $("#you").hidden = t !== "you";
+function setTab(t) { const was = (document.activeElement || document.body).closest("#nav"); S.tab = t; if (S.find) { S.find = false; $("#filter").value = ""; } SEL.clear(); $("#app").classList.toggle("you", t === "you"); $("#you").hidden = t !== "you";
   if (t === "chats" && $("#app").classList.contains("nolist") && panes(innerWidth) > 1) noList(false); else drawList();
   if (was) $(`[data-nav="${t}"]`).focus(); }
 const YOU = { profile: "Profile", account: "Account", privacy: "Privacy", devices: "Linked devices", chats: "Chats", notify: "Notifications", storage: "Storage and data", keys: "Keyboard shortcuts", about: "Help and about" };
 const focusKey = el => { if (el.id) return "#" + el.id; const a = [...el.attributes].find(x => x.name.startsWith("data-")); return a ? `[${a.name}="${a.value}"]` : ""; };   // how to find a control again after its screen is redrawn
+const youBack = () => settingsBack(S.ysub ? 1 : 0, S.yfrom === "chats" ? 1 : 0);
 function drawYou(force) {   // your profile row, then one list of settings: an icon, a title and what it holds. A row opens its screen in this same column, with a back arrow
   hsync(); const y = $("#you"), fe = document.activeElement, t = S.ysub; if (y.hidden || !force && (t === "about" && S.yt === t || y.contains(fe) && fe.tagName === "INPUT")) return;   // a redraw from elsewhere leaves a field being typed in alone, and the figures under About as they were read
-  const d = ID.devices.length, th = S.set.theme[0].toUpperCase() + S.set.theme.slice(1);
-  const h = t ? `<div class="bar" style="padding:0 4px;gap:0"><button class="icon" data-yback aria-label="${S.yfrom ? "Back" : "Back to You"}" title="Back">${I.back}</button><h1 class="grow" style="padding-left:12px">${YOU[t]}</h1></div><div class="ybody">${youSub(t)}</div>`
-    : `<div class="bar"><h1 class="grow">You</h1></div><div class="ybody"><div class="pr"><button class="rw yr" data-tab="profile">${myFace()}<span class="grow"><span class="n" style="font-weight:600">${esc(S.set.name)}</span><span class="p">Sample identity</span></span></button><button class="icon" data-nc="mine" aria-label="Show my code" title="Show my code">${I.qr}</button></div>
-    <hr>${irow('data-tab="account"', I.key, "Account", `Recovery kit ${ID.kit ? "saved" : "not saved"}, sign out`)}${irow('data-tab="privacy"', I.lock, "Privacy", "Read receipts, typing, blocked people")}${irow('data-tab="devices"', I.dev, "Linked devices", `${d} other device${d === 1 ? "" : "s"}`)}
-    ${irow('data-tab="chats"', I.chat, "Chats", `${th} theme, text size ${S.set.size}`)}${irow('data-tab="notify"', I.bell, "Notifications", S.set.notify ? "On" : "Off")}${irow('data-tab="storage"', I.db, "Storage and data", "Search index")}
-    ${irow('data-tab="keys"', I.kb, "Keyboard shortcuts", "", " wide")}${irow('data-tab="about"', I.info, "Help and about", "Version 0.1.0, prototype")}<hr>${irow("data-sims", I.sim, "Try a situation", "Simulated failures and load")}</div>`;
+  const d = ID.devices.length, th = S.set.theme[0].toUpperCase() + S.set.theme.slice(1), P = panes(innerWidth), bk = youBack(), row = (n, html) => rowShown(n, P) ? html : "";   // Settings.rowShown and Settings.settingsBack
+  const h = t ? `<div class="bar" style="padding:0 4px;gap:0">${bk ? `<button class="icon" data-yback aria-label="${["", "Back to You", "Back to Chats"][bk]}" title="Back">${I.back}</button>` : ""}<h1 class="grow" style="padding-left:12px">${YOU[t]}</h1></div><div class="ybody">${youSub(t)}</div>`
+    : `<div class="bar"><h1 class="grow">You</h1></div><div class="ybody">${row(0, `<div class="pr"><button class="rw yr" data-tab="profile">${myFace()}<span class="grow"><span class="n" style="font-weight:600">${esc(S.set.name)}</span><span class="p">Sample identity</span></span></button><button class="icon" data-nc="mine" aria-label="Show my code" title="Show my code">${I.qr}</button></div>`)}
+    <hr>${row(1, irow('data-tab="account"', I.key, "Account", `Recovery kit ${ID.kit ? "saved" : "not saved"}, sign out`))}${row(2, irow('data-tab="privacy"', I.lock, "Privacy", "Read receipts, typing, blocked people"))}${row(3, irow('data-tab="devices"', I.dev, "Linked devices", `${d} other device${d === 1 ? "" : "s"}`))}
+    ${row(4, irow('data-tab="chats"', I.chat, "Chats", `${th} theme, text size ${S.set.size}`))}${row(5, irow('data-tab="notify"', I.bell, "Notifications", S.set.notify ? "On" : "Off"))}${row(6, irow('data-tab="storage"', I.db, "Storage and data", "Search index"))}
+    ${row(7, irow('data-tab="keys"', I.kb, "Keyboard shortcuts"))}${row(8, irow('data-tab="about"', I.info, "Help and about", "Version 0.1.0, prototype"))}<hr>${irow("data-sims", I.sim, "Try a situation", "Simulated failures and load")}</div>`;
   if (S.yk === h) return; const sb = $(".ybody", y), top = sb && S.yt === t ? sb.scrollTop : 0, f = y.contains(fe) && focusKey(fe);
   y.innerHTML = S.yk = h; S.yt = t; $(".ybody", y).scrollTop = top; const n = f && $(f, y); if (n) n.focus();
   if (t === "about") buildAddr().then(a => { const el = $("#ba"); if (el) el.textContent = a || "Not available: this page was opened from a file, or the browser would not read it again."; });
@@ -1149,17 +1199,17 @@ function youSub(t) {   // one settings screen. Every setting sits under the head
       + sw("invites", "Invitations", "A notice when someone invites you to a room.") + sw("showText", "Show message text", "Off shows only that a message arrived.") + sw("sound", "Play a sound")
       + head("Chats with their own level") + (own.map(r => act(esc(r.name), LEVELS.find(x => x[0] === r.level)[1], `<button class="btn small" data-lvreset="${r.id}">Use default</button>`)).join("") || '<div class="empty">Every chat follows the default.</div>'); }
   if (t === "storage") { let n = 0; try { for (const k of Object.keys(localStorage)) if (k.startsWith("hm-")) n += k.length + localStorage.getItem(k).length; } catch (e) {}
-    return irow("data-rebuild", I.search, "Search index", IX.at ? `${IX.n.toLocaleString()} messages in ${IX.ch} chats` : "Built as you search") + irow("", I.db, "Kept in this browser", `About ${fmtSize(n)}: your settings and identity record. The sample messages are not kept.`); }
+    return irow("data-rebuild", I.search, "Search index", IX.at ? `${IX.n.toLocaleString()} messages in ${IX.ch} chats` : "Built as you search") + irow("", I.db, "Kept in this browser", `About ${fmtSize(n)}: your settings, drafts and identity record. The sample messages are not kept.`); }
   if (t === "keys") return Object.entries({ Chats: [["Find a chat", modKey + " K"], ["Previous or next chat", "Alt ↑ / Alt ↓"], ["Previous or next unread chat", "Alt Shift ↑ / ↓"], ["Back or forward through chats", "Alt ← / Alt →"], ["Move through the chat list", "↓ ↑ Home End, then Enter"], ["No chat open", "Ctrl Alt H"],
-      ["Hide or show the chat list", modKey + " Shift L, outside the message box"], ["Narrower or wider chat list", "Alt Shift ← / →"]],
+      ["Hide or show the chat list", modKey + " Shift L"], ["Narrower or wider chat list", "Alt Shift ← / →"]],
       Messages: [["Search messages", modKey + " F"], ["Scroll the timeline", "Page Up / Page Down"], ["First or latest message", modKey + " Home / " + modKey + " End"], ["Oldest unread", "Shift Page Up"], ["Jump to latest", "Esc"]],
-      Writing: [["Send", S.set.modSend ? modKey + " Enter" : "Enter"], ["New line", S.set.modSend ? "Enter" : "Shift Enter"], ["Bold, italic, code", modKey + " B / I / E"], ["Quote, link", modKey + " Shift > / L"], ["Edit your last message", "↑ in an empty box"], ["Edit the one before or after", "↑ ↓ while editing"],
+      Writing: [["Send", S.set.modSend ? modKey + " Enter" : "Enter"], ["New line", S.set.modSend ? "Enter" : "Shift Enter"], ["Bold, italic, code", modKey + " B / I / E"], ["Quote", modKey + " Shift >"], ["Edit your last message", "↑ in an empty box"], ["Edit the one before or after", "↑ ↓ while editing"],
         ["Cancel reply or edit", "Esc"], ["Complete a suggestion", "Enter or Tab"], ["Attach a file", modKey + " Shift U"]],
       "Panels, menus and dialogs": [["Show or hide info", modKey + " ."], ["You, and back to chats", modKey + " `"], ["Settings", modKey + " ,"], ["This list", modKey + " /"], ["Move between areas", "F6"], ["Move in a menu, tabs or a set of choices", "Arrows, Home, End"], ["Save in a dialog", modKey + " S"], ["Close, or back", "Esc"]]
     }).map(([c, l]) => `${head(c)}<div class="keys" style="padding:4px 16px 8px">${l.map(([a, k]) => `<span>${a}</span><span class="kbd">${k}</span>`).join("")}</div>`).join("");
   return `<div class="yp"><p style="margin:0;color:var(--ink)">Holo Messenger 0.1.0, prototype. Sample people and messages; nothing is sent anywhere.</p>
     ${P0}${RULES.source === "the verified holo" ? `The verified holo answers these rules: panes, notification level, the Enter key, which links open, message actions${RULES.got.map(x => ", " + x).join("")}. ${RULES.asked} of its answers were compared with the built-in copy in ${RULES.ms.toFixed(0)} ms: ${RULES.differ.length ? RULES.differ.length + " differ. " + esc(RULES.differ.slice(0, 3).join("; ")) : "none differ"}. Of the 4 newer questions (tabs, send button, ticks, day labels) it answered ${RULES.newQ}: ${RULES.fresh} more answers compared.
-    Every other rule is a built-in copy of the model's definition, not an answer from the holo: ${["tabs", "send button", "ticks", "day labels"].filter(x => !RULES.got.includes(x)).map(x => x + ", ").join("")}bubble side, tail, grouping, which surface an overlay takes, and the chat list's chips, row mark, time accent, order and menu entries.` : `Every rule is answered by the built-in copy of the model's definitions. The holo is not in use: ${esc(RULES.note)}.`}</p>
+    Every other rule is a built-in copy of the model's definition, not an answer from the holo: ${["tabs", "send button", "ticks", "day labels"].filter(x => !RULES.got.includes(x)).map(x => x + ", ").join("")}bubble side, tail, grouping, which surface an overlay takes, ${COPIES}, and the chat list's chips, row mark, time accent, order and menu entries.` : `Every rule is answered by the built-in copy of the model's definitions, among them ${COPIES}. The holo is not in use: ${esc(RULES.note)}.`}</p>
     ${S.perf.open != null ? `${P0}Measured on this device, script time: last chat opened in ${S.perf.open.toFixed(1)} ms; last timeline update ${S.perf.draw.toFixed(1)} ms, building ${S.perf.built} of ${S.perf.rows} rows shown from ${S.perf.total} messages${S.perf.send != null ? `; last send ${S.perf.send.toFixed(1)} ms` : ""}${S.perf.list != null ? `; last chat list update ${S.perf.list.toFixed(1)} ms, building ${S.perf.lb} of ${S.perf.ln} rows` : ""}.</p>` : ""}
     ${P0}This page loads itself, plus the rules holo and its loader from the same site, and nothing from anywhere else. There is no account. A key pair is made at first run to show the step; it is not kept or used yet, and the identity shown is a sample.</p>
     <div class="grp"><h4>This build: the sha256 of this page as it was served</h4><div class="addr" id="ba">Working it out…</div></div></div>${irow('data-legal="lic"', fileIcon, "Licences")}${irow('data-legal=""', I.lock, "Privacy")}`;
@@ -1201,7 +1251,7 @@ function situations() {   // simulations, each one labelled as such where it sho
     ["A chat that will not open", () => { const r = R(S.cur) || R("r1"); if (r) { r.st = "err"; openRoom(r.id); } }], ["A slow start", slowStart],
     ["A message that fails to send", () => { failNext = true; toastMsg("The next message will fail", "Send one to see the retry and remove choices.", [], 4000); }],
     ["An invitation to a room", () => { const r = addInvite("garden"); r.invite ? S.set.invites && toastMsg(first(r.invite) + " invited you", r.name, [["View", () => previewRoom(r.id)], ["Later", () => {}]], 0) : openRoom(r.id); }],
-    ["Browser storage that is off", () => noStorage(1)], ["A slow file", slowFile], ["20,000 messages", () => stress()], ["100,000 messages", () => stress(1e5)], ["1,000 chats", manyChats], ["An identity that cannot be made", () => makeId(1)], ["First run", () => onboard(0)]];
+    ["Browser storage that is off", () => noStorage(1)], ["A slow file", slowFile], ["20,000 messages", () => stress()], ["100,000 messages", () => stress(1e5)], ["1,000 chats", manyChats], ["An identity that cannot be made", () => makeId(1)], ["First run", () => onboard(0)], ["People typing in a room", typingDemo]];
   dialog(`${pageHead("Try a situation")}<div class="c qs">${L.map(([t, , off], i) => `<button class="o" data-sit="${i}"${off ? " disabled" : ""}>${esc(t)}</button>`).join("")}</div>`, sc => { sc.firstChild.classList.add("page");
     sc.addEventListener("click", e => { const b = e.target.closest("[data-sit]"); if (b) { closeOverlay(); setTab("chats"); L[b.dataset.sit][1](); } }); });
 }
@@ -1219,6 +1269,7 @@ function roomMenu(b) { const r = R(S.cur), p = b.getBoundingClientRect(), mu = r
 /* ---------- messages: selecting, and what can be done. On one pane a long press or a right-click selects: an emoji row shows over the message and the top bar turns into actions.
    On more panes the arrow under the pointer, or a right-click, opens a menu at the message; its Select entry starts a selection ---------- */
 const MSEL = new Map(), BARACT = ["reply", "copy", "fwd", "remove"];   // the selected messages of the open chat, by id; the actions that sit in the bar as icons
+const barActs = l => l.length === 1 && l[0].from === "me" ? ["reply", "info", "fwd", "remove"] : BARACT;   // one message of your own: Info takes the place of Copy, which is then first under More, so the bar still fits 320 px
 const selEvs = () => [...MSEL.values()].filter(e => !e.del && !e.gone).sort((a, b) => a.ts - b.ts);
 const dropSel = () => { for (const e of MSEL.values()) e._k = null; MSEL.clear(); };
 function selMsg(id) { const r = R(S.cur), e = r && r.ev.find(x => x.id === id); if (!e || e.gone) return; for (const x of MSEL.values()) x._k = null; e._k = null;
@@ -1255,13 +1306,13 @@ function doAct(k, l, at) { const r = R(S.cur), e = l[0], ta = $("#ta"); if (k ==
   else if (k === "select") selMsg(e.id);
 }
 function msgMenu(l, at, bar) {   // every action of a message. At the message it is an anchored menu with the emoji row on top; from the bar over a selection it is the rest of the actions, as a sheet on a phone
-  const r = R(S.cur), e = l[0], a = msgActs(l), keys = Object.keys(a).filter(k => bar ? !BARACT.includes(k) : k !== "remove"); if (!bar && a.remove) keys.push("remove"); if (!e) return;
+  const r = R(S.cur), e = l[0], a = msgActs(l), keys = Object.keys(a).filter(k => bar ? !barActs(l).includes(k) : k !== "remove"); if (!bar && a.remove) keys.push("remove"); if (!e) return;
   const quick = !bar && l.length === 1 && messageAction("react", e.from === "me", true, myPower(r) >= 50, e.status === "failed"), p = at && at.getBoundingClientRect ? at.getBoundingClientRect() : null;
   const body = (quick ? `<div class="emo" style="grid-template-columns:repeat(7,1fr)">${EMOJI.slice(0, 6).map(([k]) => `<button data-q="${k}" aria-label="React with ${k}">${k}</button>`).join("")}<button data-q="" aria-label="More emoji" title="More emoji">${I.plus}</button></div><hr>` : "")
     + keys.map(k => `${k === "remove" ? "<hr>" : ""}<button class="o" data-g="${k}"${k === "remove" ? ' style="color:var(--bad)"' : ""}>${a[k][1]}<span class="grow">${a[k][0]}</span></button>`).join("") + (bar ? "" : `<hr><button class="o" data-g="select">${I.check}<span class="grow">Select</span></button>`);
   const on = root => root.addEventListener("click", ev => { const b = ev.target.closest("[data-g],[data-q]"); if (!b) return; ev.stopPropagation(); closeOverlay();
     if (b.dataset.g) doAct(b.dataset.g, l); else { clearSel(); b.dataset.q ? react(e, b.dataset.q) : picker($(`.msg[data-id="${e.id}"] .bub`), k => react(e, k)); } });
-  if (bar && surfaceFor(1, panes(innerWidth)) === 1) sheet(`<div class="c qs">${body}</div>`, on); else on(menuAt(p ? p.right : at.x, p ? p.bottom + 4 : at.y, body, null, !!p));
+  if (bar && surfaceFor(1, panes(innerWidth)) === 1) sheet(`<div class="c qs" role="menu">${body}</div>`, on); else on(menuAt(p ? p.right : at.x, p ? p.bottom + 4 : at.y, body, null, !!p));
 }
 function msgHold(el, x, y) { const ev = evOf(el); if (!ev || ev.gone) return; panes(innerWidth) === 1 ? selMsg(ev.id) : msgMenu([ev], { x, y }); }   // a long press or a right-click
 function msgMore(el, b) { const ev = evOf(el); if (!ev) return; if (panes(innerWidth) > 1) return msgMenu([ev], b);   // the arrow in a bubble's corner: the menu, or on one pane the same selection a long press makes
@@ -1280,10 +1331,9 @@ function pickPic(anchor, has, cb) {
 function switcher() {
   dialog(`<header><h3>Find a chat</h3></header><div class="c qs"><input type="text" id="q" placeholder="Name of a person or room" autocomplete="off" autofocus><div id="qr"></div></div>`, sc => {
     let idx = 0, rows = [];
-    const inp = $("#q", sc), draw = () => { const v = inp.value.trim(), q = v.toLowerCase(), has = n => n.toLowerCase().includes(q), seen = r => REC.indexOf(r.id) + 1 || 99;
-      rows = S.loading ? [] : [...S.rooms.filter(r => !r.invite && has(r.name)).sort((a, b) => seen(a) - seen(b) || listOrder(a, b)).slice(0, 8).map(r => [r.id, rav(r), r.name, r.dm ? "Person" : "Room"]),   // Search.switcherShows: the chats you opened last come first
-        ...(q ? Object.keys(U).filter(id => id !== "me" && has(U[id].n) && !S.rooms.some(r => r.dm === id)).slice(0, 5).map(id => ["u:" + id, av(U[id].n), U[id].n, "No chat yet"]) : []),   // people you have no chat with
-        ...(v.length > 1 ? [["s:", `<span class="av" style="color:var(--ink2)">${I.search}</span>`, `Search messages for "${v}"`, ""]] : [])];   // the hand-off to message search
+    const inp = $("#q", sc), draw = () => { const v = inp.value.trim(), q = v.toLowerCase(), F = finds(v);
+      rows = S.loading ? [] : [...F.chats.slice(0, 8).map(r => [r.id, rav(r), r.name, r.dm ? "Person" : "Room"]), ...F.people.map(id => ["u:" + id, av(U[id].n), U[id].n, "Start chat"]),   // finds(): the same chats, people and hand-off the home search field lists
+        ...(F.msgs ? [["s:", `<span class="av" style="color:var(--ink2)">${I.search}</span>`, `Search messages for "${v}"`, ""]] : [])];   // the hand-off to message search
       idx = Math.min(idx, Math.max(rows.length - 1, 0));
       $("#qr", sc).innerHTML = S.loading ? `<div class="empty" role="status">Loading chats…</div>` : (q ? "" : sqChips() + `<div class="sect" style="padding-left:0">Recent</div>`)
         + (rows.map(([k, pic, n, tag], i) => `<button class="o${i === idx ? " on" : ""}" data-pick="${k}">${pic}<span class="grow">${esc(n)}</span><span style="color:var(--ink3)">${tag}</span></button>`).join("") || `<div class="empty">Nothing matches.</div>`); };
@@ -1357,8 +1407,8 @@ function profile(id) {
 }
 function personAct(a, id, v, at) {   // what a row or a quick action does to a person, from their card or from a chat's info
   const u = U[id], r = R(S.cur), room = r && !r.dm && !r.invite ? r : null, n1 = esc(first(id)), me = id === "me", addr = addrFor(id);
-  const after = t => { say(room, t); drawTimeline(true); drawList(); drawPanel(); };
-  const out = ban => { room.members = room.members.filter(x => x !== id); delete room.power[id]; if (ban) (room.banned = room.banned || []).push(id); after(`You ${ban ? "banned" : "removed"} ${first(id)}`); };
+  const after = k => { say(room, k, { to: id }); drawTimeline(true); drawList(); drawPanel(); };
+  const out = ban => { room.members = room.members.filter(x => x !== id); delete room.power[id]; if (ban) (room.banned = room.banned || []).push(id); after(ban ? "banned" : "removed"); };
   if (a === "msg") startDm(id);
   else if (a === "edit") settings("profile");
   else if (a === "verify") verifyFlow({ kind: "user", id, name: first(id) });
@@ -1367,11 +1417,11 @@ function personAct(a, id, v, at) {   // what a row or a quick action does to a p
   else if (a === "share") shareDlg(me ? "Your code" : "Share " + u.n, linkTo("u-" + addr), me ? "A sample link, made from your name. Nobody can reach you with it yet." : "Anyone who opens this link sees this card and can start a chat.");
   else if (a === "invite") choose(`Invite ${n1} to`, inviteRooms(id).map(x => `<button class="o" data-invto="${x.id}">${rav(x)}<span class="grow">${esc(x.name)}</span></button>`).join(""), root => root.addEventListener("click", e => { const b = e.target.closest("[data-invto]"); if (b) { e.stopPropagation(); sendInvites(R(b.dataset.invto), [id]); } }), at);
   else if (a === "block") { const on = !ID.blocked.includes(id), go = () => { closeOverlay(); setBlocked(id, on); drawPanel(); }; on ? confirmDlg(`Block ${u.n}?`, explain("", "", `${n1}'s messages are hidden on this device.`), "Block", "danger", go) : go(); }
-  else if (a === "role") { const set = () => { +v ? room.power[id] = +v : delete room.power[id]; after(`You made ${first(id)} ${["a member", "a moderator", "an admin"][v / 50]}`); profile(id); };
+  else if (a === "role") { const set = () => { +v ? room.power[id] = +v : delete room.power[id]; after("role"); profile(id); };
     +v === 100 ? confirmDlg(`Make ${u.n} an admin?`, explain("You cannot take it back: admins cannot change other admins.", "", `${n1} can change roles and room settings, and remove people.`), "Make admin", "primary", set) : set(); }
   else if (a === "kick") confirmDlg(`Remove ${u.n} from ${room.name}?`, explain(`Once sending exists ${n1} will stop getting new messages right away; in this sample only this page changes.`, "", `${n1} leaves the room, and can come back with a new invitation.`), "Remove", "danger", () => out(false));
   else if (a === "ban") confirmDlg(`Ban ${u.n} from ${room.name}?`, explain("A ban stays until a moderator lifts it.", "", `${n1} is removed and cannot come back, even with an invitation.`), "Ban", "danger", () => out(true));
-  else if (a === "unban") { room.banned = room.banned.filter(x => x !== id); after(`You lifted the ban on ${first(id)}`); profile(id); }
+  else if (a === "unban") { room.banned = room.banned.filter(x => x !== id); after("unbanned"); profile(id); }
 }
 function editRoom() {   // one dialog with tabs, for a room or a direct chat. What you may not change is shown, and says why
   const r = R(S.cur), kind = r.dm ? "chat" : "room", can = !r.dm && myPower(r) >= 50, dis = can ? "" : " disabled"; let pic = r.pic || null;
@@ -1387,7 +1437,7 @@ function editRoom() {   // one dialog with tabs, for a room or a direct chat. Wh
     if (!can) return;
     $("#epb", sc).onclick = e => { e.stopPropagation(); pickPic(e.currentTarget, !!pic, u => { pic = u; face(); }); };
     const save = () => { const n = $("#en", sc).value.trim(); if (!n) { $("#em", sc).textContent = "Give the room a name."; $("#en", sc).focus(); return; } const t = $("#et", sc).value.trim();
-      if (n !== r.name) say(r, "You changed the name to " + n); if (t !== (r.topic || "")) say(r, t ? "You changed the description" : "You removed the description"); if (pic !== (r.pic || null)) say(r, "You changed the picture");   // each change leaves a line in the room
+      if (n !== r.name) say(r, "renamed", { text: n }); if (t !== (r.topic || "")) say(r, "topic"); if (pic !== (r.pic || null)) say(r, "picture");   // each change leaves a line in the room
       r.name = n; r.topic = t; r.pic = pic; saveDraft(); closeOverlay(); drawAll(); };
     $("#es", sc).onclick = save; $("#en", sc).onkeydown = $("#et", sc).onkeydown = e => { if (e.key === "Enter") save(); };
   });
@@ -1552,9 +1602,10 @@ function whyDlg(ev, mode) { const r = R(S.cur), lock = mode === "lock" || !ev, i
   const sent = ["Shown as sent (sample)", explain("One tick means this page marked the message as sent.", "Nothing leaves this device yet: sending is not built, so nothing can tell whether it was delivered or read.", "So two ticks never show here.")];
   const st = !own ? null : { failed: ["Not sent", explain(ev.why ? "You chose “A message that fails to send”, so this page made this one fail." : "The file could not be read on this device.", "Try again, or remove it.", "Until it is sent it is kept only on this device.")],
     queued: ["Waiting to send", explain("There is no connection.", "It is marked as sent, in order, as soon as you are back. Nothing leaves this device yet.", "The clock stays until then.")], sending: ["Sending (sample)", explain("This page shows the step a message will take.", "Nothing leaves this device yet.", "One tick shows in a moment.")], sent, read: sent }[ev.status];
-  const seen = !info || r.dm || !S.set.showReceipts || ev.up || /failed|queued|sending/.test(ev.status) ? null : ev.ts <= Date.now() - 10 * M ? readers(r, ev) : [], g = (t, x) => `<div class="grp"><h4>${t}</h4>${x}</div>`;   // read receipts are sample data: everyone here is shown as having read what is older than ten minutes
+  const seen = !info || r.dm && !own || !S.set.showReceipts || ev.up || /failed|queued|sending/.test(ev.status) ? null : ev.ts <= Date.now() - 10 * M ? readers(r, ev) : [], g = (t, x) => `<div class="grp"><h4>${t}</h4>${x}</div>`;   // read receipts are sample data: everyone here is shown as having read what is older than ten minutes. Who it was delivered to is never listed: the engine cannot know
+  const readAt = id => { const t = Math.min(Date.now(), ev.ts + (1 + hue(id) % 9) * M); return (daysAgo(t) ? dayText(t) + ", " : "") + clock(t); };   // a sample time each, within ten minutes of the message
   const body = lock ? enc : !info ? st[1] : `<div class="set"><div class="grow">${own ? "You" : esc(U[ev.from].n)}<small>${dayText(ev.ts)}, ${clock(ev.ts)}${ev.edited ? " · edited" : ""}</small></div></div>${st ? g(st[0], st[1]) : ""}
-    ${seen ? g("Read by (sample)", (seen.map(id => `<div class="mem">${av(U[id].n)}<span>${esc(U[id].n)}</span></div>`).join("") || "<div>Nobody yet.</div>") + `<div>${S.set.sendReceipts ? "Your own reading is marked to share with this room." : "Your own reading stays on this device: sending read receipts is off."}</div>`) : ""}${g("Not encrypted yet", enc)}`;
+    ${seen ? g("Read by (sample)", (seen.map(id => `<div class="mem">${av(U[id].n)}<span class="grow">${esc(U[id].n)}</span><span class="role">${readAt(id)}</span></div>`).join("") || `<div>${r.dm ? "Not yet." : "Nobody yet."}</div>`) + (r.dm ? "" : `<div>${S.set.sendReceipts ? "Your own reading is marked to share with this room." : "Your own reading stays on this device: sending read receipts is off."}</div>`)) : ""}${g("Not encrypted yet", enc)}`;
   dialog(`<header><h3>${lock ? "Not encrypted yet" : info ? "Message info" : st[0]}</h3>${CLOSE}</header><div class="c">${body}</div>${f ? '<footer><button class="btn danger" id="wr">Remove</button><button class="btn primary" id="wt" autofocus>Try again</button></footer>' : ""}`,
     sc => { if (f) { $("#wt", sc).onclick = () => { closeOverlay(); retry(ev); }; $("#wr", sc).onclick = () => { closeOverlay(); rmFail(ev); }; } }); }
 function fwdDlg(l, at) { l = [].concat(l); const rs = S.rooms.filter(x => !x.invite && !x.st && myPower(x) >= (x.sendPower || 0));
@@ -1594,7 +1645,7 @@ function camDlg(video, input) {
 const vNum = v => String(100000 + hue(v.name + "#") * 2477 % 900000), vCode = v => "holo-verify:" + vNum(v);
 function verifyFlow(v, step = v.incoming ? "emoji" : "start", reason = "") {
   const go = (st, why) => verifyFlow(v, st, why), head = `<header><h3>Verify ${esc(v.name)}</h3>${CLOSE}</header>`, told = "You cancelled. On a real device the other side is told too. This sample page cannot reach it.";
-  const done = () => { if (v.kind === "device") { const d = ID.devices.find(x => x.id === v.id); if (d) d.verified = true; } else if (v.kind === "user" && !ID.verified.includes(v.id)) { ID.verified.push(v.id); const r = R(S.cur); if (r && r.members.includes(v.id)) say(r, "You marked " + first(v.id) + " verified (sample)"); } saveId(); };
+  const done = () => { if (v.kind === "device") { const d = ID.devices.find(x => x.id === v.id); if (d) d.verified = true; } else if (v.kind === "user" && !ID.verified.includes(v.id)) { ID.verified.push(v.id); } saveId(); };
   if (step === "start") dialog(`${head}<div class="c">${explain(`Verifying proves you are talking to the right ${v.kind === "user" ? "person" : "device"}, not someone in between.`, "Both sides compare the same seven pictures, or one side shows a code and the other scans it.", "On this sample page nothing is really checked.")}</div>
     <footer><button class="btn" id="vq">Show a code</button><button class="btn" id="vz">Scan a code</button><button class="btn primary" id="ve" autofocus>Compare pictures</button></footer>`, sc => { $("#ve", sc).onclick = () => go("wait"); $("#vq", sc).onclick = () => go("qr"); $("#vz", sc).onclick = () => go("scan"); });
   else if (step === "qr") dialog(`${head}<div class="c">${qrPic(vCode(v), "Picture code to verify with")}<div class="addr" style="align-self:center;font-size:1rem;letter-spacing:.2em;color:var(--ink)">${vNum(v)}</div><p style="margin:0;text-align:center">The number is a sample, made from the name. The other side reads this code with its camera, or types the number under it. This page cannot hear from the other side, so you confirm here once it has.</p></div>
@@ -1652,13 +1703,13 @@ function signOut() {
   dialog(`<header><h3>You have no recovery kit</h3></header><div class="c">${explain("In the finished app this device will hold the only copy of your key, and signing out deletes it for good.", "Save a recovery kit first, to keep your identity.", "In this prototype the kit is a sample and restores nothing yet.")}</div>
     <footer><button class="btn danger" id="so">Sign out anyway</button><button class="btn primary" id="sk" autofocus>Save a kit first</button></footer>`, sc => { $("#sk", sc).onclick = createKit; $("#so", sc).onclick = wipe; });
 }
-function netDlg(tried) {
+function netDlg(tried) { const v = offlineDialog(S.offline ? 0 : 1, tried ? 1 : 0);   // Timeline.offlineDialog: closed once connected; while offline the causes, and after a try the answer to it
+  if (!v) { closeOverlay(); if (tried) toastMsg("Back online", "Messages that waited now show as sent. On this sample page nothing is really sent.", [], 4000); return; }
   dialog(`<header><h3>No connection</h3>${CLOSE}</header><div class="c">${S.sim ? SIM : ""}
     ${explain("No server sits in between, so a message leaves only when this device can reach another device of the chat.", `Check Wi-Fi or mobile data: the browser reports ${navigator.onLine ? "online" : "offline"}. A device of the other person must be on too, which this prototype cannot check yet.`, "Messages wait on this device and send, in order, when you are back.")}
-    ${tried ? `<p style="margin:0;color:var(--ink)" role="status">Tried again at ${new Date().toLocaleTimeString()}: ${S.sim ? "the simulation is still on, so nothing changed" : "this device is still offline"}.</p>` : ""}</div>
+    ${v === 2 ? `<p style="margin:0;color:var(--ink)" role="status">Tried again at ${new Date().toLocaleTimeString()}: ${S.sim ? "the simulation is still on, so nothing changed" : "this device is still offline"}.</p>` : ""}</div>
     <footer>${S.sim ? '<button class="btn" id="nx">End the simulation</button>' : ""}<button class="btn primary" id="nt" autofocus>Try again</button></footer>`, sc => {
-    const back = () => { closeOverlay(); toggleOffline(navigator.onLine); if (!S.offline) toastMsg("Back online", "Messages that waited now show as sent. On this sample page nothing is really sent.", [], 4000); };
-    $("#nt", sc).onclick = () => !S.sim && navigator.onLine ? back() : netDlg(1); if (S.sim) $("#nx", sc).onclick = back; });
+    $("#nt", sc).onclick = () => { if (!S.sim && navigator.onLine) toggleOffline(true); netDlg(1); }; if (S.sim) $("#nx", sc).onclick = () => { toggleOffline(navigator.onLine); netDlg(1); }; });
 }
 
 /* ==================== flows ==================== */
@@ -1687,8 +1738,8 @@ function jump(id) { let el = $(`.msg[data-id="${id}"]`);
 const setBlocked = (id, on) => { const i = ID.blocked.indexOf(id); if (on === i >= 0) return; on ? ID.blocked.push(id) : ID.blocked.splice(i, 1); BLOCKED.length = 0; BLOCKED.push(...ID.blocked); saveId(); S.rooms.forEach(x => { x.lo = null; }); if (S.cur) drawTimeline(true); drawList(); };
 const hidePanel = () => { if (S.panel && panes(innerWidth) < 3) { S.panel = false; drawPanel(); const pb = $("#room [data-panel]"); if (pb) pb.setAttribute("aria-pressed", "false"); } };
 const gotoMsg = id => { closeOverlay(); hidePanel(); jump(id); };
-const makeRoom = x => { const r = Object.assign({ id: "r" + (++seq), members: ["me"], power: { me: 100 }, level: "default", priv: true, topic: "", lastRead: Date.now(), ev: [mine("created"), mine("note", { text: "Encryption is planned: not on yet" })] }, x); S.rooms.push(r); closeOverlay(); openRoom(r.id); return r; };
-function togglePin(r, id) { const p = r.pins = r.pins || [], i = p.indexOf(id); i < 0 ? p.push(id) : p.splice(i, 1); say(r, i < 0 ? "You pinned a message" : "You unpinned a message"); drawTimeline(); drawList(); drawPanel(); }
+const makeRoom = x => { const r = Object.assign({ id: "r" + (++seq), members: ["me"], power: { me: 100 }, level: "default", priv: true, topic: "", lastRead: Date.now(), ev: [mine("created")] }, x); S.rooms.push(r); closeOverlay(); openRoom(r.id); return r; };
+function togglePin(r, id) { const p = r.pins = r.pins || [], i = p.indexOf(id); i < 0 ? p.push(id) : p.splice(i, 1); say(r, i < 0 ? "pinned" : "unpinned"); drawTimeline(); drawList(); drawPanel(); }
 
 /* ---------- writing and sending ---------- */
 function send() {
@@ -1705,8 +1756,9 @@ let failNext = false;
 function deliver(r, e) {
   if (failNext) { failNext = false; setTimeout(() => { e._k = null; e.status = "failed"; e.why = 1; if (S.cur === r.id) { drawTimeline(); drawBanner(); } drawList(); }, 400); return; }
   setTimeout(() => { e._k = null, e.status = "sent"; if (S.cur === r.id) drawTimeline(); drawList(); }, 180);
-  if (r.dm) { setTimeout(() => { S.typing[r.id] = r.dm; if (S.cur === r.id) drawSub(); }, 700);
-    setTimeout(() => { delete S.typing[r.id]; if (S.cur === r.id) drawSub(); e._k = null, e.status = "read"; incoming(r, r.dm, ["Got it.", "Sounds good.", "On it 👍", "Thanks, that helps."][Math.floor(Math.random() * 4)]); }, 2100); }
+  const who = r.dm ? [r.dm] : r.members.filter(x => x !== "me" && !BLOCKED.includes(x)), l = who.slice(0, r.dm ? 1 : r.tyN = (r.tyN || 0) % 3 + 1);   // the scripted sample answer: in a room one person types first, then two, then three, and the first of them answers
+  if (l.length) { setTimeout(() => setTyping(r, l), 700);
+    setTimeout(() => { setTyping(r, null); e._k = null, e.status = "read"; incoming(r, l[0], ["Got it.", "Sounds good.", "On it 👍", "Thanks, that helps."][Math.floor(Math.random() * 4)]); }, 2100); }
 }
 function incoming(r, from, body) {
   const e = m(from, 0, body, { ts: Date.now(), status: "sent" }); r.ev.push(e);
@@ -1844,8 +1896,8 @@ function setLevel(r, v) {
 const setSort = v => { S.set.sort = v; applySet(); drawList(); }, setFlt = v => { S.flt = S.set.chip = v; applySet(); drawList(); };
 /* ---------- the chat list: hidden and shown at any width, and three widths ---------- */
 function noList(on) { S.set.nolist = $("#app").classList.toggle("nolist", on); applySet(); showBtn(); drawList(); drawPanel(); const b = $("#room [data-nolist]") || $("#list [data-nolist]"); if (b) b.focus(); }
-function resizeList(d) {   // collapsed, 240, 320, 384
-  const W = [0, 240, 320, 384], cl = $("#app").classList, i = Math.max(0, Math.min(3, (cl.contains("nolist") ? 0 : W.indexOf(S.set.lw) > 0 ? W.indexOf(S.set.lw) : 2) + d));
+function resizeList(grow) {   // Layout.listAfterResize: collapsed, 240, 320, 384
+  const W = [0, 240, 320, 384], cl = $("#app").classList, i = listAfterResize(cl.contains("nolist") ? 0 : W.indexOf(S.set.lw) > 0 ? W.indexOf(S.set.lw) : 2, grow ? 1 : 0);
   if (i) { S.set.lw = W[i]; applySet(); } if (cl.contains("nolist") === !!i) noList(!i);
 }
 
@@ -1971,7 +2023,7 @@ document.addEventListener("click", e => {
   else if (q("[data-rebuild]")) indexDlg();
   else if (q("[data-acname]")) nameDlg();
   else if (q("[data-acsave]")) { const v = $("#acName").value.trim(); if (v) { S.set.name = v; U.me.n = v; applySet(); closeOverlay(); redraw(); toastMsg("Name saved", "It is kept in this browser.", [], 3000); } }
-  else if (q("[data-yback]")) { const was = S.ysub, from = S.yfrom; S.yfrom = null; if (from) { S.ysub = null; setTab(from); } else { settings(); (b = $(`#you [data-tab="${was}"]`)) && b.focus(); } }   // a screen opened from elsewhere goes back there, not to You
+  else if (q("[data-yback]")) { const was = S.ysub, to = youBack(); S.yfrom = null; if (to === 2) { S.ysub = null; setTab("chats"); } else if (to === 1) { settings(); (b = $(`#you [data-tab="${was}"]`)) && b.focus(); } }   // a screen opened from elsewhere goes back there, not to You
   else if (q("[data-invite]")) invitePeople();
   else if (q("[data-home]")) newChat();
   else if ((b = q("[data-avbig]"))) { const id = b.dataset.avbig, rm = id === "room" && R(S.cur), n = rm ? rm.name : U[id].n, src = rm ? rm.pic : id === "me" && S.set.avatar;   // a person's or a room's picture, full screen
@@ -1995,7 +2047,7 @@ document.addEventListener("click", e => {
   else if ((b = q("[data-nc]"))) ({ group: groupChat, room: createRoom, code: addByCode, mine: () => shareDlg("Your code", linkTo("u-" + addrOf(S.set.name)), "A sample link, made from your name. Nobody can reach you with it yet.") })[b.dataset.nc]();
   else if ((b = q("[data-goto]"))) gotoMsg(b.dataset.goto);
   else if ((b = q("[data-unpin]"))) { togglePin(r, b.dataset.unpin); card("pins"); }
-  else if ((b = q("[data-sendp]"))) { r.sendPower = +b.dataset.sendp; say(r, r.sendPower ? "You let only moderators send messages" : "You let everyone send messages"); saveDraft(); drawRoom(); drawList(); card("roles"); }
+  else if ((b = q("[data-sendp]"))) { r.sendPower = +b.dataset.sendp; say(r, "sendpower"); saveDraft(); drawRoom(); drawList(); card("roles"); }
   else if (q("#panel [data-find]")) hidePanel();
   else if (!r) return;
   else if (q("[data-topic]")) topicDlg();
@@ -2029,11 +2081,14 @@ document.addEventListener("click", e => {
   if (q("[data-net]")) netDlg();
   else if ((b = q("[data-boot]"))) { const a = b.dataset.boot; a === "reload" ? location.reload() : a === "go" ? slowEnd() : (busy(), signOut()); }
   else if ((b = q("[data-flt]"))) setFlt(+b.dataset.flt);
-  else if ((b = q("#rooms [data-hit]"))) { const [rid, eid] = b.dataset.hit.split("|"); addSq($("#filter").value.trim()); if (S.cur !== rid) openRoom(rid); $("#app").classList.add("in-room"); jump(eid); }   // a message the search field found opens its chat at that message
+  else if ((b = q("#rooms [data-hit]"))) { const [rid, eid] = b.dataset.hit.split("|"); if (S.cur !== rid) openRoom(rid); $("#app").classList.add("in-room"); jump(eid); }   // a message the search field found opens its chat at that message
   else if (q("[data-allhits]")) searchDlg($("#filter").value.trim());
-  else if (q("[data-clear]")) { $("#filter").value = ""; setFlt(0); }
+  else if (q("[data-clear]")) { $("#filter").value = ""; S.find = false; setFlt(0); hsync(); }
   else if (q("[data-nolist]")) noList();
-  else if ((b = q("[data-sq]"))) { const i = $("#scrim input"); i.value = b.dataset.sq; i.oninput(); i.focus(); }
+  else if ((b = q("[data-sq]"))) { const i = $("#scrim input") || $("#filter"); i.value = b.dataset.sq; i.dispatchEvent(new Event("input", { bubbles: true })); i.focus(); }
+  else if (q("#fx")) closeFind();
+  else if ((b = q("[data-hb]"))) { const d = ID.devices.find(x => !x.verified); b.dataset.hb === "kit" ? createKit() : d && verifyFlow({ kind: "device", id: d.id, name: d.name, onDone: drawList }); }
+  else if ((b = q("[data-hbx]"))) { ID[b.dataset.hbx === "kit" ? "bannerOff" : "verifyOff"] = true; saveId(); drawList(); (b = $("#rooms [data-hb],#rooms .ri")) && b.focus(); }   // dismissed for good: it is kept with the identity record
   else if ((b = q("[data-sort]"))) setSort(b.dataset.sort);
   else if ((b = q("[data-lvreset]"))) { setLevel(R(b.dataset.lvreset), "default"); (b = $("#you [data-lvreset],#you [data-yback]")) && b.focus(); }
   else if (q("[data-signout]")) signOut();
@@ -2058,7 +2113,10 @@ document.addEventListener("contextmenu", e => {
 document.addEventListener("contextmenu", e => { const el = e.target.closest(".msg[data-id]"); if (!el || e.target.closest("a,input,textarea")) return; e.preventDefault(); clearTimeout(lp);
   if (ptr === "touch") { if (held) return; held = true; } msgHold(el, e.clientX, e.clientY); });
 document.addEventListener("input", e => { if (e.target.id === "ta") { grow(); suggest(); } else if (e.target.id === "filter") drawList(); });
-document.addEventListener("input", e => { if (e.target.id === "mq") memList(); });
+document.addEventListener("focusin", e => { if (e.target.id === "filter" && panes(innerWidth) === 1 && !S.find) { S.find = true; drawList(); hsync(); } });   // on one pane, the search field opens the switcher: nothing else on a phone does
+document.addEventListener("click", e => { if (e.target.closest("#rooms [data-room],#rooms [data-dm],#rooms [data-hit]")) addSq($("#filter").value.trim()); }, true);   // what was searched for is kept once it led somewhere, as in the switcher
+document.addEventListener("input", e => { if (e.target.id === "mq") memList(); else if (e.target.id === "ta") { clearTimeout(S.dt); S.dt = setTimeout(saveDraft, 400); } });   // a draft is kept as it is written, and so is still there after a reload
+addEventListener("pagehide", () => saveDraft());
 document.addEventListener("input", e => { if (e.target.id === "ta" && S.set.typing && e.target.value && Date.now() - (S.tyAt || 0) > 4000) { S.tyAt = Date.now(); S.out[1]++; } });   // a typing notice would go out at most every four seconds
 document.addEventListener("change", e => { const t = e.target;
   if (t.id === "fz") { S.set.size = t.value = Math.max(12, Math.min(24, Math.round(+t.value) || 16)); applySet(); }   // Settings.fontSize, as an exact value
@@ -2098,7 +2156,7 @@ function listGo(t, k) { const W = S.lw, l = W.ids || [], id = l[k === "Home" ? 0
 document.addEventListener("keydown", e => {
   const mod = isMac ? e.metaKey : e.ctrlKey, k = e.key, t = e.target, typing = t.tagName === "INPUT" || t.tagName === "TEXTAREA", over = $("#scrim") || $("#onb") || $("#lock");
   if (over) return;
-  if (e.altKey && (k === "ArrowLeft" || k === "ArrowRight")) { e.preventDefault(); const d = k === "ArrowLeft" ? -1 : 1; e.shiftKey ? resizeList(d) : histGo(d); return; }
+  if (e.altKey && !e.shiftKey && (k === "ArrowLeft" || k === "ArrowRight")) { e.preventDefault(); histGo(k === "ArrowLeft" ? -1 : 1); return; }
   if (k === "F6") { e.preventDefault(); const areas = [$("#filter"), $("#tl"), $("#ta"), $("#panel:not([hidden]) button")].filter(Boolean);   // Navigation.nextLandmark
     const i = areas.findIndex(a => a === document.activeElement || a.contains(document.activeElement)); areas[(i + (e.shiftKey ? areas.length - 1 : 1)) % areas.length].focus(); return; }
   if (mod && k === "`") { e.preventDefault(); closeOverlay(); setTab(S.tab === "you" ? "chats" : "you"); return; }
@@ -2106,9 +2164,10 @@ document.addEventListener("keydown", e => {
   if (e.ctrlKey && (e.altKey || isMac && e.shiftKey) && k.toLowerCase() === "h") { e.preventDefault(); const b = $("[data-back]"); if (b) b.click(); return; }   // home: no chat open
   if (mod && e.shiftKey && k.toLowerCase() === "u" && S.cur) { e.preventDefault(); inAny.click(); return; }
   if (t.id === "filter" && k === "ArrowDown") { if (listGo(t, "Home")) e.preventDefault(); return; }
+  if (t.id === "filter" && k === "Enter" && t.value.trim()) { const b = $("#rooms .ri"); if (b) { e.preventDefault(); b.click(); } return; }   // Enter takes the first thing found, as in the switcher
   if (t.classList && t.classList.contains("ri") && (k === "ArrowDown" || k === "ArrowUp")) { e.preventDefault(); listGo(t, k) || k === "ArrowUp" && $("#filter").focus(); return; }   // Navigation.moveDown, canMoveUp
-  if ((t.id === "filter" || (t.classList && t.classList.contains("ri"))) && k === "Escape") { $("#filter").value = ""; drawList(); $("#filter").focus(); return; }
-  if (t.id === "ta" && mod && k.length === 1) { const f = (e.shiftKey ? { ">": "q", ".": "q", l: "a" } : { b: "b", i: "i", e: "e" })[k.toLowerCase()]; if (f) { e.preventDefault(); fmt(f); return; } }
+  if ((t.id === "filter" || (t.classList && t.classList.contains("ri"))) && k === "Escape") { if (findOn()) closeFind(); else { $("#filter").value = ""; drawList(); $("#filter").focus(); } return; }
+  if (t.id === "ta" && mod && k.length === 1) { const f = (e.shiftKey ? { ">": "q", ".": "q" } : { b: "b", i: "i", e: "e" })[k.toLowerCase()]; if (f) { e.preventDefault(); fmt(f); return; } }
   const tl = $("#tl"), r = R(S.cur); if (!tl || !r) return;
   if (k === "PageUp" && e.shiftKey) { e.preventDefault(); const u = r.seenLine && r.ev.find(x => x.t === "m" && x.from !== "me" && !x.del && x.ts > r.seenLine); if (u) jump(u.id); return; }
   if (!typing || !t.value) { if (k === "PageUp" || k === "PageDown") { e.preventDefault(); tl.scrollTop += (k === "PageDown" ? 1 : -1) * tl.clientHeight * .9; return; } }
@@ -2116,14 +2175,20 @@ document.addEventListener("keydown", e => {
   if (!typing && mod && k === "End") { e.preventDefault(); drawTimeline(true); return; }
   if (k === "Escape" && !typing && !$("#menu") && !$("#picker")) drawTimeline(true);
 });
-document.addEventListener("keydown", e => { if ((isMac ? e.metaKey : e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "l" && !$("#scrim") && e.target.id !== "ta") { e.preventDefault(); noList(); } });
+document.addEventListener("keydown", e => { const a = listPanelKey(keyCode(e), +(isMac ? e.metaKey : e.ctrlKey), +e.shiftKey, +e.altKey, +!!$("#scrim,#onb,#lock,#menu,#picker")); if (!a) return;   // Keys.listPanelKey: the one place these three keys are read
+  e.preventDefault(); a === 1 ? noList() : resizeList(a === 3); });
+const saveKey = t => { let b; t.id === "ta" ? saveEdit() : (b = $("#scrim [data-acsave],#scrim footer .btn.primary:not([disabled])")) && b.click(); };   // the save key
 document.addEventListener("keydown", e => {   // one layer for menus, tabs, sets of choices and the chat list: arrows, Home and End move, Tab stays inside a menu. Escape closes a menu first, then asks about unsaved changes
-  const mn = $("#menu"), k = e.key, t = e.target, mod = e.ctrlKey || e.metaKey, plain = !mod && !e.altKey, to = { ArrowDown: 1, ArrowUp: -1, Tab: e.shiftKey ? -1 : 1, Home: 0, End: 0 }[k];
-  const bar = !mn && plain && t.tagName === "BUTTON" && t.closest(".tabs,.seg,#flt,#rooms"); let b;
-  if (mn && plain && to != null) { const f = $$("button:not([disabled])", mn), i = f.indexOf(document.activeElement); e.preventDefault(); e.stopPropagation(); f[k === "Home" || i < 0 ? 0 : k === "End" ? f.length - 1 : (i + to + f.length) % f.length].focus(); }
+  const mn = $("#menu"), k = e.key, t = e.target, mod = e.ctrlKey || e.metaKey, plain = !mod && !e.altKey, field = t.matches && t.matches("input,textarea,[contenteditable]");
+  const box = !field && (mn || $("#scrim [role=menu]")), bar = !mn && plain && t.tagName === "BUTTON" && t.closest(".tabs,.seg,#flt,#rooms"); let b;
+  if (box && !e.isComposing) { const a = controlKey(keyCode(e), +(isMac ? e.metaKey : e.ctrlKey), +e.shiftKey), on = box.contains(document.activeElement);   // Keys.controlKey: every menu, anchored menu and list in a sheet reads its keys here. 0 nothing, 1 next, 2 previous, 3 first, 4 last, 5 activate, 6 close, 7 save
+    if (!a && !mod || a === 5 && !on) return;   // a plain key it does not name passes; Enter on the button that opened the menu presses that button
+    e.preventDefault(); e.stopPropagation(); const s = mn || box.closest("#scrim > *") || box, f = $$("button:not([disabled])", s).filter(x => x.offsetParent), i = f.indexOf(document.activeElement);   // a sheet's own buttons: the focus stays inside it
+    if (a >= 1 && a <= 4 && f.length) f[a === 3 || a === 1 && i < 0 ? 0 : a === 4 || i < 0 ? f.length - 1 : (i + (a === 1 ? 1 : f.length - 1)) % f.length].focus();
+    else if (a === 5) document.activeElement.click(); else if (a === 6) mn ? $("#scrim") ? mn.remove() : closeTop() : guardLeave(e, closeTop) || closeTop(); else if (a === 7) saveKey(t); }   // Mod with any other key does nothing here
   else if (bar && (k === "Home" || k === "End" || bar.id !== "rooms" && (k === "ArrowLeft" || k === "ArrowRight"))) { if (bar.id === "rooms") { e.preventDefault(); listGo(t, k); return; } const f = $$("button:not([disabled])", bar), n = f[k === "Home" ? 0 : k === "End" ? f.length - 1 : (f.indexOf(t) + (k === "ArrowLeft" ? f.length - 1 : 1)) % f.length]; if (!n) return;
     e.preventDefault(); n.focus(); if (n.matches("[role=tab]")) { n.click(); (b = $('[role=tab][aria-selected="true"]')) && !$("#gbar") && b.focus(); } }   // a tab opens as it is reached
-  else if (mod && k.toLowerCase() === "s" && (t.id === "ta" && S.edit || $("#scrim input,#scrim textarea"))) { e.preventDefault(); t.id === "ta" ? saveEdit() : (b = $("#scrim [data-acsave],#scrim footer .btn.primary:not([disabled])")) && b.click(); }   // the save key
+  else if (mod && k.toLowerCase() === "s" && (t.id === "ta" && S.edit || $("#scrim input,#scrim textarea"))) { e.preventDefault(); saveKey(t); }
   else if (k === "Backspace" && t.id === "iq" && !t.value) { (b = $$("#ic [data-unpick]").pop()) && b.click(); }   // in an empty box, it removes the last chip
   else if (k === "Escape" && mn && $("#scrim")) { e.stopPropagation(); mn.remove(); }
   else if (k === "Escape" && $("#gbar")) { e.stopPropagation(); $("#gbar").remove(); const f = $("#scrim [data-was]"); if (f) f.focus(); }
@@ -2143,12 +2208,18 @@ document.addEventListener("touchmove", e => { if (!sw) return; const dx = e.touc
   sw.dx = Math.max(0, Math.min(88, dx)); sw.el.classList.toggle("sw", sw.dx > 0); sw.el.style.transform = sw.dx ? `translateX(${sw.dx}px)` : ""; sw.el.style.setProperty("--sp", Math.min(1, sw.dx / 64)); }, { passive: true });   // the reply arrow comes into view as the bubble moves
 document.addEventListener("touchend", () => { if (!sw) return; const go = sw.dx >= 64, ev = go && evOf(sw.el); swEnd(); if (ev && msgActs([ev]).reply) doAct("reply", [ev]); });
 let tlH = 0; addEventListener("resize", () => { const tl = $("#tl"); if (tl && tlH && tl.clientHeight < tlH && tl.scrollHeight - tl.scrollTop - tlH < 56) tl.scrollTop = tl.scrollHeight; tlH = tl ? tl.clientHeight : 0; drawPanel(); });   // a keyboard that opens does not cover the latest message
-addEventListener("resize", () => { if (S.lw && S.lw.big) drawList(); });   // the window of built rows follows the list's new height
+addEventListener("resize", () => { if (S.find && panes(innerWidth) > 1) S.find = false, drawList(); else if (S.lw && S.lw.big) drawList(); drawYou(); });   // the window of built rows follows the list's new height
 document.addEventListener("error", e => { const b = e.target.closest && e.target.closest(".img,audio.media"); if (b) b.outerHTML = `<div class="file undec">This cannot be ${b.tagName === "AUDIO" ? "played" : "shown"}: its file is missing or damaged.</div>`; }, true);   // a picture, video or sound that will not load says so
 document.addEventListener("load", e => { const tl = $("#tl"), i = e.target; if (i.classList && i.classList.contains("lz") && !i.classList.contains("in")) { const on = () => { const v = evOf(i.closest(".msg") || i); if (v) v._in = 1; i.classList.add("in"); }; (i.decode ? i.decode() : Promise.resolve()).catch(() => {}).then(() => { requestAnimationFrame(on); setTimeout(on, 250); }); } if (tl && i.closest && i.closest("#tl") && tl.scrollHeight - tl.scrollTop - tl.clientHeight < i.offsetHeight + 89) tl.scrollTop = tl.scrollHeight; }, true);   // a picture that loads late does not push the latest message out of view
 document.addEventListener("loadedmetadata", e => { const s = e.target.nextElementSibling, d = e.target.duration; if (s && s.className === "play" && isFinite(d)) s.textContent = `▶ ${Math.floor(d / 60)}:${pad(Math.round(d % 60))}`; }, true);
-addEventListener("error", ev => { if ($("#scrim") || !ev.message) return;   // a failure shows a way out, not a blank page
-  dialog(`<header><h3>Something went wrong</h3></header><div class="c">${P0}Part of the page failed to draw. Your messages are not affected.</p><p class="addr" style="margin:0">${esc(ev.message)}</p></div><footer><button class="btn" data-close>Carry on</button><button class="btn primary" onclick="location.reload()" autofocus>Reload</button></footer>`); });
+let STARTED = 0;   // set by the last line of the start-up: a failure before it is a failure of the page, one after it of a part
+function failed(msg) { const v = failureView(STARTED ? 0 : 1, 1), sc = $("#scrim"), why = `<p class="addr" style="margin:0">${esc(msg)}</p>`, re = '<button class="btn primary" onclick="location.reload()" autofocus>Reload</button>';   // Session.failureView: every failure shows a way out, never a blank page and never nothing
+  if (v === 2) stage(`<h2>The page could not start</h2><p>It failed before your chats could be shown.</p>${why}<div class="acts">${re}</div>`);
+  else if (v === 1 && sc) { if ($("#fnote")) return; const d = $(".dlg", sc), f = $("footer", d), g = document.createElement("div"); g.id = "fnote"; g.className = "note"; g.setAttribute("role", "alert");   // a dialog that is open stays, and holds the notice
+    g.innerHTML = `<span style="flex:1 1 100%"><b style="color:var(--ink)">Something went wrong</b>${P0}Part of the page failed. What is open here is kept.</p>${why}</span><button class="btn small" id="fk">Carry on</button><button class="btn small primary" onclick="location.reload()">Reload</button>`; f ? f.before(g) : d.append(g); $("#fk").onclick = () => g.remove(); }
+  else if (v === 1) dialog(`<header><h3>Something went wrong</h3></header><div class="c">${P0}Part of the page failed to draw. The rest of the page still works.</p>${why}</div><footer><button class="btn" data-close>Carry on</button>${re}</footer>`); }
+addEventListener("error", ev => failed(ev.message || String(ev.error || "An unknown error")));
+addEventListener("unhandledrejection", ev => failed(String(ev.reason && ev.reason.message || ev.reason)));
 const netReal = () => { if (S.sim && !navigator.onLine) { S.sim = false; drawBanner(); } else if (!S.sim && S.offline === navigator.onLine) toggleOffline(true); }; addEventListener("online", netReal); addEventListener("offline", netReal);
 new MutationObserver(() => { const mn = $("#menu"), b = mn && !mn.contains(document.activeElement) && $("button", mn); if (b) b.focus(); }).observe(document.body, { childList: true });   // focus moves into any menu as it opens
 addEventListener("DOMContentLoaded", () => busy());
@@ -2158,7 +2229,7 @@ addEventListener("DOMContentLoaded", () => busy());
    An in-app back button closes its screen and the state it held is handed back, so the stack never holds more than what is open. On two or more panes the page keeps no states ---------- */
 let hn = history.state && history.state.hm || 0, hbusy = 0, hq = 0;   // how many of this page's states lie under the entry in view; a move through history that has not landed yet
 const hpage = x => !!x && /page|full/.test(x.firstChild.className), NOEV = { stopPropagation() {}, preventDefault() {} };
-const hwant = () => panes(innerWidth) > 1 ? 0 : (S.cur && S.tab === "chats" && $("#app").classList.contains("in-room") ? 1 : 0) + (S.panel && R(S.cur) ? 1 : 0) + (S.tab === "you" && S.ysub ? 1 : 0) + ([$("#scrim"), ...STACK.map(p => p[0])].some(hpage) ? 1 : 0);
+const hwant = () => panes(innerWidth) > 1 ? 0 : (S.cur && S.tab === "chats" && $("#app").classList.contains("in-room") ? 1 : 0) + (S.panel && R(S.cur) ? 1 : 0) + (S.tab === "you" && S.ysub ? 1 : 0) + (S.find ? 1 : 0) + ([$("#scrim"), ...STACK.map(p => p[0])].some(hpage) ? 1 : 0);
 const hgo = d => { hbusy = setTimeout(() => { hbusy = 0; hsync(); }, 500); history.go(d); };
 function hsync() { clearTimeout(hq); hq = setTimeout(() => { if (hbusy) return; const w = hwant();   // after anything opens or closes: push what is missing, hand back what is left over
   try { while (hn < w) history.pushState({ hm: ++hn }, ""); if (hn > w) { const d = w - hn; hn = w; hgo(d); } } catch (e) {} }); }
@@ -2166,7 +2237,7 @@ function hlight() { const sc = $("#scrim"), r = R(S.cur), mn = $("#menu") || $("
   if (sc && !hpage(sc)) guardLeave(NOEV, closeTop) || closeTop(); else if (mn) mn.remove(); else if (!sc && MSEL.size) clearSel(); else if (!sc && S.panel && r && r.ph && r.ph.length) { r.ph.pop(); drawPanel(); } else return false;
   return true; }
 function hback() { let b;   // the existing way back out of the top screen
-  if ($("#scrim")) guardLeave(NOEV, closeTop) || closeTop(); else if (S.panel && R(S.cur)) hidePanel(); else if (S.tab === "you" && S.ysub) (b = $("[data-yback]")) && b.click(); else (b = $("[data-back]")) && b.click(); }
+  if ($("#scrim")) guardLeave(NOEV, closeTop) || closeTop(); else if (S.panel && R(S.cur)) hidePanel(); else if (S.tab === "you" && S.ysub) (b = $("[data-yback]")) && b.click(); else (b = $("[data-back]")) ? b.click() : S.find && closeFind(); }
 addEventListener("popstate", e => { clearTimeout(hbusy); hbusy = 0; hn = e.state && e.state.hm || 0; const d = hwant() - hn;
   if (d > 0 && hlight()) hgo(d); else for (let i = 0; i < d; i++) hback();
   hsync(); });
@@ -2205,6 +2276,7 @@ if (!navigator.onLine) toggleOffline(true);
 drawList(); drawPanel();
 (window.requestIdleCallback || setTimeout)(loadRules);
 setTimeout(() => { const r = R("r3"); if (r && S.cur !== "r3") incoming(r, "sofia", "New run: first load is down to 138 KB."); }, 9000);
+STARTED = 1;
 </script>
 </body>
 </html>

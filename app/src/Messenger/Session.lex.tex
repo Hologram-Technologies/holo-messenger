@@ -68,5 +68,31 @@ definition{
   result: Nat,
   body: (if (recoverySet =? 0) then (if (dismissed =? 0) then 1 else 0) else 0)
 }
+
+definition{name: bannerNone, parameters: [], result: Nat, body: 0}
+
+definition{name: bannerRecovery, parameters: [], result: Nat, body: 1}
+
+definition{name: bannerVerify, parameters: [], result: Nat, body: 2}
+
+definition{name: failNone, parameters: [], result: Nat, body: 0}
+
+definition{name: failPart, parameters: [], result: Nat, body: 1}
+
+definition{name: failPage, parameters: [], result: Nat, body: 2}
+
+definition{
+  name: homeBanner,
+  parameters: [recoverySet : Nat, recoveryDismissed : Nat, unverified : Nat, verifyDismissed : Nat],
+  result: Nat,
+  body: (if ((recoveryBanner recoverySet recoveryDismissed) =? 1) then 1 else (if (unverified =? 0) then 0 else (if (verifyDismissed =? 0) then 2 else 0)))
+}
+
+definition{
+  name: failureView,
+  parameters: [rootFailed : Nat, partFailed : Nat],
+  result: Nat,
+  body: (if (1 <=? rootFailed) then 2 else (if (1 <=? partFailed) then 1 else 0))
+}
 \end{semanticmodule}
 \end{lexlean}

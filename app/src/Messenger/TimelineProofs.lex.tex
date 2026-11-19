@@ -333,5 +333,85 @@ theorem{
   proof: reflexivity{},
   axioms: []
 }
+
+theorem{
+  name: systemLineNeverEmpty,
+  parameters: [kind : Nat],
+  statement: ((1 <=? (Messenger.Timeline::systemLine kind)) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::systemLine]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: systemLineInRange,
+  parameters: [kind : Nat],
+  statement: (((Messenger.Timeline::systemLine kind) <=? 10) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::systemLine]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unknownChangeIsNeutral,
+  parameters: [kind : Nat],
+  statement: (((9 <=? kind) && (((Messenger.Timeline::systemLine kind) <? 10) || (10 <? (Messenger.Timeline::systemLine kind)))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::systemLine]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: knownChangeNeverNeutral,
+  parameters: [kind : Nat],
+  statement: (((kind <=? 8) && (10 <=? (Messenger.Timeline::systemLine kind))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::systemLine]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: differentChangesDifferentLines,
+  parameters: [a : Nat, b : Nat],
+  statement: (((a <? b) && ((b <=? 8) && ((Messenger.Timeline::systemLine a) =? (Messenger.Timeline::systemLine b)))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::systemLine]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: systemLineExamples,
+  parameters: [],
+  statement: ((((Messenger.Timeline::systemLine (Messenger.Timeline::changeCreated)) =? 1) && (((Messenger.Timeline::systemLine (Messenger.Timeline::changeJoined)) =? 2) && (((Messenger.Timeline::systemLine (Messenger.Timeline::changeLeft)) =? 3) && (((Messenger.Timeline::systemLine (Messenger.Timeline::changeInvited)) =? 4) && (((Messenger.Timeline::systemLine (Messenger.Timeline::changeRemoved)) =? 5) && (((Messenger.Timeline::systemLine (Messenger.Timeline::changeBanned)) =? 6) && (((Messenger.Timeline::systemLine (Messenger.Timeline::changeRenamed)) =? 7) && (((Messenger.Timeline::systemLine (Messenger.Timeline::changeDescription)) =? 8) && (((Messenger.Timeline::systemLine (Messenger.Timeline::changePicture)) =? 9) && ((Messenger.Timeline::systemLine 200) =? (Messenger.Timeline::lineNeutral))))))))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: connectedNeverShowsOfflineDialog,
+  parameters: [connected : Nat, tried : Nat],
+  statement: (((1 <=? connected) && (1 <=? (Messenger.Timeline::offlineDialog connected tried))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::offlineDialog]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: offlineAlwaysExplained,
+  parameters: [tried : Nat],
+  statement: ((1 <=? (Messenger.Timeline::offlineDialog 0 tried)) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::offlineDialog]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: retryAlwaysAnswered,
+  parameters: [tried : Nat],
+  statement: (((1 <=? tried) && (((Messenger.Timeline::offlineDialog 0 tried) <? 2) || (2 <? (Messenger.Timeline::offlineDialog 0 tried)))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::offlineDialog]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: offlineDialogInRange,
+  parameters: [connected : Nat, tried : Nat],
+  statement: (((Messenger.Timeline::offlineDialog connected tried) <=? 2) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::offlineDialog]},
+  axioms: [Quot.sound, propext]
+}
 \end{semanticmodule}
 \end{lexlean}

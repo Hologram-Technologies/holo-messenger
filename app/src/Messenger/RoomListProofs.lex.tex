@@ -263,5 +263,29 @@ theorem{
   proof: reflexivity{},
   axioms: []
 }
+
+theorem{
+  name: restoredChipInRange,
+  parameters: [saved : Nat],
+  statement: (((Messenger.RoomList::restoredChip saved) <=? 3) = true),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::restoredChip]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unknownChipFallsToAll,
+  parameters: [saved : Nat],
+  statement: (((4 <=? saved) && (1 <=? (Messenger.RoomList::restoredChip saved))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::restoredChip]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: keptChipRestored,
+  parameters: [saved : Nat],
+  statement: (((saved <=? 3) && (((Messenger.RoomList::restoredChip saved) <? saved) || (saved <? (Messenger.RoomList::restoredChip saved)))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::restoredChip]},
+  axioms: [Quot.sound, propext]
+}
 \end{semanticmodule}
 \end{lexlean}

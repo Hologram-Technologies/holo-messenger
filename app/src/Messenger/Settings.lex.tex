@@ -57,5 +57,43 @@ definition{
   result: Nat,
   body: (if (verified =? 0) then 0 else (if (1 <=? reopened) then 1 else 0))
 }
+
+definition{name: rowProfile, parameters: [], result: Nat, body: 0}
+
+definition{name: rowAccount, parameters: [], result: Nat, body: 1}
+
+definition{name: rowPrivacy, parameters: [], result: Nat, body: 2}
+
+definition{name: rowDevices, parameters: [], result: Nat, body: 3}
+
+definition{name: rowChats, parameters: [], result: Nat, body: 4}
+
+definition{name: rowNotifications, parameters: [], result: Nat, body: 5}
+
+definition{name: rowStorage, parameters: [], result: Nat, body: 6}
+
+definition{name: rowKeyboard, parameters: [], result: Nat, body: 7}
+
+definition{name: rowAbout, parameters: [], result: Nat, body: 8}
+
+definition{name: backNone, parameters: [], result: Nat, body: 0}
+
+definition{name: backToYou, parameters: [], result: Nat, body: 1}
+
+definition{name: backToChats, parameters: [], result: Nat, body: 2}
+
+definition{
+  name: rowShown,
+  parameters: [row : Nat, panes : Nat],
+  result: Nat,
+  body: (if (row =? 7) then (if (2 <=? panes) then 1 else 0) else (if (row <=? 8) then 1 else 0))
+}
+
+definition{
+  name: settingsBack,
+  parameters: [onSubScreen : Nat, openedFromChats : Nat],
+  result: Nat,
+  body: (if (onSubScreen =? 0) then 0 else (if (1 <=? openedFromChats) then 2 else 1))
+}
 \end{semanticmodule}
 \end{lexlean}

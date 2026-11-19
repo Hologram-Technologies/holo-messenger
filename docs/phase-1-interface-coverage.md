@@ -1,8 +1,8 @@
 # Phase 1 interface coverage
 
-Re-judged on 2026-11-19 against the reworked `client/index.html`: every row was read against the code and the page was driven at 412 px and 1280 px; evidence that named something gone now names what carries the behaviour, and seven rows moved from built to partly.
+Re-judged on 2026-11-19 against the reworked `client/index.html`: every row was read against the code and the page was driven at 412 px and 1280 px; evidence that named something gone now names what carries the behaviour, and seven rows moved from built to partly. Later the same day the partly rows were finished in the page and each was driven at 320, 412 and 1280 px: eight rows moved from partly to built, most by taking the WhatsApp placement their rows now name. HM-FEA-121 stays partly until the engine arrives.
 
-Scope: the 227 Phase 1 items a person can see or use (features, journeys and surfaces; capabilities are left out), judged against `client/index.html` at the commit that last changed this file, on 2026-11-18.
+Scope: the 227 Phase 1 items a person can see or use (features, journeys and surfaces; capabilities are left out), judged against `client/index.html` at the commit that last changed this file, on 2026-11-19.
 
 How it was judged: each item was read against the page's code and given the lower verdict when torn. A first pass judged all 227. The items it did not mark built were then built out and judged again by reviewers who had not written the code. Six items were fixed after their second review; their rows say so, and those fixes were checked in a browser by the builder or by the session lead, not reviewed a third time. The page uses sample data: nothing is stored beyond this browser, encrypted or sent, and that does not count against an item. A strip at the top of the page says so at all times. Items marked adapt in the inventory were judged on their adapted intent. Where a static page cannot do the real thing, it offers a substitute that says what it is.
 
@@ -19,14 +19,14 @@ Not exercised by anyone: scanning a code with a camera, camera capture, real tou
 | rooms and membership | 28 | 28 | 0 | 0 |
 | encryption and verification | 16 | 15 | 1 | 0 |
 | moderation | 2 | 2 | 0 | 0 |
-| timeline and events | 34 | 32 | 2 | 0 |
-| composer | 24 | 23 | 1 | 0 |
+| timeline and events | 34 | 34 | 0 | 0 |
+| composer | 24 | 24 | 0 | 0 |
 | media and attachments | 16 | 16 | 0 | 0 |
-| search | 12 | 10 | 2 | 0 |
+| search | 12 | 12 | 0 | 0 |
 | notifications | 11 | 11 | 0 | 0 |
 | settings | 18 | 18 | 0 | 0 |
-| navigation and layout | 41 | 38 | 3 | 0 |
-| Total | 227 | 218 | 9 | 0 |
+| navigation and layout | 41 | 41 | 0 | 0 |
+| Total | 227 | 226 | 1 | 0 |
 
 | HM ID | domain | name | verdict | where in the page | absent |
 |---|---|---|---|---|---|
@@ -40,7 +40,7 @@ Not exercised by anyone: scanning a code with a camera, camera capture, real tou
 | HM-SUR-011 | identity and devices | Clear data confirm dialog | built | signOut() wipe: "Remove everything from this device?" confirm | - |
 | HM-SUR-012 | identity and devices | User info sub-views | built | profile(): avatar, name, personRows() Holo ID and verification, Message, Mention, Block | - |
 | HM-SUR-013 | identity and devices | Edit profile screen | built | nameDlg() marks #acName data-was; guardLeave() asks; pickPic() source choice from data-avpick | - |
-| HM-FEA-018 | onboarding and recovery | Recovery prompts | built | reminders(), run from drawList(): notice "Save a recovery kit" with Set up and Not now; it leaves on its own after 8 s and the kit stays under You, Account | - |
+| HM-FEA-018 | onboarding and recovery | Recovery prompts | built | homeBanner() row on top of the chats, drawn by drawList(): "Save a recovery kit" opens createKit(); its close button sets ID.bannerOff for good; it is gone once the kit is saved (recoveryBanner); the kit stays under You, Account | - |
 | HM-JRN-008 | onboarding and recovery | First launch | built | storageOk() check at start opens noStorage() screen with retry or carry on | - |
 | HM-JRN-009 | onboarding and recovery | Register | built | onboard(): Create my identity, name, kit offer, chat list | - |
 | HM-JRN-010 | onboarding and recovery | First-time encryption setup after register | built | onboard(2) "Save a recovery kit" with Not now | - |
@@ -95,7 +95,7 @@ Not exercised by anyone: scanning a code with a camera, camera capture, real tou
 | HM-SUR-129 | encryption and verification | Verification request dialog and incoming verification | built | incomingVerify() toast (from situations) Accept opens verifyFlow() dialog outside rooms | - |
 | HM-SUR-130 | encryption and verification | Emoji compare, complete and cancelled views | built | verifyFlow() emoji with match/no match, Verified, cancelled with reason | - |
 | HM-SUR-132 | encryption and verification | Toast: verification request | built | incomingVerify() toast "Verification request" with Accept, Decline | - |
-| HM-SUR-133 | encryption and verification | Toast: encryption reminders | built | reminders(): toasts "Save a recovery kit" and "Verify your other device", each gone after 8 s | - |
+| HM-SUR-133 | encryption and verification | Toast: encryption reminders | built | homeBanner(): "Save a recovery kit", then "Verify your other device", one at a time as a dismissible row on top of the chats (the WhatsApp placement), where they were 8-second toasts before | - |
 | HM-SUR-135 | encryption and verification | Identity confirmation screen | built | restore(): device route hidden when offline; Sign out button; reset link | - |
 | HM-SUR-137 | encryption and verification | Identity confirmed screen | built | confirmed() "Sample: nothing was restored" with one Continue | - |
 | HM-SUR-138 | encryption and verification | Room footer warnings | built | drawRoom(): "Only moderators can send messages in this room." (Reading group) | - |
@@ -103,10 +103,10 @@ Not exercised by anyone: scanning a code with a camera, camera capture, real tou
 | HM-SUR-271 | moderation | Delete message dialogs | built | deleteDlg() "Delete this message?" with Reason field, Delete | - |
 | HM-FEA-055 | timeline and events | Reactions | built | msgMenu() row of six quick emoji plus "More emoji" picker(); .qrow over a selected message on a phone; whoReacted() | - |
 | HM-FEA-056 | timeline and events | Replies | built | .quote data-jump jumps to the original, jump() loads an unloaded one; chainDlg() "Show the reply chain" | - |
-| HM-FEA-057 | timeline and events | Read receipts and markers | built | whyDlg(ev, "info") "Read by (sample)" list in rooms; .day.new unread pill; Shift+PageUp jumps to first unread | - |
+| HM-FEA-057 | timeline and events | Read receipts and markers | built | whyDlg(ev, "info") "Read by (sample)": a picture, name and time per reader in rooms, one line in a direct chat; .day.new unread pill; Shift+PageUp jumps to first unread | - |
 | HM-FEA-072 | timeline and events | Setting: show read receipts | built | "Show read receipts" switch (Privacy); whyDlg checks S.set.showReceipts | - |
 | HM-FEA-073 | timeline and events | Setting: send read receipts | built | S.out[0] count under Privacy; "Read by (sample)" in whyDlg says if reading is shared | - |
-| HM-FEA-074 | timeline and events | Setting: timestamps | partly | "12-hour clock" switch (data-sw2), clock(); every bubble shows its time in .meta | the "Always show times" switch was removed: a time shows in every bubble and cannot be turned off |
+| HM-FEA-074 | timeline and events | Setting: timestamps | built | Built as adapted: every bubble shows its time in .meta, as WhatsApp does, so "always show times" is not offered because times are always shown. The "12-hour clock" switch (data-sw2, clock()) changes every time on screen at once (bubbles, chat list, Message info), is kept in hm-set across a reload, and leaves day labels alone | - |
 | HM-FEA-084 | timeline and events | Who reacted | built | whoReacted() from the message menu "Reactions" (doAct "rx") or the .rxc chip | - |
 | HM-FEA-085 | timeline and events | Delivery status | built | tick() in .meta by tickShown(): clock while waiting, one tick labelled "Shown as sent (sample)" (nothing leaves the device); "!" (.tkb.bad) when not sent opens whyDlg() with Try again and Remove. Delivered and read never show (KNOWS) | - |
 | HM-FEA-086 | timeline and events | Unread marker and jump | built | openRoom() toUnread() opens at the .day.new pill, drawn only for messages unread when the chat was opened (seenLine); roomMenu "Jump to first unread"; #toEnd data-n badge counts new messages | - |
@@ -116,7 +116,7 @@ Not exercised by anyone: scanning a code with a camera, camera capture, real tou
 | HM-SUR-060 | timeline and events | Room view | built | tile() in drawTimeline: invited, "Loading messages…", "could not be opened" with Try again | - |
 | HM-SUR-061 | timeline and events | Timeline | built | load and error tiles, toUnread() jump, stress(1e5) with 80 to 240 row window | - |
 | HM-SUR-062 | timeline and events | Event tile | built | ghost() deleted line; one "Not encrypted yet" pill (data-why="lock") at the top of the chat, not a lock on each sender | - |
-| HM-SUR-063 | timeline and events | Message action bar | built | drawRbar() selection bar after a long press: Reply, Copy, Forward, Delete, More (BARACT, doAct); on wide the bubble arrow .chv opens msgMenu() | - |
+| HM-SUR-063 | timeline and events | Message action bar | built | drawRbar() selection bar after a long press: Reply, Copy, Forward, Delete, More (BARACT, doAct); one message of your own shows Info in place of Copy, which is then first under More (barActs); on wide the bubble arrow .chv opens msgMenu() | - |
 | HM-SUR-064 | timeline and events | Message context menu | built | msgMenu() from msgActs(): react, quote, forward, pin, report; openHash opens a copied message link (fixed after review) | - |
 | HM-SUR-065 | timeline and events | Text message body | built | rich() makes hidden text a .spoil button; "/me" italic emote; .body.nt notice via /note | - |
 | HM-SUR-067 | timeline and events | Undecryptable, hidden, redacted and error bodies | built | ghost() deleted, no key, damaged; "Hidden: you blocked" line; media error line | - |
@@ -126,7 +126,7 @@ Not exercised by anyone: scanning a code with a camera, camera capture, real tou
 | HM-SUR-071 | timeline and events | Date separator | built | .day pill per day from dayText() and dayLabel() | - |
 | HM-SUR-072 | timeline and events | Reply chain and reply preview | built | .quote data-jump jumps to the quoted parent; chainDlg() shows its chain; drawCtx preview | - |
 | HM-SUR-073 | timeline and events | Reactions row and picker | built | .rxc chip under the bubble with emoji and count (data-rxall) opens whoReacted(); reacting is from .qrow or msgMenu() | - |
-| HM-SUR-074 | timeline and events | Read receipts group | partly | whyDlg(ev, "info") "Read by (sample)": one row per reader, in rooms | no group of reader avatars under a message: readers show only in Message info |
+| HM-SUR-074 | timeline and events | Read receipts group | built | Placement as in WhatsApp: readers are listed in Message info, not under the message. whyDlg(ev, "info") "Read by (sample)": a picture, name and time per reader in rooms, one line in a direct chat; "Delivered to" is not listed because the engine cannot know it; one step from a selection (the Info icon in the bar for one message of your own, barActs) and from the wide message menu (msgMenu "Info") | - |
 | HM-SUR-076 | timeline and events | Jump to bottom and unread bars | built | #toEnd round button with a count badge (syncEnd); .day.new pill "N unread messages"; roomMenu "Jump to first unread" | no "Mark as read" inside the open chat: opening it marks it read |
 | HM-SUR-078 | timeline and events | Room status bar | built | drawBanner() "Try all again" and "Remove all"; data-unsent handler with confirm | - |
 | HM-SUR-088 | timeline and events | Shortcut: timeline scrolling | built | keydown: PageUp, PageDown, Ctrl+Home, Ctrl+End on #tl | - |
@@ -136,16 +136,16 @@ Not exercised by anyone: scanning a code with a camera, camera capture, real tou
 | HM-SUR-093 | timeline and events | Reaction summary sheet | built | whoReacted() tabs per emoji; a time shows beside your own reaction | - |
 | HM-SUR-096 | timeline and events | Send-failure dialog | built | "!" (.tkb.bad, data-why) opens whyDlg(): cause, "Try again", "Remove" | - |
 | HM-FEA-095 | composer | Message editing | built | doAct "edit" runs startEdit(), which fills #ta; #send then saveEdit(); .ed click opens histDlg(); Reply or Edit elsewhere while an edit holds changed text keeps the edit and says "Finish your edit first" | - |
-| HM-FEA-096 | composer | Typing notifications | built | drawSub() line #sub under the chat name: "typing…" or "Name is typing…", set in deliver() | - |
+| HM-FEA-096 | composer | Typing notifications | built | typingText() from S.typing: the #sub line under the chat name (drawSub) and the chat's row in the list; set by setTyping() from deliver() and from typingDemo() | - |
 | HM-FEA-097 | composer | Mentions and pills | built | suggest() "@room" and "#Room"; rich() pills; mentionsMe() matches @room | - |
 | HM-FEA-098 | composer | Emoji picker | built | picker(): search, Recent, four ECAT groups, skin tone row for hands | - |
 | HM-FEA-099 | composer | Formatting | built | #fbar on selection calls fmt(); rich() strikethrough, quote, lists | - |
 | HM-FEA-105 | composer | Setting: modifier+Enter to send | built | "Send with Ctrl Enter" switch; enterAction() in keydown | - |
 | HM-FEA-110 | composer | Setting: typing notifications | built | S.out[1] count for sending; "Show typing notices" hides the #sub typing line | - |
-| HM-FEA-119 | composer | Draft restore | built | saveDraft and openRoom keep text, reply target and an open edit per chat (fixed after review) | - |
+| HM-FEA-119 | composer | Draft restore | built | saveDraft and openRoom keep text, reply target and an open edit per chat (fixed after review); the text is kept in hm-ui (saveUi) and is back after a reload | - |
 | HM-JRN-038 | composer | Send a message | built | send(), deliver(): clock then one tick (tick()); failed "!" row; read-only composer .ro | - |
 | HM-JRN-039 | composer | Edit or delete own message | built | startEdit() puts the text in #ta under a #ctx "Editing" strip; #send saves (saveEdit), data-cancel cancels; deleteDlg() reason | - |
-| HM-SUR-097 | composer | Typing indicator row | partly | drawSub() #sub: the line under the chat name says who is typing | no row over the composer and no avatar; only direct chats ever show it |
+| HM-SUR-097 | composer | Typing indicator row | built | Placement as in WhatsApp: under the chat name (#sub, drawSub) and in the chat's row of the list, so there is no row over the composer; names, no pictures. typingText(): nobody typing shows the people count (nothing in a direct chat); one person "Name is typing…" ("typing…" in a direct chat); two show both first names; three or more "N people are typing…"; never yourself. The list row shows it in the accent colour (.ty) in place of the preview. Produced by the scripted replies in deliver() (one, then two, then three typists in a room) and by situations() "People typing in a room" | - |
 | HM-SUR-098 | composer | Message composer | built | #comp: .cbox pill with emoji, textarea #ta and attach, round #send; ".ro" only-moderators notice | - |
 | HM-SUR-099 | composer | Plain composer editor | built | #fbar format bar; #pre strip shows chips as you type; suggest() | - |
 | HM-SUR-101 | composer | Edit composer | built | #ta holds the text, #ctx says "Editing" (drawCtx), #send shows Save (grow), data-cancel | - |
@@ -177,13 +177,13 @@ Not exercised by anyone: scanning a code with a camera, camera capture, real tou
 | HM-SUR-161 | media and attachments | Avatar preview | built | data-avbig on the info hero, a person's card and the You profile opens a .full dialog | - |
 | HM-FEA-167 | search | Message search | built | searchDlg: this chat or all chats, snippets, click jumps to message | - |
 | HM-FEA-168 | search | Encrypted message search (desktop) | built | You, Storage and data: "Search index" row (data-rebuild) opens indexDlg() with counts and Rebuild | - |
-| HM-FEA-169 | search | Quick switcher (spotlight) | partly | switcher() rows: chats, "No chat yet" people (startDm), "Search messages for" hand-off | opens only with mod+K: the #kHint button is gone, so nothing opens it on a phone, where the #filter field lists chats, people and messages instead |
+| HM-FEA-169 | search | Quick switcher (spotlight) | built | finds() is one path for two doors: switcher() on mod+K, and on one pane the #filter field, which becomes the switcher when it takes the focus (findOn): the chats opened last first before typing, then chats, people with no chat ("Start chat", startDm), then the "Search messages for" hand-off (searchDlg) | - |
 | HM-FEA-172 | search | Setting: message search index | built | data-rebuild opens indexDlg(): Build or Rebuild runs indexAll() under busy(), then shows the counts | - |
 | HM-FEA-173 | search | Room list search | built | #filter input redraws drawList on each keystroke | - |
 | HM-JRN-060 | search | Search messages | built | searchDlg: scope switch, "Show 30 more", "Searching…", caught-error and not-searched notes, jump | - |
-| HM-SUR-181 | search | Room list search bar | built | #filter field over the list: drawList() shows matching chats, People with no chat, and Messages with "Show all" (data-allhits) | - |
+| HM-SUR-181 | search | Room list search bar | built | #filter field over the list: drawList() shows matching chats, People with no chat ("Start chat"), a "Search messages for" row (data-allhits) and the Messages found; on one pane it opens on focus with Recent chats and a close arrow (#fx) | - |
 | HM-SUR-182 | search | Room search view | built | searchDlg run/draw: Searching… status, error alert, no-match text, count, data-more paging | - |
-| HM-SUR-183 | search | Quick switcher dialog | partly | switcher sorts by REC visits, adds people without chats, shows "Loading chats…" | opens only with mod+K; no control opens it, so it cannot be reached on a phone |
+| HM-SUR-183 | search | Quick switcher dialog | built | switcher() dialog on mod+K; on one pane the #filter field is the same switcher (findOn, finds()): Recent with recent-search chips before typing, REC order, people without chats, "Loading chats…", the nothing-matches line; it closes by its arrow (#fx), Escape or Back (it holds one history state) | - |
 | HM-SUR-184 | search | Search index dialogs | built | indexDlg: messages, chats, characters in memory; confirmDlg before Rebuild; indexAll | - |
 | HM-SUR-185 | search | Shortcut: search in room | built | keydown mod+F calls searchDlg | - |
 | HM-SUR-186 | search | Shortcut: quick switcher | built | keydown mod+K calls switcher | - |
@@ -222,7 +222,7 @@ Not exercised by anyone: scanning a code with a camera, camera capture, real tou
 | HM-FEA-262 | navigation and layout | Setting: room list | built | You, Chats: "Sort chats by" segment (data-sort, setSort), listOrder; "Message previews" switch | - |
 | HM-FEA-263 | navigation and layout | Setting: room list display | built | You, Chats: "Sort chats by" segment (setSort) and "Message previews" switch | - |
 | HM-FEA-264 | navigation and layout | Internal state: recents | built | saveUi keeps REC and SQ in hm-ui; hm-emoji; shown by switcher and sqChips | - |
-| HM-FEA-265 | navigation and layout | Internal state: room list layout | partly | applySet keeps sort, width, hidden list and chip in hm-set; saveUi keeps favourites and pins in hm-ui | custom sections and a background picture do not exist to be saved |
+| HM-FEA-265 | navigation and layout | Internal state: room list layout | built | Kept across a reload: chip, sort, list width, hidden list, text size, theme and 12-hour clock in hm-set (applySet); favourites, pins and drafts in hm-ui (saveUi); mute and each chat's notification level in hm-lv (setLevel). Custom sections and a background picture are not part of this app, so there is nothing of them to keep | - |
 | HM-FEA-266 | navigation and layout | Internal state: panels and viewers | built | r.ph card stack per chat saved by saveUi in drawPanel, restored at start | - |
 | HM-FEA-267 | navigation and layout | Offline indicator | built | #banner "No connection"; a queued message shows the clock tick, "Waiting to send" | - |
 | HM-JRN-075 | navigation and layout | Lose and regain connection | built | toggleOffline (from situations): banner with waiting count; queued messages send on return | - |
@@ -254,6 +254,6 @@ Not exercised by anyone: scanning a code with a camera, camera capture, real tou
 | HM-SUR-310 | navigation and layout | Shortcut: accessibility keys | built | capture keydown: arrows, Home, End in menus, tabs, segments; Ctrl S saves; Backspace chips | - |
 | HM-SUR-311 | navigation and layout | Right panel card frame | built | drawPanel frames the CARDS (files, pins, roles) with Back (data-pback), title, Close | - |
 | HM-SUR-312 | navigation and layout | Small shared structures | built | pickPeople #iq typed chips, data-unpick, Backspace removes; scroll-edge gradients in CSS | - |
-| HM-SUR-313 | navigation and layout | Home tab bar | partly | #nav from tabsShown(): Chats and You; a bar under 768 px, a rail beside the list on wide screens (drawNav) | no Spaces tab (later phase) |
-| HM-SUR-314 | navigation and layout | Home banners | partly | reminders() notices "Save a recovery kit" and "Verify your other device" in #toasts, each gone after 8 s | no banner in the home list: the reminder is a notice over the list, the same one HM-SUR-133 names |
+| HM-SUR-313 | navigation and layout | Home tab bar | built | Built for Phase 1: #nav from tabsShown(): Chats and You; a bar under 768 px, a rail beside the list on wide screens (drawNav). The Spaces tab belongs to a later phase: tabsShown() adds it once FEATURES.spaces is set | - |
+| HM-SUR-314 | navigation and layout | Home banners | built | homeBanner() row at the top of the chats list, under the chips and above invitations (drawList): "Save a recovery kit" first (Session.recoveryBanner), then "Verify your other device", one at a time; a tap opens createKit() or verifyFlow(); the close button dismisses it for good (ID.bannerOff, ID.verifyOff, kept in hm-id); it never shows once done | - |
 | HM-SUR-316 | navigation and layout | Global indicators | built | busy() #boot full-screen overlay at start, slow start and index build | - |

@@ -165,5 +165,109 @@ theorem{
   proof: reflexivity{},
   axioms: []
 }
+
+theorem{
+  name: pickerNeverBlank,
+  parameters: [queryLength : Nat, recentCount : Nat, hits : Nat],
+  statement: ((1 <=? (Messenger.Composer::pickerSection queryLength recentCount hits)) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Composer::pickerSection]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: searchHidesRecents,
+  parameters: [queryLength : Nat, recentCount : Nat, hits : Nat],
+  statement: (((1 <=? queryLength) && ((Messenger.Composer::pickerSection queryLength recentCount hits) <=? 2)) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Composer::pickerSection]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: noHitsSaysSo,
+  parameters: [queryLength : Nat, recentCount : Nat],
+  statement: (((1 <=? queryLength) && (((Messenger.Composer::pickerSection queryLength recentCount 0) <? 4) || (4 <? (Messenger.Composer::pickerSection queryLength recentCount 0)))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Composer::pickerSection]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: noRecentsNoRecentSection,
+  parameters: [hits : Nat],
+  statement: ((Messenger.Composer::pickerSection 0 0 hits) = 2),
+  proof: linear_arithmetic{definitions: [Messenger.Composer::pickerSection]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: pickerSectionInRange,
+  parameters: [queryLength : Nat, recentCount : Nat, hits : Nat],
+  statement: (((Messenger.Composer::pickerSection queryLength recentCount hits) <=? 4) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Composer::pickerSection]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: recentsNeverAboveCap,
+  parameters: [count : Nat, wasRecent : Nat],
+  statement: (((Messenger.Composer::recentsAfterPick count wasRecent) <=? 8) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Composer::recentsAfterPick]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: pickAlwaysRecorded,
+  parameters: [count : Nat, wasRecent : Nat],
+  statement: ((1 <=? (Messenger.Composer::recentsAfterPick count wasRecent)) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Composer::recentsAfterPick]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: repeatPickAddsNothing,
+  parameters: [count : Nat],
+  statement: (((1 <=? count) && ((count <=? 8) && (((Messenger.Composer::recentsAfterPick count 1) <? count) || (count <? (Messenger.Composer::recentsAfterPick count 1))))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Composer::recentsAfterPick]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: newPickAddsOne,
+  parameters: [count : Nat],
+  statement: (((count <? 8) && (((Messenger.Composer::recentsAfterPick count 0) <? (count + 1)) || ((count + 1) <? (Messenger.Composer::recentsAfterPick count 0)))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Composer::recentsAfterPick]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: toneOnlyOnHands,
+  parameters: [tone : Nat],
+  statement: ((Messenger.Composer::toneApplied 0 tone) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Composer::toneApplied]},
+  axioms: [propext]
+}
+
+theorem{
+  name: unknownToneIgnored,
+  parameters: [isHand : Nat, tone : Nat],
+  statement: (((6 <=? tone) && (1 <=? (Messenger.Composer::toneApplied isHand tone))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Composer::toneApplied]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: toneAppliedInRange,
+  parameters: [isHand : Nat, tone : Nat],
+  statement: (((Messenger.Composer::toneApplied isHand tone) <=? 5) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Composer::toneApplied]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: pickerExamples,
+  parameters: [],
+  statement: ((((Messenger.Composer::pickerSection 0 3 0) =? (Messenger.Composer::sectionRecents)) && (((Messenger.Composer::pickerSection 0 0 0) =? (Messenger.Composer::sectionCategories)) && (((Messenger.Composer::pickerSection 2 3 5) =? (Messenger.Composer::sectionHits)) && (((Messenger.Composer::pickerSection 2 3 0) =? (Messenger.Composer::sectionNoMatch)) && (((Messenger.Composer::recentsAfterPick (Messenger.Composer::recentCap) 0) =? 8) && (((Messenger.Composer::recentsAfterPick 0 0) =? 1) && (((Messenger.Composer::recentsAfterPick 3 1) =? 3) && (((Messenger.Composer::toneApplied 1 3) =? 3) && ((Messenger.Composer::toneApplied 0 3) =? 0))))))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
 \end{semanticmodule}
 \end{lexlean}

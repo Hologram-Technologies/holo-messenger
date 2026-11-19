@@ -155,5 +155,45 @@ definition{
   result: Nat,
   body: (if (1 <=? outgoing) then 0 else (if (1 <=? missed) then 2 else 1))
 }
+
+definition{name: changeCreated, parameters: [], result: Nat, body: 0}
+
+definition{name: changeJoined, parameters: [], result: Nat, body: 1}
+
+definition{name: changeLeft, parameters: [], result: Nat, body: 2}
+
+definition{name: changeInvited, parameters: [], result: Nat, body: 3}
+
+definition{name: changeRemoved, parameters: [], result: Nat, body: 4}
+
+definition{name: changeBanned, parameters: [], result: Nat, body: 5}
+
+definition{name: changeRenamed, parameters: [], result: Nat, body: 6}
+
+definition{name: changeDescription, parameters: [], result: Nat, body: 7}
+
+definition{name: changePicture, parameters: [], result: Nat, body: 8}
+
+definition{name: lineNeutral, parameters: [], result: Nat, body: 10}
+
+definition{name: dialogClosed, parameters: [], result: Nat, body: 0}
+
+definition{name: dialogCauses, parameters: [], result: Nat, body: 1}
+
+definition{name: dialogStillOffline, parameters: [], result: Nat, body: 2}
+
+definition{
+  name: systemLine,
+  parameters: [kind : Nat],
+  result: Nat,
+  body: (if (kind <=? 8) then (kind + 1) else 10)
+}
+
+definition{
+  name: offlineDialog,
+  parameters: [connected : Nat, tried : Nat],
+  result: Nat,
+  body: (if (1 <=? connected) then 0 else (if (1 <=? tried) then 2 else 1))
+}
 \end{semanticmodule}
 \end{lexlean}

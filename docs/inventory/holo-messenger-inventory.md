@@ -15,22 +15,22 @@ Engine standing follows `matrix-to-uor-comms-map.md`. No uor-comms capability is
 ## Summary
 
 1121 source rows became 885 items: 232 merged groups absorbed 468 rows; the other 653 items each come from one source row.
-Totals: keep 333, adapt 286, drop 266.
+Totals: keep 330, adapt 289, drop 266.
 
 | Kind | items | keep | adapt | drop |
 |---|---|---|---|---|
 | Capability | 227 | 81 | 81 | 65 |
-| Feature | 267 | 106 | 56 | 105 |
+| Feature | 267 | 105 | 57 | 105 |
 | Journey | 75 | 18 | 43 | 14 |
-| Surface | 316 | 128 | 106 | 82 |
+| Surface | 316 | 126 | 108 | 82 |
 
 | Domain | items | keep | adapt | drop |
 |---|---|---|---|---|
 | identity and devices | 56 | 12 | 22 | 22 |
 | onboarding and recovery | 54 | 3 | 26 | 25 |
 | rooms and membership | 95 | 31 | 28 | 36 |
-| timeline and events | 105 | 71 | 9 | 25 |
-| composer | 61 | 38 | 7 | 16 |
+| timeline and events | 105 | 69 | 11 | 25 |
+| composer | 61 | 37 | 8 | 16 |
 | encryption and verification | 70 | 24 | 29 | 17 |
 | media and attachments | 62 | 23 | 26 | 13 |
 | spaces | 35 | 21 | 12 | 2 |
@@ -44,7 +44,7 @@ Totals: keep 333, adapt 286, drop 266.
 
 | Phase | keep | adapt | total |
 |---|---|---|---|
-| 1 | 175 | 136 | 311 |
+| 1 | 172 | 139 | 311 |
 | 2 | 138 | 125 | 263 |
 | 3 | 20 | 25 | 45 |
 
@@ -59,6 +59,8 @@ Totals: keep 333, adapt 286, drop 266.
 Prism ID remap: 69 source rows moved from "missing" to "different shape".
 
 ## Open for Ilya
+
+Three parity calls were changed from keep to adapt on 2026-11-19, to follow WhatsApp's placement: HM-FEA-074 (times always shown, only the clock format offered), HM-SUR-074 (readers listed in Message info, not stacked under the message) and HM-SUR-097 (typing named under the chat name, not in a row over the composer). Each acceptance check was rewritten to match. They stand until Ilya overrules them.
 
 6 pairs sit on the two phase conflicts in the brief: device verification is Phase 1 but multi-device is Phase 2, and restoring identity is Phase 1 but recovery is Phase 2. They are not merged; each side keeps its own item and call until the phases are settled.
 
@@ -439,7 +441,7 @@ Same phase, one side keep and the other adapt: adapt wins and its reason is carr
 | HM-FEA-071 | Feature | Setting: show avatar and name changes | Show profile change events | W-FEA-115 | web: settings/Settings.tsx (showAvatarChanges, showDisplaynameChanges) | none | not needed | drop | Folded into W-FEA-114 | - | - |
 | HM-FEA-072 | Feature | Setting: show read receipts | Show others' read receipts | W-FEA-116 | web: settings/Settings.tsx (showReadReceipts) | Receipts | missing | keep | - | 1 | Others' receipts can be hidden |
 | HM-FEA-073 | Feature | Setting: send read receipts | Send public receipts or keep reading private | W-FEA-117 | web: settings/Settings.tsx (sendReadReceipts) | Receipts | missing | keep | - | 1 | With sending off, no receipt leaves the device |
-| HM-FEA-074 | Feature | Setting: timestamps | 12-hour clock; always show timestamps | W-FEA-119 | web: settings/Settings.tsx (showTwelveHourTimestamps, alwaysShowTimestamps) | none | not needed | keep | - | 1 | Clock format and always-show timestamps both apply |
+| HM-FEA-074 | Feature | Setting: timestamps | 12-hour clock; always show timestamps | W-FEA-119 | web: settings/Settings.tsx (showTwelveHourTimestamps, alwaysShowTimestamps) | none | not needed | adapt | Times always shown; only clock format offered | 1 | The 12-hour switch changes every time shown at once; times show in every bubble |
 | HM-FEA-075 | Feature | Setting: code blocks | Auto-detect language; expand by default; line numbers | W-FEA-122 | web: settings/Settings.tsx (enableSyntaxHighlightLanguageDetection, expandCodeByDefault, showCodeLineNumbers) | none | not needed | drop | Lean | - | - |
 | HM-FEA-076 | Feature | Setting: jump to bottom on send | Scroll to latest when sending | W-FEA-123 | web: settings/Settings.tsx (scrollToBottomOnMessageSent) | none | not needed | drop | Always jumps; lean | - | - |
 | HM-FEA-077 | Feature | Setting: avatars in mentions | Show avatar inside mention chips | W-FEA-124 | web: settings/Settings.tsx (Pill.shouldShowPillAvatar) | none | not needed | drop | Lean | - | - |
@@ -476,7 +478,7 @@ Same phase, one side keep and the other adapt: adapt wins and its reason is carr
 | HM-SUR-071 | Surface | Date separator | Day header; with jump-to-date menu when enabled | W-SUR-050, X-SUR-055 | web: viewmodels/room/timeline/DateSeparatorViewModel.tsx; packages/shared-components/src/room/timeline/DateSeparatorView; x: ios:Screens/Timeline/View/TimelineItemViews (Separator, ReadMarker, TimelineStart, PaginationIndicator); and:features/messages/impl …/timeline/components/virtual | none | not needed | keep | - | 1 | A day header separates each day |
 | HM-SUR-072 | Surface | Reply chain and reply preview | Quoted parent above a message, expandable; preview above composer while replying | W-SUR-051, X-SUR-056 | web: components/views/elements/ReplyChain.tsx; viewmodels/room/timeline/event-tile/ReplyTileViewModel.ts; components/views/rooms/ReplyPreview.tsx; x: ios:Screens/Timeline/View/Replies, ios:Screens/Timeline/View/Threads; and:features/messages/impl …/timeline/components | Relations | missing | keep | - | 1 | The quoted parent expands; a preview sits above the composer |
 | HM-SUR-073 | Surface | Reactions row and picker | Reaction chips with counts and tooltips, add button, show-all; emoji picker for reacting | W-SUR-052, X-SUR-039 | web: viewmodels/room/timeline/event-tile/reactions/*; components/views/emojipicker/ReactionPicker.tsx; x: ios:Screens/Timeline/View/Supplementary/TimelineReactionsView.swift; and:features/messages/impl …/timeline/components/TimelineItemReactionsView.kt | Relations | missing | keep | - | 1 | Chips show counts; the picker adds a reaction |
-| HM-SUR-074 | Surface | Read receipts group | Stacked reader avatars with overflow count and popover list; sent and sending ticks on own messages | W-SUR-053, X-SUR-042 | web: components/views/rooms/ReadReceiptGroup.tsx; components/views/rooms/ReadReceiptMarker.tsx; viewmodels/room/timeline/event-tile/EventTileReceiptState.ts; x: ios:Screens/Timeline/View/ReadReceipts; and:features/messages/impl …/receipt/bottomsheet | Receipts | missing | keep | - | 1 | Stacked avatars show an overflow count and a list |
+| HM-SUR-074 | Surface | Read receipts group | Stacked reader avatars with overflow count and popover list; sent and sending ticks on own messages | W-SUR-053, X-SUR-042 | web: components/views/rooms/ReadReceiptGroup.tsx; components/views/rooms/ReadReceiptMarker.tsx; viewmodels/room/timeline/event-tile/EventTileReceiptState.ts; x: ios:Screens/Timeline/View/ReadReceipts; and:features/messages/impl …/receipt/bottomsheet | Receipts | missing | adapt | WhatsApp placement: readers listed in Message info | 1 | Message info lists each reader with picture, name and time |
 | HM-SUR-075 | Surface | Link preview group | Preview cards with hide button and show-more | W-SUR-055 | web: viewmodels/message-body/UrlPreviewGroupViewModel.ts; packages/shared-components/src/room/timeline/event-tile/MediaPreviewGroupView | Homeserver | not needed | drop | Link previews dropped | - | - |
 | HM-SUR-076 | Surface | Jump to bottom and unread bars | Button with unread count to return to latest; bar to jump to first unread or mark read | W-SUR-056, X-SUR-043 | web: components/views/rooms/JumpToBottomButton.tsx; components/views/rooms/TopUnreadMessagesBar.tsx; x: ios:Screens/Timeline/View (TimelineScrollButton); and:features/messages/impl …/timeline | Receipts | missing | keep | - | 1 | The button returns to latest; the bar jumps to first unread |
 | HM-SUR-077 | Surface | Pinned message banner | Banner above timeline cycling through pinned messages with view-all | W-SUR-057, X-SUR-058 | web: components/views/rooms/PinnedMessageBanner.tsx; x: ios:Screens/RoomScreen/View/PinnedItemsBanner; and:features/messages/impl …/pinned/banner | State event and resolution | proved rule | keep | - | 2 | The banner cycles pins and opens the list |
@@ -545,7 +547,7 @@ Same phase, one side keep and the other adapt: adapt wins and its reason is carr
 | HM-FEA-120 | Feature | Full-screen composer | Expand the text field to a tall editor. Android toggle; iOS drag handle on the composer. | X-FEA-119 | x: and:features/messages/impl …/messagecomposer (ToggleFullScreenState); ios:Screens/RoomScreen/ComposerToolbar/View/MessageComposer.swift | none | not needed | keep | - | 2 | The composer expands to a tall editor and back |
 | HM-JRN-038 | Journey | Send a message | Type, optional formatting and mentions, send; local echo, sent, read receipts; failures: unsent with retry or delete, no permission, room replaced, consent required, server quota reached | W-JRN-032, X-JRN-025 | web: components/views/rooms/SendMessageComposer.tsx; viewmodels/room/RoomStatusBar.ts; x: ios:Screens/Timeline/TimelineViewModel.swift; and:features/messages/impl | Event | undecided | keep | - | 1 | Echo, sent and read states appear in order; failure offers retry |
 | HM-JRN-039 | Journey | Edit or delete own message | Open actions, edit inline and save or cancel; or delete with optional reason | W-JRN-035, X-JRN-030 | web: components/views/rooms/EditMessageComposer.tsx; components/views/dialogs/ConfirmRedactDialog.tsx; x: ios:Screens/Timeline/View/ItemMenu; and:features/messages/impl …/actionlist | Relations | missing | keep | - | 1 | Edit saves or cancels inline; delete asks for a reason |
-| HM-SUR-097 | Surface | Typing indicator row | Avatars and names of people typing | W-SUR-061, X-SUR-057 | web: components/views/rooms/WhoIsTypingTile.tsx; x: ios:Screens/Timeline/View/TypingIndicatorView.swift; and:features/messages/impl …/typing | Typing | missing | keep | - | 1 | Avatars and names of people typing show |
+| HM-SUR-097 | Surface | Typing indicator row | Avatars and names of people typing | W-SUR-061, X-SUR-057 | web: components/views/rooms/WhoIsTypingTile.tsx; x: ios:Screens/Timeline/View/TypingIndicatorView.swift; and:features/messages/impl …/typing | Typing | missing | adapt | WhatsApp placement: under the chat name | 1 | The line under the chat name names one or two typists, or counts three or more |
 | HM-SUR-098 | Surface | Message composer | Input with placeholder by context, emoji, attach, more-menu (sticker, voice, poll, location, formatting mode), send; states: no permission, room replaced with link, recording, reply, thread | W-SUR-069, X-SUR-063 | web: components/views/rooms/MessageComposer.tsx; components/views/rooms/MessageComposerButtons.tsx; packages/shared-components/src/room/composer; x: ios:Screens/RoomScreen/ComposerToolbar/View/ComposerToolbar.swift; and:libraries/textcomposer | Event | missing | adapt | No sticker button; voice, poll, location arrive in Phase 2 | 1 | Input, emoji, attach and send work; no-permission state shows |
 | HM-SUR-099 | Surface | Plain composer editor | Markdown editor with pills, autocomplete popup and selection format bar | W-SUR-070 | web: components/views/rooms/BasicMessageComposer.tsx; components/views/rooms/SendMessageComposer.tsx; components/views/rooms/MessageComposerFormatBar.tsx | none | not needed | keep | - | 1 | Chips, suggestions and the format bar work in the editor |
 | HM-SUR-100 | Surface | Rich text composer | WYSIWYG editor with formatting toolbar, link dialog, expand, plain-text toggle | W-SUR-071 | web: components/views/rooms/wysiwyg_composer/SendWysiwygComposer.tsx; components/views/rooms/wysiwyg_composer/components/FormattingButtons.tsx; components/views/rooms/wysiwyg_composer/components/LinkModal.tsx | none | not needed | drop | WYSIWYG dropped | - | - |

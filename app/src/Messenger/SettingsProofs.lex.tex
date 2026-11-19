@@ -83,5 +83,77 @@ theorem{
   proof: reflexivity{},
   axioms: []
 }
+
+theorem{
+  name: keyboardRowWideOnly,
+  parameters: [panes : Nat],
+  statement: (((panes <=? 1) && (1 <=? (Messenger.Settings::rowShown 7 panes))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Settings::rowShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unknownRowNeverShown,
+  parameters: [row : Nat, panes : Nat],
+  statement: (((9 <=? row) && (1 <=? (Messenger.Settings::rowShown row panes))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Settings::rowShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: otherRowsShownAtAnyWidth,
+  parameters: [row : Nat, panes : Nat],
+  statement: (((row <=? 8) && (((row <? 7) || (7 <? row)) && ((Messenger.Settings::rowShown row panes) =? 0))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Settings::rowShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: rowShownInRange,
+  parameters: [row : Nat, panes : Nat],
+  statement: (((Messenger.Settings::rowShown row panes) <=? 1) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Settings::rowShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: settingsListHasNoBack,
+  parameters: [openedFromChats : Nat],
+  statement: ((Messenger.Settings::settingsBack 0 openedFromChats) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Settings::settingsBack]},
+  axioms: [propext]
+}
+
+theorem{
+  name: subScreenAlwaysHasBack,
+  parameters: [onSubScreen : Nat, openedFromChats : Nat],
+  statement: (((1 <=? onSubScreen) && ((Messenger.Settings::settingsBack onSubScreen openedFromChats) =? 0)) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Settings::settingsBack]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: backToChatsOnlyWhenOpenedThere,
+  parameters: [onSubScreen : Nat],
+  statement: (((Messenger.Settings::settingsBack onSubScreen 0) =? 2) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Settings::settingsBack]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: settingsBackInRange,
+  parameters: [onSubScreen : Nat, openedFromChats : Nat],
+  statement: (((Messenger.Settings::settingsBack onSubScreen openedFromChats) <=? 2) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Settings::settingsBack]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: settingsScreenExamples,
+  parameters: [],
+  statement: ((((Messenger.Settings::rowShown (Messenger.Settings::rowKeyboard) 1) =? 0) && (((Messenger.Settings::rowShown (Messenger.Settings::rowKeyboard) 2) =? 1) && (((Messenger.Settings::rowShown (Messenger.Settings::rowAbout) 1) =? 1) && (((Messenger.Settings::rowShown (Messenger.Settings::rowProfile) 3) =? 1) && (((Messenger.Settings::settingsBack 1 1) =? (Messenger.Settings::backToChats)) && (((Messenger.Settings::settingsBack 1 0) =? (Messenger.Settings::backToYou)) && ((Messenger.Settings::settingsBack 0 1) =? (Messenger.Settings::backNone)))))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
 \end{semanticmodule}
 \end{lexlean}

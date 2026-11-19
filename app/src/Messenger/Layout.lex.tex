@@ -99,5 +99,66 @@ definition{
   result: Nat,
   body: (if (item =? 0) then (if (1 <=? groupsBuilt) then 1 else 0) else (if (item =? 1) then (if (1 <=? devicesBuilt) then 1 else 0) else (if (item =? 2) then (if (1 <=? starredBuilt) then 1 else 0) else (if (item =? 3) then (if (1 <=? unreadCount) then 1 else 0) else (if (item =? 4) then 1 else 0)))))
 }
+
+definition{name: lineNothing, parameters: [], result: Nat, body: 0}
+
+definition{name: linePeople, parameters: [], result: Nat, body: 1}
+
+definition{name: lineTyping, parameters: [], result: Nat, body: 2}
+
+definition{name: lineOneName, parameters: [], result: Nat, body: 3}
+
+definition{name: lineTwoNames, parameters: [], result: Nat, body: 4}
+
+definition{name: lineCount, parameters: [], result: Nat, body: 5}
+
+definition{name: bodyNone, parameters: [], result: Nat, body: 0}
+
+definition{name: bodyInfo, parameters: [], result: Nat, body: 1}
+
+definition{name: bodyCard, parameters: [], result: Nat, body: 2}
+
+definition{name: bodyEmpty, parameters: [], result: Nat, body: 3}
+
+definition{name: frameNoBack, parameters: [], result: Nat, body: 0}
+
+definition{name: frameBackToChat, parameters: [], result: Nat, body: 1}
+
+definition{name: frameBackToInfo, parameters: [], result: Nat, body: 2}
+
+definition{
+  name: headerLine,
+  parameters: [isDirect : Nat, othersTyping : Nat, selfTyping : Nat, typingShown : Nat],
+  result: Nat,
+  body: (if (typingShown =? 0) then (if (1 <=? isDirect) then 0 else 1) else (if (othersTyping =? 0) then (if (1 <=? isDirect) then 0 else 1) else (if (1 <=? isDirect) then 2 else (if (othersTyping =? 1) then 3 else (if (othersTyping =? 2) then 4 else 5)))))
+}
+
+definition{
+  name: panelShows,
+  parameters: [isOpen : Nat, roomOpen : Nat, depth : Nat, items : Nat],
+  result: Nat,
+  body: (if (isOpen =? 0) then 0 else (if (roomOpen =? 0) then 0 else (if (depth =? 0) then 1 else (if (items =? 0) then 3 else 2))))
+}
+
+definition{
+  name: panelBack,
+  parameters: [depth : Nat, paneCount : Nat],
+  result: Nat,
+  body: (if (1 <=? depth) then 2 else (if (paneCount <=? 1) then 1 else 0))
+}
+
+definition{
+  name: panelClose,
+  parameters: [paneCount : Nat],
+  result: Nat,
+  body: (if (2 <=? paneCount) then 1 else 0)
+}
+
+definition{
+  name: listAfterResize,
+  parameters: [step : Nat, grow : Nat],
+  result: Nat,
+  body: (if (1 <=? grow) then (if (3 <=? step) then 3 else (step + 1)) else (if (step <=? 1) then 0 else (if (step =? 2) then 1 else 2)))
+}
 \end{semanticmodule}
 \end{lexlean}
