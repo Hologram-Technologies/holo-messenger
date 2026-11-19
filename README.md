@@ -8,7 +8,18 @@ Step 1 (reading, mapping, inventory) and the client-only Phase 1 rules are done.
 
 This repository is an instance of `UOR-Foundation/template`. Its Prism application, `Messenger rules`, answers eleven client questions with the rules proved here.
 
-uor-comms has a room kernel on its main branch that answers six questions about a room. It has no store, transport or encryption a browser can call. Items that need those are named as gaps, not specified here.
+For the engine's state, read uor-comms `docs/STATUS.md`; this repository does not restate it.
+
+## Upstream
+
+uor-comms is the canonical reference; Holo Messenger is a downstream client of it (Ilya, 2026-11-19). Where this repository and uor-comms disagree on the engine's design, phases, behaviour or status, uor-comms is right and this repository is corrected. Read these there, not here:
+
+- `docs/DESIGN.md`: the design and the decisions taken.
+- `docs/STATUS.md`: what Lean proved, what is tested, what is not done.
+- `docs/MATRIX-MAP.md`: what Matrix specifies and where each server job goes.
+- `host/README.md`: the host's calls and what the caller supplies.
+
+This repository owns only the client: the interface in `client/`, the client rules in `app/`, and the inventory of what a person sees and does. Its documents about uor-comms (`docs/inventory/matrix-to-uor-comms-map.md`, `docs/reading/uor-comms-report.md`, and the inventory's "uor-comms need" and "engine standing" columns) are dated snapshots kept for the record. The engine's own phase plan, when uor-comms publishes one, decides when each engine-backed item can be built.
 
 ## What is here
 

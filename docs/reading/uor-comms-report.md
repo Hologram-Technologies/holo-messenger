@@ -1,5 +1,7 @@
 # uor-comms: state of the repository, 2026-11-18
 
+> Snapshot of 2026-11-18, kept for the record. uor-comms is canonical: read its `docs/DESIGN.md`, `docs/STATUS.md` and `docs/MATRIX-MAP.md` instead. Where this file disagrees with them, it is out of date.
+
 Source: local clone `uor-comms` (checked out on `phase-1-room-core`, clean, every local branch tip equal to the GitHub tip per `gh api`). Repo is public, created today (first commit 09:59 UTC). Nothing was modified or fetched.
 
 Headline: uor-comms is a proved rule set, not an engine. There is no callable messaging surface, no wire format, no transport, no store and no encryption code anywhere in the repository. A client cannot sit on top of it today.

@@ -1,5 +1,7 @@
 # Matrix to uor-comms mapping
 
+> Snapshot of 2026-11-18, kept for the record. uor-comms is canonical: read its `docs/DESIGN.md`, `docs/STATUS.md` and `docs/MATRIX-MAP.md` instead. Where this file disagrees with them, it is out of date.
+
 Sources: uor-comms branch `phase-1-room-core` (read 2026-11-18, unmerged; `main` is the template scaffold) and the Matrix session's answers the same day.
 Nothing in uor-comms is callable from a browser yet. "Rule only" means a proved decision over inputs the host must supply.
 Standing: Decided = Ilya instructed it. Assumed = the uor-comms session chose it, reversible. Undecided = nobody has.

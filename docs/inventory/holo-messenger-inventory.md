@@ -2,7 +2,7 @@
 
 Merged from the Element Web inventory (676 rows, W- IDs) and the Element X / Element Call inventory (445 rows, X- IDs), each with its parity pass. Read 2026-11-18.
 Parity, phase and acceptance checks are recommendations for Ilya to overrule. Nothing here is copied from Element source; descriptions are in our own words.
-Engine standing follows `matrix-to-uor-comms-map.md`. No uor-comms capability is callable from a browser yet.
+Engine standing follows `matrix-to-uor-comms-map.md` as read on 2026-11-18, a snapshot. uor-comms is canonical for what the engine supplies and when: its `docs/DESIGN.md` and `docs/STATUS.md` override the "uor-comms need" and "engine standing" columns here. Phases in this file are the client's release phases; they do not name uor-comms's own phases.
 
 ## How to read
 
