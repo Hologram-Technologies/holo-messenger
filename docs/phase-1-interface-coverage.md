@@ -2,7 +2,9 @@
 
 Re-judged on 2026-11-19 against the reworked `client/index.html`: every row was read against the code and the page was driven at 412 px and 1280 px; evidence that named something gone now names what carries the behaviour, and seven rows moved from built to partly. Later the same day the partly rows were finished in the page and each was driven at 320, 412 and 1280 px: eight rows moved from partly to built, most by taking the WhatsApp placement their rows now name. HM-FEA-121 stays partly until the engine arrives.
 
-Scope: the 227 Phase 1 items a person can see or use (features, journeys and surfaces; capabilities are left out), judged against `client/index.html` at the commit that last changed this file, on 2026-11-19.
+Verifying another person moved to Phase 2 on 2026-11-19: HM-SUR-119 left this list, and four verification rows are now scoped to your own devices. The page still shows the people path on sample data.
+
+Scope: the 226 Phase 1 items a person can see or use (features, journeys and surfaces; capabilities are left out), judged against `client/index.html` at the commit that last changed this file, on 2026-11-19.
 
 How it was judged: each item was read against the page's code and given the lower verdict when torn. A first pass judged all 227. The items it did not mark built were then built out and judged again by reviewers who had not written the code. Six items were fixed after their second review; their rows say so, and those fixes were checked in a browser by the builder or by the session lead, not reviewed a third time. The page uses sample data: nothing is stored beyond this browser, encrypted or sent, and that does not count against an item. A strip at the top of the page says so at all times. Items marked adapt in the inventory were judged on their adapted intent. Where a static page cannot do the real thing, it offers a substitute that says what it is.
 
@@ -17,7 +19,7 @@ Not exercised by anyone: scanning a code with a camera, camera capture, real tou
 | identity and devices | 10 | 10 | 0 | 0 |
 | onboarding and recovery | 15 | 15 | 0 | 0 |
 | rooms and membership | 28 | 28 | 0 | 0 |
-| encryption and verification | 16 | 15 | 1 | 0 |
+| encryption and verification | 15 | 14 | 1 | 0 |
 | moderation | 2 | 2 | 0 | 0 |
 | timeline and events | 34 | 34 | 0 | 0 |
 | composer | 24 | 24 | 0 | 0 |
@@ -26,7 +28,7 @@ Not exercised by anyone: scanning a code with a camera, camera capture, real tou
 | notifications | 11 | 11 | 0 | 0 |
 | settings | 18 | 18 | 0 | 0 |
 | navigation and layout | 41 | 41 | 0 | 0 |
-| Total | 227 | 226 | 1 | 0 |
+| Total | 226 | 225 | 1 | 0 |
 
 | HM ID | domain | name | verdict | where in the page | absent |
 |---|---|---|---|---|---|
@@ -84,17 +86,16 @@ Not exercised by anyone: scanning a code with a camera, camera capture, real tou
 | HM-SUR-054 | rooms and membership | Invite row and decline menu | built | drawList() .inv row with Accept and Decline | - |
 | HM-SUR-055 | rooms and membership | Start-DM confirmation sheet | built | startDm() confirmDlg "Start a chat with <name>?" | - |
 | HM-FEA-121 | encryption and verification | Encryption by default | partly | drawTimeline() "Not encrypted yet" pill (data-why="lock") at the top of every chat, the same row in drawPanel(), whyDlg(); no switch | no chat is shown as encrypted: the page says encryption is planned, where it said "Encrypted" before |
-| HM-FEA-122 | encryption and verification | Verification | built | verifyFlow(): Compare pictures or Scan a code, for people and devices | - |
+| HM-FEA-122 | encryption and verification | Verification | built | verifyFlow(): Compare pictures or Scan a code; Phase 1 scope is own devices (Linked devices), the people path stays as a Phase 2 sample | - |
 | HM-FEA-123 | encryption and verification | Recovery | built | restore() valid kit leads to confirmed(), which says nothing was restored, then the chat list | - |
 | HM-JRN-040 | encryption and verification | Verify own session by emoji | built | verifyFlow() wait, emoji, done, cancel; "They do not match" | - |
 | HM-JRN-041 | encryption and verification | Verify own session by QR | built | verifyFlow qr/scan steps: real QR via qr(), scanCode camera reader, typed fallback | - |
 | HM-JRN-046 | encryption and verification | Confirm identity on a new device | built | restore(): kit entry or "Confirm from another device", then confirmed() | - |
-| HM-SUR-119 | encryption and verification | Encryption and verification card | built | verifyFlow() steps start, wait, emoji, done, cancel | - |
 | HM-SUR-121 | encryption and verification | Recovery key entry dialog | built | restore(): "Choose the kit file" reader, live kitState, "Start again" reset link | - |
 | HM-SUR-122 | encryption and verification | Create recovery dialog | built | createKit(): kit, Copy, Save as a file, re-entry to confirm | - |
-| HM-SUR-129 | encryption and verification | Verification request dialog and incoming verification | built | incomingVerify() toast (from situations) Accept opens verifyFlow() dialog outside rooms | - |
-| HM-SUR-130 | encryption and verification | Emoji compare, complete and cancelled views | built | verifyFlow() emoji with match/no match, Verified, cancelled with reason | - |
-| HM-SUR-132 | encryption and verification | Toast: verification request | built | incomingVerify() toast "Verification request" with Accept, Decline | - |
+| HM-SUR-129 | encryption and verification | Verification request dialog and incoming verification | built | incomingVerify() toast (from situations) Accept opens verifyFlow() dialog outside rooms; Phase 1 scope is a request from an own device | - |
+| HM-SUR-130 | encryption and verification | Emoji compare, complete and cancelled views | built | verifyFlow() emoji with match/no match, Verified, cancelled with reason; Phase 1 scope is own devices | - |
+| HM-SUR-132 | encryption and verification | Toast: verification request | built | incomingVerify() toast "Verification request" with Accept, Decline; Phase 1 scope is own devices | - |
 | HM-SUR-133 | encryption and verification | Toast: encryption reminders | built | homeBanner(): "Save a recovery kit", then "Verify your other device", one at a time as a dismissible row on top of the chats (the WhatsApp placement), where they were 8-second toasts before | - |
 | HM-SUR-135 | encryption and verification | Identity confirmation screen | built | restore(): device route hidden when offline; Sign out button; reset link | - |
 | HM-SUR-137 | encryption and verification | Identity confirmed screen | built | confirmed() "Sample: nothing was restored" with one Continue | - |
