@@ -72,5 +72,16 @@ definition{
 }
 
 definition{name: lengthAfterEdit, parameters: [position : Nat], result: Nat, body: (position + 1)}
+
+definition{name: buttonSend, parameters: [], result: Nat, body: 0}
+
+definition{name: buttonMicrophone, parameters: [], result: Nat, body: 1}
+
+definition{
+  name: mainButton,
+  parameters: [hasText : Nat, voiceBuilt : Nat],
+  result: Nat,
+  body: (if (1 <=? hasText) then 0 else (if (1 <=? voiceBuilt) then 1 else 0))
+}
 \end{semanticmodule}
 \end{lexlean}

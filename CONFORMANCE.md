@@ -39,7 +39,7 @@ model does not sanction.
 | `MR-05` | `build` | Shift and Enter never sends, and Enter completes a suggestion while the popup is open |
 | `MR-06` | `build` | Unknown markup never renders and an unsafe link scheme never opens |
 | `MR-07` | `build` | The layout has one to three panes, and a phone never shows the list and the timeline together |
-| `MR-08` | `build` | The application answers each of its seven questions with the function the theorems are about, and invalid request for anything else |
+| `MR-08` | `build` | The application answers each of its eleven questions with the function the theorems are about, and invalid request for anything else |
 
 ## Cited authorities
 

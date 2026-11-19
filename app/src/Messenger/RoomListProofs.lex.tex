@@ -75,5 +75,193 @@ theorem{
   proof: reflexivity{},
   axioms: []
 }
+
+theorem{
+  name: chipMatchesInRange,
+  parameters: [chip : Nat, unread : Nat, favourite : Nat, group : Nat, invite : Nat],
+  statement: (((Messenger.RoomList::chipMatches chip unread favourite group invite) <=? 1) = true),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::chipMatches]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: allShowsEveryChat,
+  parameters: [unread : Nat, favourite : Nat, group : Nat, invite : Nat],
+  statement: ((Messenger.RoomList::chipMatches 0 unread favourite group invite) = 1),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::chipMatches]},
+  axioms: [propext]
+}
+
+theorem{
+  name: readChatNeverUnderUnread,
+  parameters: [favourite : Nat, group : Nat, invite : Nat],
+  statement: ((Messenger.RoomList::chipMatches 1 0 favourite group invite) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::chipMatches]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: plainChatNeverUnderFavourites,
+  parameters: [unread : Nat, group : Nat, invite : Nat],
+  statement: ((Messenger.RoomList::chipMatches 2 unread 0 group invite) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::chipMatches]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: directChatNeverUnderGroups,
+  parameters: [unread : Nat, favourite : Nat, invite : Nat],
+  statement: ((Messenger.RoomList::chipMatches 3 unread favourite 0 invite) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::chipMatches]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: inviteOnlyUnderAll,
+  parameters: [chip : Nat, unread : Nat, favourite : Nat, group : Nat, invite : Nat],
+  statement: (((1 <=? chip) && ((1 <=? invite) && (1 <=? (Messenger.RoomList::chipMatches chip unread favourite group invite)))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::chipMatches]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unknownChipShowsNothing,
+  parameters: [chip : Nat, unread : Nat, favourite : Nat, group : Nat, invite : Nat],
+  statement: (((4 <=? chip) && (1 <=? (Messenger.RoomList::chipMatches chip unread favourite group invite))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::chipMatches]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: mutedTimeNeverAccented,
+  parameters: [unread : Nat, muted : Nat],
+  statement: (((1 <=? muted) && (1 <=? (Messenger.RoomList::timeAccented unread muted))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::timeAccented]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: readTimeNeverAccented,
+  parameters: [muted : Nat],
+  statement: ((Messenger.RoomList::timeAccented 0 muted) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::timeAccented]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unreadUnmutedTimeAccented,
+  parameters: [unread : Nat, muted : Nat],
+  statement: (((1 <=? unread) && ((muted =? 0) && ((Messenger.RoomList::timeAccented unread muted) =? 0))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::timeAccented]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: rowMarkInRange,
+  parameters: [unread : Nat, muted : Nat, mentionsOnly : Nat, mention : Nat],
+  statement: (((Messenger.RoomList::rowMark unread muted mentionsOnly mention) <=? 3) = true),
+  proof: linear_arithmetic{
+    definitions: [Messenger.RoomList::itemBadge, Messenger.RoomList::rowMark]
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: mutedRowShowsNoMark,
+  parameters: [unread : Nat, muted : Nat, mentionsOnly : Nat, mention : Nat],
+  statement: (((1 <=? muted) && (1 <=? (Messenger.RoomList::rowMark unread muted mentionsOnly mention))) = false),
+  proof: linear_arithmetic{
+    definitions: [Messenger.RoomList::itemBadge, Messenger.RoomList::rowMark]
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: mentionShowsMentionMark,
+  parameters: [unread : Nat, mentionsOnly : Nat, mention : Nat],
+  statement: (((1 <=? mention) && (((Messenger.RoomList::rowMark unread 0 mentionsOnly mention) <? 3) || (3 <? (Messenger.RoomList::rowMark unread 0 mentionsOnly mention)))) = false),
+  proof: linear_arithmetic{
+    definitions: [Messenger.RoomList::itemBadge, Messenger.RoomList::rowMark]
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: mentionsOnlyShowsDot,
+  parameters: [unread : Nat, mentionsOnly : Nat],
+  statement: (((1 <=? unread) && ((1 <=? mentionsOnly) && (((Messenger.RoomList::rowMark unread 0 mentionsOnly 0) <? 1) || (1 <? (Messenger.RoomList::rowMark unread 0 mentionsOnly 0))))) = false),
+  proof: linear_arithmetic{
+    definitions: [Messenger.RoomList::itemBadge, Messenger.RoomList::rowMark]
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unreadShowsCount,
+  parameters: [unread : Nat],
+  statement: (((1 <=? unread) && (((Messenger.RoomList::rowMark unread 0 0 0) <? 2) || (2 <? (Messenger.RoomList::rowMark unread 0 0 0)))) = false),
+  proof: linear_arithmetic{
+    definitions: [Messenger.RoomList::itemBadge, Messenger.RoomList::rowMark]
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: readRowShowsNoMark,
+  parameters: [muted : Nat, mentionsOnly : Nat],
+  statement: ((Messenger.RoomList::rowMark 0 muted mentionsOnly 0) = 0),
+  proof: linear_arithmetic{
+    definitions: [Messenger.RoomList::itemBadge, Messenger.RoomList::rowMark]
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: neverBothPinnedFirst,
+  parameters: [aPinned : Nat, bPinned : Nat, aNewer : Nat, bNewer : Nat],
+  statement: ((((aNewer =? 0) || (bNewer =? 0)) && (2 <=? ((Messenger.RoomList::pinnedFirst aPinned bPinned aNewer) + (Messenger.RoomList::pinnedFirst bPinned aPinned bNewer)))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::pinnedFirst]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: pinnedPrecedesUnpinned,
+  parameters: [aPinned : Nat, aNewer : Nat],
+  statement: (((1 <=? aPinned) && ((Messenger.RoomList::pinnedFirst aPinned 0 aNewer) =? 0)) = false),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::pinnedFirst]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unpinnedNeverPrecedesPinned,
+  parameters: [bPinned : Nat, aNewer : Nat],
+  statement: (((1 <=? bPinned) && (1 <=? (Messenger.RoomList::pinnedFirst 0 bPinned aNewer))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::pinnedFirst]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: previewKindInRange,
+  parameters: [kind : Nat],
+  statement: (((Messenger.RoomList::previewKind kind) <=? 6) = true),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::previewKind]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unknownPreviewFallsToText,
+  parameters: [kind : Nat],
+  statement: (((7 <=? kind) && (1 <=? (Messenger.RoomList::previewKind kind))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::previewKind]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: chatListExamples,
+  parameters: [],
+  statement: ((((Messenger.RoomList::chipAll) =? 0) && (((Messenger.RoomList::chipUnread) =? 1) && (((Messenger.RoomList::chipFavourites) =? 2) && (((Messenger.RoomList::chipGroups) =? 3) && (((Messenger.RoomList::markNone) =? 0) && (((Messenger.RoomList::markDot) =? 1) && (((Messenger.RoomList::markCount) =? 2) && (((Messenger.RoomList::markMention) =? 3) && (((Messenger.RoomList::previewText) =? 0) && (((Messenger.RoomList::previewPhoto) =? 1) && (((Messenger.RoomList::previewVideo) =? 2) && (((Messenger.RoomList::previewFile) =? 3) && (((Messenger.RoomList::previewVoice) =? 4) && (((Messenger.RoomList::previewCall) =? 5) && (((Messenger.RoomList::previewDeleted) =? 6) && (((Messenger.RoomList::chipMatches (Messenger.RoomList::chipUnread) 2 0 0 0) =? 1) && (((Messenger.RoomList::chipMatches (Messenger.RoomList::chipGroups) 0 0 1 0) =? 1) && (((Messenger.RoomList::chipMatches (Messenger.RoomList::chipFavourites) 0 1 0 1) =? 0) && (((Messenger.RoomList::timeAccented 3 0) =? 1) && (((Messenger.RoomList::rowMark 3 0 0 0) =? (Messenger.RoomList::markCount)) && (((Messenger.RoomList::rowMark 3 0 1 0) =? (Messenger.RoomList::markDot)) && (((Messenger.RoomList::rowMark 3 0 1 1) =? (Messenger.RoomList::markMention)) && (((Messenger.RoomList::rowMark 3 1 0 1) =? (Messenger.RoomList::markNone)) && (((Messenger.RoomList::pinnedFirst 1 0 0) =? 1) && (((Messenger.RoomList::pinnedFirst 0 0 1) =? 1) && (((Messenger.RoomList::pinnedFirst 1 1 0) =? 0) && (((Messenger.RoomList::previewKind (Messenger.RoomList::previewVoice)) =? 4) && ((Messenger.RoomList::previewKind 7) =? (Messenger.RoomList::previewText))))))))))))))))))))))))))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
 \end{semanticmodule}
 \end{lexlean}

@@ -125,5 +125,45 @@ theorem{
   proof: reflexivity{},
   axioms: []
 }
+
+theorem{
+  name: mainButtonInRange,
+  parameters: [hasText : Nat, voiceBuilt : Nat],
+  statement: (((Messenger.Composer::mainButton hasText voiceBuilt) <=? 1) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Composer::mainButton]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: textAlwaysGivesSend,
+  parameters: [hasText : Nat, voiceBuilt : Nat],
+  statement: (((1 <=? hasText) && (1 <=? (Messenger.Composer::mainButton hasText voiceBuilt))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Composer::mainButton]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: withoutVoiceAlwaysSend,
+  parameters: [hasText : Nat],
+  statement: ((Messenger.Composer::mainButton hasText 0) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Composer::mainButton]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: emptyBoxWithVoiceGivesMicrophone,
+  parameters: [voiceBuilt : Nat],
+  statement: (((1 <=? voiceBuilt) && (((Messenger.Composer::mainButton 0 voiceBuilt) <? 1) || (1 <? (Messenger.Composer::mainButton 0 voiceBuilt)))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Composer::mainButton]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: mainButtonExamples,
+  parameters: [],
+  statement: ((((Messenger.Composer::buttonSend) =? 0) && (((Messenger.Composer::buttonMicrophone) =? 1) && (((Messenger.Composer::mainButton 0 1) =? (Messenger.Composer::buttonMicrophone)) && (((Messenger.Composer::mainButton 1 1) =? (Messenger.Composer::buttonSend)) && ((Messenger.Composer::mainButton 0 0) =? (Messenger.Composer::buttonSend)))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
 \end{semanticmodule}
 \end{lexlean}

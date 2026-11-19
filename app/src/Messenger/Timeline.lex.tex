@@ -66,5 +66,94 @@ definition{
   result: Nat,
   body: (if (target <=? 4) then (target + 1) else 0)
 }
+
+definition{name: sideLeft, parameters: [], result: Nat, body: 0}
+
+definition{name: sideRight, parameters: [], result: Nat, body: 1}
+
+definition{name: groupMinutes, parameters: [], result: Nat, body: 5}
+
+definition{name: labelToday, parameters: [], result: Nat, body: 0}
+
+definition{name: labelYesterday, parameters: [], result: Nat, body: 1}
+
+definition{name: labelWeekday, parameters: [], result: Nat, body: 2}
+
+definition{name: labelDate, parameters: [], result: Nat, body: 3}
+
+definition{name: stateNone, parameters: [], result: Nat, body: 0}
+
+definition{name: stateQueued, parameters: [], result: Nat, body: 1}
+
+definition{name: stateSentFromDevice, parameters: [], result: Nat, body: 2}
+
+definition{name: stateDelivered, parameters: [], result: Nat, body: 3}
+
+definition{name: stateRead, parameters: [], result: Nat, body: 4}
+
+definition{name: tickNone, parameters: [], result: Nat, body: 0}
+
+definition{name: tickClock, parameters: [], result: Nat, body: 1}
+
+definition{name: tickOne, parameters: [], result: Nat, body: 2}
+
+definition{name: tickTwo, parameters: [], result: Nat, body: 3}
+
+definition{name: tickTwoAccent, parameters: [], result: Nat, body: 4}
+
+definition{name: callOut, parameters: [], result: Nat, body: 0}
+
+definition{name: callIn, parameters: [], result: Nat, body: 1}
+
+definition{name: callMissedIn, parameters: [], result: Nat, body: 2}
+
+definition{
+  name: bubbleSide,
+  parameters: [own : Nat],
+  result: Nat,
+  body: (if (1 <=? own) then 1 else 0)
+}
+
+definition{
+  name: tailShown,
+  parameters: [firstOfGroup : Nat],
+  result: Nat,
+  body: (if (1 <=? firstOfGroup) then 1 else 0)
+}
+
+definition{
+  name: groupsWith,
+  parameters: [sameSender : Nat, sameDay : Nat, minutesApart : Nat, previousIsMessage : Nat],
+  result: Nat,
+  body: (if (sameSender =? 0) then 0 else (if (sameDay =? 0) then 0 else (if (previousIsMessage =? 0) then 0 else (if (minutesApart <? (groupMinutes)) then 1 else 0))))
+}
+
+definition{
+  name: dayLabel,
+  parameters: [daysAgo : Nat],
+  result: Nat,
+  body: (if (daysAgo =? 0) then 0 else (if (daysAgo =? 1) then 1 else (if (daysAgo <? 7) then 2 else 3)))
+}
+
+definition{
+  name: tickShown,
+  parameters: [state : Nat, engineKnowsDelivery : Nat, engineKnowsRead : Nat],
+  result: Nat,
+  body: (if (state =? 1) then 1 else (if (state =? 2) then 2 else (if (state =? 3) then (if (1 <=? engineKnowsDelivery) then 3 else 2) else (if (state =? 4) then (if (1 <=? engineKnowsDelivery) then (if (1 <=? engineKnowsRead) then 4 else 3) else 2) else 0))))
+}
+
+definition{
+  name: callNameAccent,
+  parameters: [missed : Nat],
+  result: Nat,
+  body: (if (1 <=? missed) then 1 else 0)
+}
+
+definition{
+  name: callMark,
+  parameters: [outgoing : Nat, missed : Nat],
+  result: Nat,
+  body: (if (1 <=? outgoing) then 0 else (if (1 <=? missed) then 2 else 1))
+}
 \end{semanticmodule}
 \end{lexlean}

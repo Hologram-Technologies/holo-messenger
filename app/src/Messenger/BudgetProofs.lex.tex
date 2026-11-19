@@ -27,5 +27,61 @@ theorem{
   proof: reflexivity{},
   axioms: []
 }
+
+theorem{
+  name: textNeverSmallerThanMeta,
+  parameters: [],
+  statement: ((((Messenger.Budget::metaSize) <=? (Messenger.Budget::titleSize)) && (((Messenger.Budget::metaSize) <=? (Messenger.Budget::nameSize)) && (((Messenger.Budget::metaSize) <=? (Messenger.Budget::previewSize)) && ((Messenger.Budget::metaSize) <=? (Messenger.Budget::messageSize))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: metaSizeReadable,
+  parameters: [],
+  statement: ((11 <=? (Messenger.Budget::metaSize)) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: touchTargetLargeEnough,
+  parameters: [],
+  statement: ((48 <=? (Messenger.Budget::touchTarget)) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: rowFitsTouchTarget,
+  parameters: [],
+  statement: (((Messenger.Budget::touchTarget) <=? (Messenger.Budget::rowHeight)) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: heightsOnGrid,
+  parameters: [],
+  statement: ((((prim remainder (Messenger.Budget::rowHeight) (Messenger.Budget::gridStep) 0 : Nat) =? 0) && (((prim remainder (Messenger.Budget::pictureSize) (Messenger.Budget::gridStep) 0 : Nat) =? 0) && (((prim remainder (Messenger.Budget::tabBarHeight) (Messenger.Budget::gridStep) 0 : Nat) =? 0) && (((prim remainder (Messenger.Budget::searchHeight) (Messenger.Budget::gridStep) 0 : Nat) =? 0) && (((prim remainder (Messenger.Budget::chipHeight) (Messenger.Budget::gridStep) 0 : Nat) =? 0) && (((prim remainder (Messenger.Budget::composerHeight) (Messenger.Budget::gridStep) 0 : Nat) =? 0) && (((prim remainder (Messenger.Budget::roundButtonSize) (Messenger.Budget::gridStep) 0 : Nat) =? 0) && ((prim remainder (Messenger.Budget::touchTarget) (Messenger.Budget::gridStep) 0 : Nat) =? 0)))))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: bubbleFitsWidth,
+  parameters: [],
+  statement: (((Messenger.Budget::bubbleMaxPercent) <=? 100) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: sizeExamples,
+  parameters: [],
+  statement: ((((Messenger.Budget::titleSize) =? 20) && (((Messenger.Budget::nameSize) =? 16) && (((Messenger.Budget::previewSize) =? 15) && (((Messenger.Budget::messageSize) =? 16) && (((Messenger.Budget::metaSize) =? 12) && (((Messenger.Budget::rowHeight) =? 72) && (((Messenger.Budget::pictureSize) =? 52) && (((Messenger.Budget::tabBarHeight) =? 84) && (((Messenger.Budget::searchHeight) =? 52) && (((Messenger.Budget::chipHeight) =? 32) && (((Messenger.Budget::composerHeight) =? 52) && (((Messenger.Budget::roundButtonSize) =? 52) && (((Messenger.Budget::touchTarget) =? 48) && (((Messenger.Budget::gridStep) =? 4) && (((Messenger.Budget::bubbleMaxPercent) =? 80) && ((Messenger.Budget::textScaleNoted) =? 130)))))))))))))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
 \end{semanticmodule}
 \end{lexlean}

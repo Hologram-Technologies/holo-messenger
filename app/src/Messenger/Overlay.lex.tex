@@ -38,5 +38,37 @@ definition{
   result: Nat,
   body: (if (x <? y) then y else x)
 }
+
+definition{name: kindMenu, parameters: [], result: Nat, body: 0}
+
+definition{name: kindChoice, parameters: [], result: Nat, body: 1}
+
+definition{name: kindBlocking, parameters: [], result: Nat, body: 2}
+
+definition{name: surfaceAnchored, parameters: [], result: Nat, body: 0}
+
+definition{name: surfaceSheet, parameters: [], result: Nat, body: 1}
+
+definition{name: surfaceCentred, parameters: [], result: Nat, body: 2}
+
+definition{name: partWhy, parameters: [], result: Nat, body: 0}
+
+definition{name: partHow, parameters: [], result: Nat, body: 1}
+
+definition{name: partWhat, parameters: [], result: Nat, body: 2}
+
+definition{
+  name: surfaceFor,
+  parameters: [kind : Nat, panes : Nat],
+  result: Nat,
+  body: (if (kind =? 2) then 2 else (if (kind =? 1) then (if (panes <=? 1) then 1 else 0) else 0))
+}
+
+definition{
+  name: explainOrdered,
+  parameters: [opening : Nat, middle : Nat, closing : Nat],
+  result: Nat,
+  body: (if (opening =? 0) then (if (middle =? 1) then (if (closing =? 2) then 1 else 0) else 0) else 0)
+}
 \end{semanticmodule}
 \end{lexlean}

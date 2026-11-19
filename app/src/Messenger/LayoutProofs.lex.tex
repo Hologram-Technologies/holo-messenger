@@ -87,5 +87,193 @@ theorem{
   proof: reflexivity{},
   axioms: []
 }
+
+theorem{
+  name: tabShownInRange,
+  parameters: [tab : Nat, callsBuilt : Nat, spacesBuilt : Nat, statusBuilt : Nat],
+  statement: (((Messenger.Layout::tabShown tab callsBuilt spacesBuilt statusBuilt) <=? 1) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::tabShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unbuiltUpdatesNeverShown,
+  parameters: [callsBuilt : Nat, spacesBuilt : Nat],
+  statement: ((Messenger.Layout::tabShown 1 callsBuilt spacesBuilt 0) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::tabShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unbuiltSpacesNeverShown,
+  parameters: [callsBuilt : Nat, statusBuilt : Nat],
+  statement: ((Messenger.Layout::tabShown 2 callsBuilt 0 statusBuilt) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::tabShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unbuiltCallsNeverShown,
+  parameters: [spacesBuilt : Nat, statusBuilt : Nat],
+  statement: ((Messenger.Layout::tabShown 3 0 spacesBuilt statusBuilt) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::tabShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: chatsAlwaysShown,
+  parameters: [callsBuilt : Nat, spacesBuilt : Nat, statusBuilt : Nat],
+  statement: ((Messenger.Layout::tabShown 0 callsBuilt spacesBuilt statusBuilt) = 1),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::tabShown]},
+  axioms: [propext]
+}
+
+theorem{
+  name: youAlwaysShown,
+  parameters: [callsBuilt : Nat, spacesBuilt : Nat, statusBuilt : Nat],
+  statement: ((Messenger.Layout::tabShown 4 callsBuilt spacesBuilt statusBuilt) = 1),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::tabShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unknownTabNeverShown,
+  parameters: [tab : Nat, callsBuilt : Nat, spacesBuilt : Nat, statusBuilt : Nat],
+  statement: (((5 <=? tab) && (1 <=? (Messenger.Layout::tabShown tab callsBuilt spacesBuilt statusBuilt))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::tabShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: atLeastTwoTabs,
+  parameters: [callsBuilt : Nat, spacesBuilt : Nat, statusBuilt : Nat],
+  statement: ((2 <=? (Messenger.Layout::tabCount callsBuilt spacesBuilt statusBuilt)) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::tabCount]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: atMostFiveTabs,
+  parameters: [callsBuilt : Nat, spacesBuilt : Nat, statusBuilt : Nat],
+  statement: (((Messenger.Layout::tabCount callsBuilt spacesBuilt statusBuilt) <=? 5) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::tabCount]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: tabCountCountsShownTabs,
+  parameters: [callsBuilt : Nat, spacesBuilt : Nat, statusBuilt : Nat],
+  statement: ((Messenger.Layout::tabCount callsBuilt spacesBuilt statusBuilt) = ((Messenger.Layout::tabShown 0 callsBuilt spacesBuilt statusBuilt) + ((Messenger.Layout::tabShown 1 callsBuilt spacesBuilt statusBuilt) + ((Messenger.Layout::tabShown 2 callsBuilt spacesBuilt statusBuilt) + ((Messenger.Layout::tabShown 3 callsBuilt spacesBuilt statusBuilt) + (Messenger.Layout::tabShown 4 callsBuilt spacesBuilt statusBuilt)))))),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::tabCount, Messenger.Layout::tabShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: callButtonsNeedCalls,
+  parameters: [joined : Nat],
+  statement: ((Messenger.Layout::callButtonsShown 0 joined) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::callButtonsShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: callButtonsNeedMembership,
+  parameters: [callsBuilt : Nat],
+  statement: ((Messenger.Layout::callButtonsShown callsBuilt 0) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::callButtonsShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: overflowItemInRange,
+  parameters: [
+    item : Nat,
+    groupsBuilt : Nat,
+    devicesBuilt : Nat,
+    starredBuilt : Nat,
+    unreadCount : Nat
+  ],
+  statement: (((Messenger.Layout::overflowItem item groupsBuilt devicesBuilt starredBuilt unreadCount) <=? 1) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::overflowItem]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unbuiltGroupsNeverOffered,
+  parameters: [devicesBuilt : Nat, starredBuilt : Nat, unreadCount : Nat],
+  statement: ((Messenger.Layout::overflowItem 0 0 devicesBuilt starredBuilt unreadCount) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::overflowItem]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unbuiltDevicesNeverOffered,
+  parameters: [groupsBuilt : Nat, starredBuilt : Nat, unreadCount : Nat],
+  statement: ((Messenger.Layout::overflowItem 1 groupsBuilt 0 starredBuilt unreadCount) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::overflowItem]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unbuiltStarredNeverOffered,
+  parameters: [groupsBuilt : Nat, devicesBuilt : Nat, unreadCount : Nat],
+  statement: ((Messenger.Layout::overflowItem 2 groupsBuilt devicesBuilt 0 unreadCount) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::overflowItem]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: readAllNeedsUnread,
+  parameters: [groupsBuilt : Nat, devicesBuilt : Nat, starredBuilt : Nat],
+  statement: ((Messenger.Layout::overflowItem 3 groupsBuilt devicesBuilt starredBuilt 0) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::overflowItem]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: settingsAlwaysOffered,
+  parameters: [groupsBuilt : Nat, devicesBuilt : Nat, starredBuilt : Nat, unreadCount : Nat],
+  statement: ((Messenger.Layout::overflowItem 4 groupsBuilt devicesBuilt starredBuilt unreadCount) = 1),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::overflowItem]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unknownItemNeverOffered,
+  parameters: [
+    item : Nat,
+    groupsBuilt : Nat,
+    devicesBuilt : Nat,
+    starredBuilt : Nat,
+    unreadCount : Nat
+  ],
+  statement: (((5 <=? item) && (1 <=? (Messenger.Layout::overflowItem item groupsBuilt devicesBuilt starredBuilt unreadCount))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::overflowItem]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: bottomTabsOnlyOnOnePane,
+  parameters: [width : Nat],
+  statement: (((Messenger.Layout::bottomTabs width) && (2 <=? (Messenger.Layout::panes width))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::bottomTabs, Messenger.Layout::panes]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: onePaneHasBottomTabs,
+  parameters: [width : Nat],
+  statement: (((Messenger.Layout::bottomTabs width) || (2 <=? (Messenger.Layout::panes width))) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::bottomTabs, Messenger.Layout::panes]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: shellExamples,
+  parameters: [],
+  statement: ((((Messenger.Layout::tabChats) =? 0) && (((Messenger.Layout::tabUpdates) =? 1) && (((Messenger.Layout::tabSpaces) =? 2) && (((Messenger.Layout::tabCalls) =? 3) && (((Messenger.Layout::tabYou) =? 4) && (((Messenger.Layout::itemNewGroup) =? 0) && (((Messenger.Layout::itemLinkedDevices) =? 1) && (((Messenger.Layout::itemStarred) =? 2) && (((Messenger.Layout::itemReadAll) =? 3) && (((Messenger.Layout::itemSettings) =? 4) && (((Messenger.Layout::tabCount 0 0 0) =? 2) && (((Messenger.Layout::tabCount 1 1 0) =? 4) && (((Messenger.Layout::tabCount 1 1 1) =? 5) && (((Messenger.Layout::tabShown (Messenger.Layout::tabCalls) 1 0 0) =? 1) && (((Messenger.Layout::callButtonsShown 1 1) =? 1) && (((Messenger.Layout::overflowItem (Messenger.Layout::itemReadAll) 0 0 0 3) =? 1) && ((Messenger.Layout::overflowItem (Messenger.Layout::itemStarred) 1 1 0 3) =? 0))))))))))))))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
 \end{semanticmodule}
 \end{lexlean}

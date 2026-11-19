@@ -77,7 +77,7 @@ statement = "The layout has one to three panes, and a phone never shows the list
 id = "MR-08"
 level = "build"
 suite = "rules"
-statement = "The application answers each of its seven questions with the function the theorems are about, and invalid request for anything else"
+statement = "The application answers each of its eleven questions with the function the theorems are about, and invalid request for anything else"
 
 [[id]]
 id = "FR-01"

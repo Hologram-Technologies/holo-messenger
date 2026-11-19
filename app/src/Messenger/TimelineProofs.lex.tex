@@ -147,5 +147,191 @@ theorem{
   proof: reflexivity{},
   axioms: []
 }
+
+theorem{
+  name: bubbleSideInRange,
+  parameters: [own : Nat],
+  statement: (((Messenger.Timeline::bubbleSide own) <=? 1) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::bubbleSide]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: incomingOnLeft,
+  parameters: [],
+  statement: ((Messenger.Timeline::bubbleSide 0) = 0),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: ownOnRight,
+  parameters: [own : Nat],
+  statement: (((1 <=? own) && (((Messenger.Timeline::bubbleSide own) <? 1) || (1 <? (Messenger.Timeline::bubbleSide own)))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::bubbleSide]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: tailOnlyOnFirstOfGroup,
+  parameters: [],
+  statement: ((Messenger.Timeline::tailShown 0) = 0),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: firstOfGroupHasTail,
+  parameters: [firstOfGroup : Nat],
+  statement: (((1 <=? firstOfGroup) && (((Messenger.Timeline::tailShown firstOfGroup) <? 1) || (1 <? (Messenger.Timeline::tailShown firstOfGroup)))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::tailShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: groupsWithInRange,
+  parameters: [sameSender : Nat, sameDay : Nat, minutesApart : Nat, previousIsMessage : Nat],
+  statement: (((Messenger.Timeline::groupsWith sameSender sameDay minutesApart previousIsMessage) <=? 1) = true),
+  proof: linear_arithmetic{
+    definitions: [Messenger.Timeline::groupMinutes, Messenger.Timeline::groupsWith]
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: differentSenderNeverGroups,
+  parameters: [sameDay : Nat, minutesApart : Nat, previousIsMessage : Nat],
+  statement: ((Messenger.Timeline::groupsWith 0 sameDay minutesApart previousIsMessage) = 0),
+  proof: linear_arithmetic{
+    definitions: [Messenger.Timeline::groupMinutes, Messenger.Timeline::groupsWith]
+  },
+  axioms: [propext]
+}
+
+theorem{
+  name: differentDayNeverGroups,
+  parameters: [sameSender : Nat, minutesApart : Nat, previousIsMessage : Nat],
+  statement: ((Messenger.Timeline::groupsWith sameSender 0 minutesApart previousIsMessage) = 0),
+  proof: linear_arithmetic{
+    definitions: [Messenger.Timeline::groupMinutes, Messenger.Timeline::groupsWith]
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: afterNonMessageNeverGroups,
+  parameters: [sameSender : Nat, sameDay : Nat, minutesApart : Nat],
+  statement: ((Messenger.Timeline::groupsWith sameSender sameDay minutesApart 0) = 0),
+  proof: linear_arithmetic{
+    definitions: [Messenger.Timeline::groupMinutes, Messenger.Timeline::groupsWith]
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: longGapNeverGroups,
+  parameters: [sameSender : Nat, sameDay : Nat, minutesApart : Nat, previousIsMessage : Nat],
+  statement: ((((Messenger.Timeline::groupMinutes) <=? minutesApart) && (1 <=? (Messenger.Timeline::groupsWith sameSender sameDay minutesApart previousIsMessage))) = false),
+  proof: linear_arithmetic{
+    definitions: [Messenger.Timeline::groupMinutes, Messenger.Timeline::groupsWith]
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: dayLabelInRange,
+  parameters: [daysAgo : Nat],
+  statement: (((Messenger.Timeline::dayLabel daysAgo) <=? 3) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::dayLabel]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: dayLabelNeverGoesBack,
+  parameters: [earlier : Nat, later : Nat],
+  statement: (((earlier <=? later) && ((Messenger.Timeline::dayLabel later) <? (Messenger.Timeline::dayLabel earlier))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::dayLabel]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: tickInRange,
+  parameters: [state : Nat, engineKnowsDelivery : Nat, engineKnowsRead : Nat],
+  statement: (((Messenger.Timeline::tickShown state engineKnowsDelivery engineKnowsRead) <=? 4) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::tickShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: noDoubleTickWithoutDelivery,
+  parameters: [state : Nat, engineKnowsRead : Nat],
+  statement: ((3 <=? (Messenger.Timeline::tickShown state 0 engineKnowsRead)) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::tickShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: noAccentWithoutRead,
+  parameters: [state : Nat, engineKnowsDelivery : Nat],
+  statement: ((4 <=? (Messenger.Timeline::tickShown state engineKnowsDelivery 0)) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::tickShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: queuedShowsClock,
+  parameters: [engineKnowsDelivery : Nat, engineKnowsRead : Nat],
+  statement: ((Messenger.Timeline::tickShown 1 engineKnowsDelivery engineKnowsRead) = 1),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::tickShown]},
+  axioms: [propext]
+}
+
+theorem{
+  name: unknownStateShowsNoTick,
+  parameters: [state : Nat, engineKnowsDelivery : Nat, engineKnowsRead : Nat],
+  statement: (((5 <=? state) && (1 <=? (Messenger.Timeline::tickShown state engineKnowsDelivery engineKnowsRead))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::tickShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: missedCallNameAccented,
+  parameters: [missed : Nat],
+  statement: (((1 <=? missed) && (((Messenger.Timeline::callNameAccent missed) <? 1) || (1 <? (Messenger.Timeline::callNameAccent missed)))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::callNameAccent]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: answeredCallNameNotAccented,
+  parameters: [],
+  statement: ((Messenger.Timeline::callNameAccent 0) = 0),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: callMarkInRange,
+  parameters: [outgoing : Nat, missed : Nat],
+  statement: (((Messenger.Timeline::callMark outgoing missed) <=? 2) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::callMark]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: outgoingNeverMarkedMissed,
+  parameters: [outgoing : Nat, missed : Nat],
+  statement: (((1 <=? outgoing) && (1 <=? (Messenger.Timeline::callMark outgoing missed))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::callMark]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: bubbleExamples,
+  parameters: [],
+  statement: ((((Messenger.Timeline::sideLeft) =? 0) && (((Messenger.Timeline::sideRight) =? 1) && (((Messenger.Timeline::groupMinutes) =? 5) && (((Messenger.Timeline::labelToday) =? 0) && (((Messenger.Timeline::labelYesterday) =? 1) && (((Messenger.Timeline::labelWeekday) =? 2) && (((Messenger.Timeline::labelDate) =? 3) && (((Messenger.Timeline::stateNone) =? 0) && (((Messenger.Timeline::stateQueued) =? 1) && (((Messenger.Timeline::stateSentFromDevice) =? 2) && (((Messenger.Timeline::stateDelivered) =? 3) && (((Messenger.Timeline::stateRead) =? 4) && (((Messenger.Timeline::tickNone) =? 0) && (((Messenger.Timeline::tickClock) =? 1) && (((Messenger.Timeline::tickOne) =? 2) && (((Messenger.Timeline::tickTwo) =? 3) && (((Messenger.Timeline::tickTwoAccent) =? 4) && (((Messenger.Timeline::callOut) =? 0) && (((Messenger.Timeline::callIn) =? 1) && (((Messenger.Timeline::callMissedIn) =? 2) && (((Messenger.Timeline::bubbleSide 1) =? (Messenger.Timeline::sideRight)) && (((Messenger.Timeline::tailShown 1) =? 1) && (((Messenger.Timeline::groupsWith 1 1 4 1) =? 1) && (((Messenger.Timeline::groupsWith 1 1 5 1) =? 0) && (((Messenger.Timeline::dayLabel 0) =? 0) && (((Messenger.Timeline::dayLabel 1) =? 1) && (((Messenger.Timeline::dayLabel 2) =? 2) && (((Messenger.Timeline::dayLabel 6) =? 2) && (((Messenger.Timeline::dayLabel 7) =? 3) && (((Messenger.Timeline::dayLabel 400) =? 3) && (((Messenger.Timeline::tickShown 0 1 1) =? 0) && (((Messenger.Timeline::tickShown 2 1 1) =? 2) && (((Messenger.Timeline::tickShown 3 1 0) =? 3) && (((Messenger.Timeline::tickShown 4 1 1) =? 4) && (((Messenger.Timeline::tickShown 4 1 0) =? 3) && (((Messenger.Timeline::tickShown 4 0 1) =? 2) && (((Messenger.Timeline::callNameAccent 1) =? 1) && (((Messenger.Timeline::callMark 0 0) =? (Messenger.Timeline::callIn)) && (((Messenger.Timeline::callMark 0 1) =? (Messenger.Timeline::callMissedIn)) && ((Messenger.Timeline::callMark 1 1) =? (Messenger.Timeline::callOut))))))))))))))))))))))))))))))))))))))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
 \end{semanticmodule}
 \end{lexlean}

@@ -2,7 +2,7 @@
   "name": "Messenger rules",
   "shortName": "Rules",
   "live": "https://hologram-technologies.github.io/holo-messenger/",
-  "purpose": "Decides one client question for Holo Messenger with no server to ask: which screen shows, whether to notify, whether a message action is offered, where a link lands, what Enter does, whether a link opens, or how many panes fit. Send one request; it answers with the decision, and invalid request for anything else.",
+  "purpose": "Decides one client question for Holo Messenger with no server to ask: which screen shows, whether to notify, whether a message action is offered, where a link lands, what Enter does, whether a link opens, how many panes fit, which tabs show, whether the main button sends or records, which tick a message shows, or how a day is labelled. Send one request; it answers with the decision, and invalid request for anything else.",
   "inputLabel": "Request",
   "placeholder": "hex: one operation byte, then that operation's fields",
   "submitLabel": "Decide",
@@ -18,7 +18,21 @@
       "opens",
       "one",
       "two",
-      "three"
+      "three",
+      "chats you",
+      "chats calls you",
+      "chats spaces you",
+      "chats spaces calls you",
+      "chats updates you",
+      "chats updates calls you",
+      "chats updates spaces you",
+      "chats updates spaces calls you",
+      "microphone",
+      "accent",
+      "today",
+      "yesterday",
+      "weekday",
+      "date"
     ],
     "negative": [
       "loading",
@@ -34,13 +48,14 @@
       "settings",
       "newline",
       "complete",
-      "blocked"
+      "blocked",
+      "clock"
     ],
     "refusal": "invalid request"
   },
   "promise": {
     "headline": "Answers each client question with a rule Lean has checked.",
-    "detail": "Seven questions, each decided by a function in the model; the theorems about those functions are checked by the Lean kernel."
+    "detail": "Eleven questions, each decided by a function in the model; the theorems about those functions are checked by the Lean kernel."
   },
   "claim": "MR-01 to MR-08: each answer is decided by the function the theorems are about.",
   "proposition": {

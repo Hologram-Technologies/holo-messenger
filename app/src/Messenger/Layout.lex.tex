@@ -45,5 +45,59 @@ definition{
   result: Nat,
   body: (if (isSpace =? 0) then (if (isPlaceholder =? 0) then 1 else 0) else 0)
 }
+
+definition{name: tabChats, parameters: [], result: Nat, body: 0}
+
+definition{name: tabUpdates, parameters: [], result: Nat, body: 1}
+
+definition{name: tabSpaces, parameters: [], result: Nat, body: 2}
+
+definition{name: tabCalls, parameters: [], result: Nat, body: 3}
+
+definition{name: tabYou, parameters: [], result: Nat, body: 4}
+
+definition{name: itemNewGroup, parameters: [], result: Nat, body: 0}
+
+definition{name: itemLinkedDevices, parameters: [], result: Nat, body: 1}
+
+definition{name: itemStarred, parameters: [], result: Nat, body: 2}
+
+definition{name: itemReadAll, parameters: [], result: Nat, body: 3}
+
+definition{name: itemSettings, parameters: [], result: Nat, body: 4}
+
+definition{
+  name: tabShown,
+  parameters: [tab : Nat, callsBuilt : Nat, spacesBuilt : Nat, statusBuilt : Nat],
+  result: Nat,
+  body: (if (tab =? 0) then 1 else (if (tab =? 1) then (if (1 <=? statusBuilt) then 1 else 0) else (if (tab =? 2) then (if (1 <=? spacesBuilt) then 1 else 0) else (if (tab =? 3) then (if (1 <=? callsBuilt) then 1 else 0) else (if (tab =? 4) then 1 else 0)))))
+}
+
+definition{
+  name: tabCount,
+  parameters: [callsBuilt : Nat, spacesBuilt : Nat, statusBuilt : Nat],
+  result: Nat,
+  body: (2 + ((if (1 <=? callsBuilt) then 1 else 0) + ((if (1 <=? spacesBuilt) then 1 else 0) + (if (1 <=? statusBuilt) then 1 else 0))))
+}
+
+definition{
+  name: callButtonsShown,
+  parameters: [callsBuilt : Nat, joined : Nat],
+  result: Nat,
+  body: (if (1 <=? callsBuilt) then (if (1 <=? joined) then 1 else 0) else 0)
+}
+
+definition{
+  name: overflowItem,
+  parameters: [
+    item : Nat,
+    groupsBuilt : Nat,
+    devicesBuilt : Nat,
+    starredBuilt : Nat,
+    unreadCount : Nat
+  ],
+  result: Nat,
+  body: (if (item =? 0) then (if (1 <=? groupsBuilt) then 1 else 0) else (if (item =? 1) then (if (1 <=? devicesBuilt) then 1 else 0) else (if (item =? 2) then (if (1 <=? starredBuilt) then 1 else 0) else (if (item =? 3) then (if (1 <=? unreadCount) then 1 else 0) else (if (item =? 4) then 1 else 0)))))
+}
 \end{semanticmodule}
 \end{lexlean}

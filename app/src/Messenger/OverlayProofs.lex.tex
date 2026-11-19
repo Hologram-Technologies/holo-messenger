@@ -61,5 +61,77 @@ theorem{
   proof: linear_arithmetic{definitions: [Messenger.Overlay::topToast]},
   axioms: [Quot.sound, propext]
 }
+
+theorem{
+  name: surfaceInRange,
+  parameters: [kind : Nat, panes : Nat],
+  statement: (((Messenger.Overlay::surfaceFor kind panes) <=? 2) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Overlay::surfaceFor]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: blockingAlwaysCentred,
+  parameters: [panes : Nat],
+  statement: ((Messenger.Overlay::surfaceFor 2 panes) = 2),
+  proof: linear_arithmetic{definitions: [Messenger.Overlay::surfaceFor]},
+  axioms: [propext]
+}
+
+theorem{
+  name: onlyBlockingIsCentred,
+  parameters: [kind : Nat, panes : Nat],
+  statement: ((((kind <? 2) || (2 <? kind)) && (2 <=? (Messenger.Overlay::surfaceFor kind panes))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Overlay::surfaceFor]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: menuAlwaysAnchored,
+  parameters: [panes : Nat],
+  statement: ((Messenger.Overlay::surfaceFor 0 panes) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Overlay::surfaceFor]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: sheetOnlyOnOnePane,
+  parameters: [kind : Nat, panes : Nat],
+  statement: (((2 <=? panes) && ((Messenger.Overlay::surfaceFor kind panes) =? 1)) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Overlay::surfaceFor]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: explainOrderedInRange,
+  parameters: [opening : Nat, middle : Nat, closing : Nat],
+  statement: (((Messenger.Overlay::explainOrdered opening middle closing) <=? 1) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Overlay::explainOrdered]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: whyHowWhatAccepted,
+  parameters: [],
+  statement: ((Messenger.Overlay::explainOrdered 0 1 2) = 1),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: anyOtherOrderRefused,
+  parameters: [opening : Nat, middle : Nat, closing : Nat],
+  statement: ((((1 <=? opening) || (((middle <? 1) || (1 <? middle)) || ((closing <? 2) || (2 <? closing)))) && (1 <=? (Messenger.Overlay::explainOrdered opening middle closing))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Overlay::explainOrdered]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: surfaceExamples,
+  parameters: [],
+  statement: ((((Messenger.Overlay::kindMenu) =? 0) && (((Messenger.Overlay::kindChoice) =? 1) && (((Messenger.Overlay::kindBlocking) =? 2) && (((Messenger.Overlay::surfaceAnchored) =? 0) && (((Messenger.Overlay::surfaceSheet) =? 1) && (((Messenger.Overlay::surfaceCentred) =? 2) && (((Messenger.Overlay::partWhy) =? 0) && (((Messenger.Overlay::partHow) =? 1) && (((Messenger.Overlay::partWhat) =? 2) && (((Messenger.Overlay::surfaceFor (Messenger.Overlay::kindChoice) 1) =? (Messenger.Overlay::surfaceSheet)) && (((Messenger.Overlay::surfaceFor (Messenger.Overlay::kindChoice) 3) =? (Messenger.Overlay::surfaceAnchored)) && (((Messenger.Overlay::surfaceFor (Messenger.Overlay::kindMenu) 1) =? (Messenger.Overlay::surfaceAnchored)) && (((Messenger.Overlay::surfaceFor (Messenger.Overlay::kindBlocking) 1) =? (Messenger.Overlay::surfaceCentred)) && (((Messenger.Overlay::explainOrdered (Messenger.Overlay::partWhy) (Messenger.Overlay::partHow) (Messenger.Overlay::partWhat)) =? 1) && (((Messenger.Overlay::explainOrdered (Messenger.Overlay::partWhat) (Messenger.Overlay::partHow) (Messenger.Overlay::partWhy)) =? 0) && (((Messenger.Overlay::explainOrdered (Messenger.Overlay::partHow) (Messenger.Overlay::partWhy) (Messenger.Overlay::partWhat)) =? 0) && ((Messenger.Overlay::explainOrdered 0 1 3) =? 0))))))))))))))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
 \end{semanticmodule}
 \end{lexlean}

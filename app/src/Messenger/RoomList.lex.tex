@@ -43,5 +43,70 @@ definition{
   result: Nat,
   body: (if (1 <=? loading) then 0 else (if (count =? 0) then 1 else 2))
 }
+
+definition{name: chipAll, parameters: [], result: Nat, body: 0}
+
+definition{name: chipUnread, parameters: [], result: Nat, body: 1}
+
+definition{name: chipFavourites, parameters: [], result: Nat, body: 2}
+
+definition{name: chipGroups, parameters: [], result: Nat, body: 3}
+
+definition{name: markNone, parameters: [], result: Nat, body: 0}
+
+definition{name: markDot, parameters: [], result: Nat, body: 1}
+
+definition{name: markCount, parameters: [], result: Nat, body: 2}
+
+definition{name: markMention, parameters: [], result: Nat, body: 3}
+
+definition{name: previewText, parameters: [], result: Nat, body: 0}
+
+definition{name: previewPhoto, parameters: [], result: Nat, body: 1}
+
+definition{name: previewVideo, parameters: [], result: Nat, body: 2}
+
+definition{name: previewFile, parameters: [], result: Nat, body: 3}
+
+definition{name: previewVoice, parameters: [], result: Nat, body: 4}
+
+definition{name: previewCall, parameters: [], result: Nat, body: 5}
+
+definition{name: previewDeleted, parameters: [], result: Nat, body: 6}
+
+definition{
+  name: chipMatches,
+  parameters: [chip : Nat, unread : Nat, favourite : Nat, group : Nat, invite : Nat],
+  result: Nat,
+  body: (if (chip =? 0) then 1 else (if (1 <=? invite) then 0 else (if (chip =? 1) then (if (1 <=? unread) then 1 else 0) else (if (chip =? 2) then (if (1 <=? favourite) then 1 else 0) else (if (chip =? 3) then (if (1 <=? group) then 1 else 0) else 0)))))
+}
+
+definition{
+  name: timeAccented,
+  parameters: [unread : Nat, muted : Nat],
+  result: Nat,
+  body: (if (1 <=? muted) then 0 else (if (1 <=? unread) then 1 else 0))
+}
+
+definition{
+  name: rowMark,
+  parameters: [unread : Nat, muted : Nat, mentionsOnly : Nat, mention : Nat],
+  result: Nat,
+  body: (itemBadge (if (1 <=? mention) then 3 else (if (1 <=? unread) then (if (1 <=? mentionsOnly) then 1 else 2) else 0)) muted)
+}
+
+definition{
+  name: pinnedFirst,
+  parameters: [aPinned : Nat, bPinned : Nat, aNewer : Nat],
+  result: Nat,
+  body: (if (1 <=? aPinned) then (if (1 <=? bPinned) then (if (1 <=? aNewer) then 1 else 0) else 1) else (if (1 <=? bPinned) then 0 else (if (1 <=? aNewer) then 1 else 0)))
+}
+
+definition{
+  name: previewKind,
+  parameters: [kind : Nat],
+  result: Nat,
+  body: (if (kind <=? 6) then kind else 0)
+}
 \end{semanticmodule}
 \end{lexlean}
