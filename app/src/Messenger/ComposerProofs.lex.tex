@@ -334,7 +334,7 @@ theorem{
   parameters: [lines : Nat],
   statement: (((1 <=? (Messenger.Composer::composerRows lines)) && ((Messenger.Composer::composerRows lines) <=? 5)) = true),
   proof: linear_arithmetic{definitions: [Messenger.Composer::composerRows]},
-  axioms: [Quot.sound, propext]
+  axioms: [Classical.choice, Quot.sound, propext]
 }
 
 theorem{

@@ -73,7 +73,7 @@ theorem{
   parameters: [picked : Nat],
   statement: ((Messenger.Menu::reactionAfterPick picked picked) = 0),
   proof: linear_arithmetic{definitions: [Messenger.Menu::reactionAfterPick]},
-  axioms: [Quot.sound, propext]
+  axioms: [propext]
 }
 
 theorem{

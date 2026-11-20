@@ -451,7 +451,7 @@ theorem{
   parameters: [sharesPresence : Nat, online : Nat],
   statement: ((Messenger.Layout::onlineShown 0 sharesPresence online) = 0),
   proof: linear_arithmetic{definitions: [Messenger.Layout::onlineShown]},
-  axioms: [Quot.sound, propext]
+  axioms: [propext]
 }
 
 theorem{

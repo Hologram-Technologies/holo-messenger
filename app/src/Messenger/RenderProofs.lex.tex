@@ -177,7 +177,7 @@ theorem{
   parameters: [selector : Nat, presentation : Nat, hashOk : Nat],
   statement: ((Messenger.Render::emojiForm selector presentation 0 hashOk) = 0),
   proof: linear_arithmetic{definitions: [Messenger.Render::emojiForm]},
-  axioms: [Quot.sound, propext]
+  axioms: [propext]
 }
 
 theorem{

@@ -325,7 +325,7 @@ theorem{
   parameters: [unread : Nat],
   statement: ((Messenger.RoomList::previewTicks 0 unread) = 0),
   proof: linear_arithmetic{definitions: [Messenger.RoomList::previewTicks]},
-  axioms: [Quot.sound, propext]
+  axioms: [propext]
 }
 
 theorem{
