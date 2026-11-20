@@ -633,8 +633,8 @@ async function loadRules() {
    version has no transport, so sample mode stays the default; once on, engine mode keeps its chats in this browser and resumes after a reload ---------- */
 const ENGV = { version: "082f1b036feecacba241a7c3c0fc70d027106ece74cc4f976e6cc204caa2a65c", commit: "4ca4e2c364d33d4d8a6673da7b9230939d41721e", base: "https://uor-foundation.github.io/uor-comms/engine/" };
 /* ENGNEXT, when set, is a pin whose engine carries transport.mjs and trust.mjs: engine mode then talks to real people between browsers. Set to null, engine mode is the earlier in-tab mode on the pin above.
-   Pinned: the version uor-comms published from the merge of #27 (introductions kept until they can be judged, one admission at a time, content served only to who may see it; with #22, #23 and #24), checked file by file and against the version on 2026-11-20 */
-const ENGNEXT = { version: "41210d4848d9fccebc7609bb1e2a313f8b942f790980e68f449fd3fca5bbd21f", commit: "4d132a81dbfaf771ce230fdc8483f8d9c203cfb4" };
+   Pinned: the version uor-comms published from the merge of #25 (the timeline in windows: timeline(room, { before, limit }) answers { events, hasMore }; with #22, #23, #24 and #27), checked file by file and against the version on 2026-11-20 */
+const ENGNEXT = { version: "917cbd67fe661c3f394582f90a873e03ffd8081451914856874e3993ca0a5fa4", commit: "688a1af90308965ce4a4453c20c2b29c2884d69b" };
 if (ENGNEXT) Object.assign(ENGV, ENGNEXT, { real: 1 });
 const ENGPEOPLE = ["me", "amara", "tomas", "yuki", "lena", "dev", "sofia", "omar"], ENGALG = { name: "ECDSA", hash: "SHA-256" };
 const ENGNOTE = "Room names and pictures, descriptions, attachments, typing, receipts, unread counts, pins, edits and reactions";
@@ -644,7 +644,7 @@ const ENGSAY = {   // the one table from the engine's word to plain words: the k
   banned: "You are banned from this room", closed: "This room needs an invitation to join", "not joined": "You are not a member of this room yet",
   "needs power": "Your role in this room is too low for this", "not allowed": "The room's rules do not allow you this toward that person", "unknown action": "The engine does not know this action",
   direct: "A direct chat is for two people, so no one else can be invited to it",
-  "unknown room": "Your engine does not hold that room", "unknown event": "Your engine does not hold that message",
+  "unknown room": "Your engine does not hold that room", "unknown event": "Your engine does not hold that message", limit: "The engine was asked for more events at once than it gives (1 to 1,000)",
   malformed: "The engine could not read it as an event", content: "The engine refused the message's content",
   tampered: "It does not match its own address: it was changed on the way", signature: "Its signature does not check against any key this browser holds for the sender",
   device: "It was signed by a device this browser does not hold for the sender", "parents unknown": "It cites messages that have not arrived yet, so it waits for them",
@@ -777,35 +777,51 @@ const ENGKIND = ["join", "leave", "invited", "removed", "banned", "unbanned", , 
 async function engEvent(t, a) {   // a page event from one timeline entry: a change, or a message decoded from content version 1
   const L = EN.lib, hx = L.ev.hex, from = engPerson(hx(t.sender)), id = "n" + a.slice(0, 12);
   if (t.action !== 6) return { id, t: "s", from, ts: Date.now(), kind: ENGKIND[t.action] || "changed", to: L.ev.isZero(t.target) ? null : engPerson(hx(t.target)), addr: a };   // a change carries no time: it shows when this tab received it
-  const bytes = await EN.me.engine.content(t.content), c = bytes && L.ct.decodeContent(bytes), x = { id, addr: a, status: "sent" };
-  if (!c && ENGV.real) { setTimeout(() => engRefetch(a, t), 4000); return m(from, 0, "This message has not arrived in full yet: its content is asked for from the browsers connected now.", Object.assign(x, { ts: Date.now(), notice: 1 })); }
+  const bytes = ENGV.real ? await EN.me.store.get(t.content) : await EN.me.engine.content(t.content), c = bytes && L.ct.decodeContent(bytes), x = { id, addr: a, status: "sent" };   // with real people the text is read from this browser's store; fetching it from peers is the content queue's work, so drawing never waits on the network
+  if (!c && ENGV.real && !bytes) { engWant(t.content, a); return m(from, 0, "This message has not arrived in full yet: its content is asked for from the browsers connected now.", Object.assign(x, { ts: Date.now(), notice: 1, miss: 1 })); }
   if (!c) return m(from, 0, "This message's content could not be read.", Object.assign(x, { ts: Date.now(), notice: 1 }));
   x.ts = Number(c.sent);
   if (c.kind === 1) return m(from, 0, c.text, Object.assign(x, { reply: c.relates ? (EN.ev.get(hx(c.relates)) || {}).id || null : null, fwd: c.forwarded ? 1 : 0, ment: c.everyone || c.mentions.some(y => hx(y) === EN.me.hex) }));
   return m(from, 0, c.kind === 2 ? "An edit to a message. This page does not apply it: uor-comms has not stated how edits combine." : `A reaction, ${c.key}. This page does not count it: uor-comms has not stated how reactions combine.`, Object.assign(x, { notice: 1 }));
 }
-async function engSyncNow() {   // the chat list, members and timelines, read from my engine: rooms(), members(room), timeline(room)
+const ENGPAGE = { size: 50, search: 5000 };   // events per page back as the person scrolls up (the engine's default window), and how far back search pages. Page rules, not engine rules
+const engTl = (me, room, o) => { const x = me.timeline(room, o); return Array.isArray(x) ? { events: x, hasMore: false } : x; };   // host/README.md: timeline(room, { before, limit }) answers { events, hasMore }, oldest first in the fold order. The in-tab pin (082f1b03) answers the whole array
+function engWindow(me, room, r) {   // the window that contains what is shown: from the oldest event loaded (r.anchor) to the newest, so an event that arrived late inside it takes its place; the newest window when nothing is loaded yet
+  const hx = EN.lib.ev.hex, anc = r && r.anchor; let { events, hasMore } = engTl(me, room, { limit: Math.min(1000, Math.max(ENGPAGE.size, (r && r.n || 0) + 20)) }), i = -1;
+  if (anc) { while ((i = events.findIndex(t => hx(t.address) === anc)) < 0 && hasMore) { const q = engTl(me, room, { before: events[0].address, limit: 1000 }); events = [...q.events, ...events]; hasMore = q.hasMore; }
+    if (i > 0) { events = events.slice(i); hasMore = true; } }
+  return { events, hasMore };
+}
+const engFields = (me, room) => me.eventsOf ? me.eventsOf(room).map(m => Object.assign({ address: m.address }, EN.lib.ev.decode(m.bytes))) : engTl(me, room).events;   // every event of a room, decoded: only for the rules that need the creating event or the last change that concerns me, never for drawing
+async function engOlder(r, n = ENGPAGE.size) {   // one page back: the window's first event as before (host/README.md, timeline)
+  if (!r.more || !r.anchor || r.paging) return false; r.paging = 1;
+  try { const q = engTl(EN.me.engine, r.room, { before: EN.lib.ev.unhex(r.anchor), limit: n }); if (q.events.length) r.anchor = EN.lib.ev.hex(q.events[0].address); r.more = q.hasMore; await engSync(); }
+  catch (er) { engLog("paging back failed: " + engWhy(er)); } finally { r.paging = 0; } return true; }
+async function engAllOf(rooms, cap = ENGPAGE.search) {   // what search needs: each engine chat paged back to its start, at most cap events each. Says which were cut short
+  const short = []; for (const r of rooms) { if (!r.eng) continue; while (r.more && (r.n || 0) < cap) if (!(await engOlder(r, Math.min(1000, cap - (r.n || 0))))) break; if (r.more) short.push(r); } return short; }
+async function engSyncNow() {   // the chat list, members and timelines, read from my engine: rooms(), members(room), and a window of timeline(room, { before, limit })
   const L = EN.lib, hx = L.ev.hex, me = EN.me.engine, fresh = [], ob = engOutbox();
-  for (const room of me.rooms()) { const k = hx(room), mem = me.members(room), my = mem.find(x => x.member === EN.me.hex), st = my ? my.status : 0; let r = EN.rooms.get(k), tl = null, ousted = null;
-    if (st !== 1 && st !== 2 && ENGV.real) { tl = me.timeline(room); const x = [...tl].reverse().find(t => t.action === 1 && hx(t.sender) === EN.me.hex || [3, 4, 5].includes(t.action) && hx(t.target) === EN.me.hex);   // the last change that concerns me: my own leave, or a removal, a ban or its lifting by someone else
+  for (const room of me.rooms()) { const k = hx(room), mem = me.members(room), my = mem.find(x => x.member === EN.me.hex), st = my ? my.status : 0; let r = EN.rooms.get(k), ousted = null;
+    if (st !== 1 && st !== 2 && ENGV.real) { const x = engFields(me, room).reverse().find(t => t.action === 1 && hx(t.sender) === EN.me.hex || [3, 4, 5].includes(t.action) && hx(t.target) === EN.me.hex);   // the last change that concerns me: my own leave, or a removal, a ban or its lifting by someone else
       if (x && x.action !== 1 && !(r && r.left)) ousted = { kind: x.action, by: engPerson(hx(x.sender)) }; }   // removed or banned by someone else: the engine sends that event to the person removed (uor-comms #24), so the chat stays, read-only, with the reason
     if (st !== 1 && st !== 2 && !ousted) { if (r && S.rooms.includes(r)) { S.rooms = S.rooms.filter(x => x !== r); if (S.cur === r.id) { S.cur = null; S.panel = false; $("#app").classList.remove("in-room"); drawRoom(); }
         if (r.was === 2 && st >= 3 && !r.left) toastMsg(st === 4 ? "You were banned" : "You are no longer in " + r.name, "The uor-comms engine in this tab says so; the chat is gone from your list.", [], 6000); } if (r) r.was = st; continue; }
-    tl = tl || me.timeline(room); const c0 = tl[0], direct = !!c0 && c0.action === 9 && !L.ev.isZero(c0.target), other = !direct ? null : hx(c0.sender) === EN.me.hex ? hx(c0.target) : hx(c0.sender), meta = EN.meta.get(k) || {};   // a creating event that names a target makes the room direct (Comms.Create)
+    const w = engWindow(me, room, r), tl = w.events, c0 = r ? null : engFields(me, room)[0], direct = !!c0 && c0.action === 9 && !L.ev.isZero(c0.target), other = !direct ? null : hx(c0.sender) === EN.me.hex ? hx(c0.target) : hx(c0.sender), meta = EN.meta.get(k) || {};   // a creating event that names a target makes the room direct (Comms.Create)
     if (!r) { r = { id: "n" + k.slice(0, 12), eng: k, room, level: "default", priv: true, access: "invite", topic: meta.topic || "", pic: meta.pic || null, lastRead: 0, ev: [], members: [], power: {} }; if (other) r.dm = engPerson(other); r.name = r.dm ? U[r.dm].n : meta.name || "A room"; EN.rooms.set(k, r); }
+    const oldA = r.anchor; r.anchor = tl[0] ? hx(tl[0].address) : null; r.more = w.hasMore; r.n = tl.length;   // what is loaded: from r.anchor to the newest; r.more while earlier events exist
     if (!r.dm && !r.meta && EN.meta.has(k)) { r.meta = 1; r.name = meta.name || r.name; r.topic = meta.topic || ""; r.pic = meta.pic || null; }   // the page's name for a room can be written after the room's first event is read
     if (ousted && EN.ready && r.was === 2) toastMsg((ousted.kind === 4 ? "You were banned from " : "You were removed from ") + r.name, "The chat stays in your list to read. You cannot send there.", [], 6000);
     if (ousted) r.ousted = ousted; else delete r.ousted;
     if (!S.rooms.includes(r)) S.rooms.push(r); r.was = st; r.left = 0;
     const by = s => mem.filter(x => x.status === s).map(x => engPerson(x.member));
     r.members = by(2); r.invited = by(1).filter(x => x !== "me"); r.banned = by(4); r.power = Object.fromEntries(mem.filter(x => x.status === 2).map(x => [engPerson(x.member), x.power]));
-    if (st === 1) { const iv = [...tl].reverse().find(t => (t.action === 2 || t.action === 9) && hx(t.target) === EN.me.hex); r.invite = iv ? engPerson(hx(iv.sender)) : "me"; } else delete r.invite;
+    if (st === 1) { const iv = engFields(me, room).reverse().find(t => (t.action === 2 || t.action === 9) && hx(t.target) === EN.me.hex); r.invite = iv ? engPerson(hx(iv.sender)) : "me"; } else delete r.invite;
     if (!EN.off.has(k) || EN.offStale.has(k)) { EN.offStale.delete(k); const o = new Map(), tg = new Map(ENGV.real ? [["me", EN.me.identity], ...[...EN.ids].filter(([id]) => engKnown(id))] : ENGPEOPLE.map(id => [id, EN.peers[id].identity]));   // offered(room, target), kernel operation 0f: what the door admits from me toward each person, read once per room until an event lands there. With real people: me, the members, and the people whose key this browser holds
       for (const x of mem) { const id = engPerson(x.member); if (!tg.has(id)) tg.set(id, L.ev.unhex(x.member)); }
       for (const [id, t] of tg) { const l = {}; for (const v of [0, 50, 100]) l[v] = await me.offered(room, t, { granted: v }); o.set(id, l); } EN.off.set(k, o); }   // setPower is answered per level granted: asked for each level the page offers
-    const out = [];
-    for (const t of tl) { const a = hx(t.address); let e = EN.ev.get(a);
-      if (!e) { e = EN.pend.get(a); if (e) { EN.pend.delete(a); e.addr = a; delete e.pend; delete e.after; e._k = null; } else { e = await engEvent(t, a); if (e.from !== "me") fresh.push([r, e]); } EN.ev.set(a, e); }
+    const out = [], paged = oldA ? tl.findIndex(t => hx(t.address) === oldA) : 0;   // events before the old anchor came from paging back: not news
+    for (const [i, t] of tl.entries()) { const a = hx(t.address); let e = EN.ev.get(a);
+      if (!e) { e = EN.pend.get(a); if (e) { EN.pend.delete(a); e.addr = a; delete e.pend; delete e.after; e._k = null; } else { e = await engEvent(t, a); if (e.from !== "me" && i >= paged && !ENGQ.healed.delete(a)) fresh.push([r, e]); /* a message whose text arrived later was news already */ } EN.ev.set(a, e); }
       if (ob && e.from === "me" && e.t === "m" && e.status === "sent") { const w = ob.has(a); if (!!e.wait !== w) { e.wait = w; e._k = null; r._lv = null; } }   // in the engine's outbox: no peer holds it yet. It changes no tick: one tick at sent, and nothing more until receipts exist
       out.push(e); }
     const extra = new Map(); let lastA = "";   // what lives on this page only (a pending send, a refused one, a file, a pin) stays after the engine event it followed
@@ -813,10 +829,13 @@ async function engSyncNow() {   // the chat list, members and timelines, read fr
     const ev = [...(extra.get("") || [])]; extra.delete("");
     for (const e of out) { ev.push(e); const l = extra.get(e.addr); if (l) { ev.push(...l); extra.delete(e.addr); } }
     for (const l of extra.values()) ev.push(...l);
-    if (ev.length !== r.ev.length || ev.some((e, i) => e !== r.ev[i])) { r.ev = ev; r._lv = null; } }
+    if (ev.length !== r.ev.length || ev.some((e, i) => e !== r.ev[i])) { const keep = r.lo != null && shownEv(r)[r.lo]; r.ev = ev; r._lv = null;
+      const j = keep ? shownEv(r).indexOf(keep) : -1; if (j >= 0 && j !== r.lo) { if (r.hi != null) r.hi += j - r.lo; r.lo = j; } }   // events added above what is drawn: the drawn window keeps its rows, so the reader's place does not move
+    r.unCap = !!(r.more && r.ev.length && r.ev[0].ts > r.lastRead && unread(r) > 0); }   // every message loaded is unread and earlier ones exist: the count covers the loaded window only, and the badge says so with a plus. Not paged back for: unread is not kept across reloads, so every chat would load whole
   if (EN.ready) for (const [r, e] of fresh) if (!r.invite && e.t === "m" && S.rooms.includes(r)) arrived(r, e);
 }
-function engRedraw() { drawList(); drawPanel(); const c = R(S.cur); if (!c || !c.eng) return; const st = !!c.invite + "" + (c.ousted ? c.ousted.kind : 0); if (c._inv !== st) { c._inv = st; drawRoom(); } else { drawTimeline(); drawRbar(); drawBanner(); } }
+const engRoomState = c => !!c.invite + "" + (c.ousted ? c.ousted.kind : 0);   // invited, or removed or banned: these change the whole room view
+function engRedraw() { drawList(); drawPanel(); const c = R(S.cur); if (!c || !c.eng) return; const st = engRoomState(c); if (c._inv !== st) drawRoom(); else { drawTimeline(); drawRbar(); drawBanner(); } }
 const engMentions = (r, text) => { const ids = [], all = /(^|\s)@room\b/i.test(text); for (const id of r.members) if (id !== "me" && engId(id) && new RegExp("(^|\\s)@" + first(id) + "\\b", "i").test(text)) ids.push(engId(id)); return { ids, all }; };
 const engOutbox = () => ENGV.real && EN.me.engine.outbox ? new Set(EN.me.engine.outbox().map(o => EN.lib.ev.hex(o.address))) : null;   // host/README.md, "Sending, and what is sent": own events no peer holds yet
 function engSend(r, text, x = {}) {   // content version 1: text, mentions by identity, the reply. The clock while it is signed and stored, one tick once announced; with real people its info also says while it is in the outbox; a refusal shows Not sent with the engine's reason
@@ -926,7 +945,7 @@ async function engStartReal(resume) {
       for (const h of EN.meta.get("reach") || []) { EN.reach.add(h); transport.reach(L.ev.unhex(h)); }
       transport.onStatus(s => { EN.status = s; engNet(); });
       book.onLearn(({ identity }) => { if (identity !== EN.me.hex) engPerson(identity); for (const k of EN.off.keys()) EN.offStale.add(k); engSched(); });   // a key learned: that person can now be added
-      engine.subscribe(({ room }) => { EN.offStale.add(L.ev.hex(room)); engSched(); });
+      engine.subscribe(({ room, address }) => { EN.offStale.add(L.ev.hex(room)); engSched(); const f = room && address && engine.eventOf(room, address), d = f && L.ev.decode(f.bytes); if (d && d.action === 6) EN.me.store.has(d.content).then(h => { if (!h) engWant(d.content, L.ev.hex(address)); }); });   // a message admitted: its text is fetched now, not when it is scrolled to. My own sends are in the store already
       if (transport.onDelivered) transport.onDelivered(() => engSched());   // a peer now holds one of my events, or was sent it: it leaves the outbox. No tick changes
       await transport.start(); EN.status = transport.status; }
   } catch (e) { clearTimeout(slow); EN.starting = 0; EN.restoring = 0; busy(); return engFailed(resume, e); }
@@ -934,17 +953,35 @@ async function engStartReal(resume) {
   closeOverlay(); EN.on = 1; engReset(); $("#demo").textContent = engStrip();
   try { localStorage.setItem(ENGON, "real " + ENGV.version); } catch (e) {}   // engine mode stays on across reloads until Sample mode
   await engSync(); EN.ready = 1; EN.starting = 0; clearTimeout(slow); busy(); drawAll(); drawRoom(); engNet();
-  EN.tick = setInterval(() => { const k = EN.me.transport.peers().sort().join(); if (k !== EN.pk) { EN.pk = k; engNet(); } }, 2000);   // who is connected, for the banner in each chat
+  EN.tick = setInterval(() => { const k = EN.me.transport.peers().sort().join(); if (k !== EN.pk) { EN.pk = k; engNet(); engAgain(); } }, 2000);   // who is connected, for the banner in each chat; a change of peers asks again for content nobody held
+  setTimeout(() => engCatchUp().catch(er => engLog("the content catch-up failed: " + engWhy(er))), 0);   // after the chats show, never before
   if (!resume) engHonest(true);
   if (EN.link) { const l = EN.link; EN.link = null; engLinkOpen(l); }
 }
-async function engRefetch(a, t, n = 0) {   // content that no connected browser had yet: asked again, ten times five seconds apart, and the message redrawn once it arrives
-  const b = EN.on && await EN.me.engine.content(t.content).catch(() => null); if (b) { EN.ev.delete(a); engSched(); } else if (EN.on && n < 10) setTimeout(() => engRefetch(a, t, n + 1), 5000); }
+/* the content queue: a message's text is fetched as soon as its event is admitted, so it is in this browser's store before anyone scrolls to it and after a reload, even when its sender is offline by then.
+   engine.content(address) is the engine's path: the store, else the connected peers (host transport fetch, checked against the address), then the store keeps it. A few at a time, the newest asked first;
+   what no connected browser holds waits until the set of connected browsers changes. No size cap: message content version 1 holds at most 4,096 bytes of text and no attachment (uor-comms CONFORMANCE RK-16) */
+const ENGQ = { want: [], wait: new Map(), miss: new Map(), healed: new Set(), busy: 0, at: 3 };   // want: content addresses to ask, newest last; wait: content -> the events naming it; miss: what no holder answered, asked again on the next change of peers
+function engWant(content, a) { if (!ENGV.real || !EN.on && !EN.starting) return; const k = EN.lib.ev.hex(content), w = ENGQ.wait.get(k); if (w) { if (a) w.add(a); return; }
+  ENGQ.wait.set(k, new Set(a ? [a] : [])); ENGQ.want.push(content); engPump(); }
+function engPump() {
+  while (ENGQ.busy < ENGQ.at && ENGQ.want.length) { const c = ENGQ.want.pop(), k = EN.lib.ev.hex(c); ENGQ.busy++;   // the newest first
+    EN.me.engine.content(c).catch(() => null).then(b => { const evs = ENGQ.wait.get(k) || new Set();
+      if (b) { ENGQ.wait.delete(k); let heal = 0; for (const a of evs) { const e = EN.ev.get(a); if (e && e.miss) { EN.ev.delete(a); ENGQ.healed.add(a); heal = 1; } } if (heal) engSched(); }   // only the rows that showed the notice are read again; rows are keyed, so the rest stay
+      else { ENGQ.wait.delete(k); ENGQ.miss.set(k, { c, evs }); } })
+      .finally(() => { ENGQ.busy--; engPump(); }); } }
+function engAgain() { if (!ENGQ.miss.size || !EN.me || !EN.me.transport.peers().length) return; for (const [k, { c, evs }] of ENGQ.miss) { ENGQ.miss.delete(k); ENGQ.wait.set(k, evs); ENGQ.want.unshift(c); } engPump(); }   // a browser came or went: what nobody held is asked again
+async function engCatchUp() {   // after restore: kept messages whose text this store does not hold yet, oldest first into the queue, so the newest are asked first. Not for events after my removal from a room: the engine sends none, and none is fetched
+  const L = EN.lib, me = EN.me.engine; let n = 0;
+  for (const room of me.rooms()) { const evs = engFields(me, room), out = evs.findLastIndex(t => (t.action === 3 || t.action === 4) && L.ev.hex(t.target) === EN.me.hex), mine = me.members(room).find(x => x.member === EN.me.hex), cut = mine && (mine.status === 3 || mine.status === 4) && out >= 0 ? out : evs.length;
+    for (const t of evs.slice(0, cut)) if (t.action === 6 && !(await EN.me.store.has(t.content))) { engWant(t.content, L.ev.hex(t.address)); n++; } }
+  EN.catchUp = n; }
 function engAboutReal() {
   const pin = `version <span class="addr">${ENGV.version}</span>, built from uor-comms commit <span class="addr">${ENGV.commit.slice(0, 12)}</span>`;
   if (!EN.on) return `${P0}Engine mode is off. Under Try a situation, “Message real people on the uor-comms engine” starts it. It loads the uor-comms engine, ${pin}, from uor-foundation.github.io, and runs it only after every file matches the BLAKE3 this page pins.</p>${explain(...ENGHONEST)}`;
   return `${P0}<b>Engine mode is on.</b> Rooms, membership, sending and the timeline run on the uor-comms engine, ${pin}, loaded from uor-foundation.github.io and checked file by file against its BLAKE3 manifest before it ran (${ENGV.size.toLocaleString()} bytes, in ${ENGV.ms.toFixed(0)} ms). ${esc(engNetWord())}</p>${explain(...ENGHONEST)}
     ${P0}<b>Whose key is whose.</b> Your identity is 32 random bytes made in this browser, and your device's address is the BLAKE3 of its public key; the private key cannot be read out. Until Prism ID, the engine's device book learns a key in four ways only: you open someone's invite link; someone opens yours and their browser shows its one-time token when it connects; a device of theirs already trusted vouches for a new one; or, in a group, a member who is in it passes on the keys of the others invited or in it, so you trust whoever let you in to vouch for who else is there. A browser with no link, and in no group with anyone you trust, is refused. People show by the start of their identity: the engine has no names.</p>
+    ${P0}<b>Read in windows.</b> A chat opens on its newest 50 events, and earlier ones are read from the engine 50 at a time as you scroll up (timeline with before and limit); the chat's beginning shows once the engine has no earlier events. A message that arrives late into the part you are reading takes its place there. Each message's text is fetched as soon as its event arrives, whether or not you have scrolled to it, so it is kept in this browser while its sender is offline; after a reload, any text still missing is asked for again whenever a browser connects, and the message shows once it comes. The unread count covers what is loaded, with a plus when earlier messages may be unread too; search reads each chat back to its start first, at most ${ENGPAGE.search.toLocaleString()} events, and says when it stopped short; the media, links and files card says it covers the messages loaded so far.</p>
     ${P0}<b>Kept in this browser.</b> The engine keeps every event it admitted, and the content, in its store (browserStore, in IndexedDB); this page keeps your identity, your key and the book of keys in a database of its own. After a reload the engine admits every kept event again before anything shows${EN.restored ? ` (this load: ${EN.restored.events.toLocaleString()} events in ${EN.restored.ms.toFixed(0)} ms)` : ""}. Not kept: messages not sent, pins, edits and reactions, files and unread counts.</p>
     ${P0}What you may do to a person, whether a room offers an invitation, each role you may give, and whether you may leave are the engine's answer, offered() (kernel operation 0f). A refusal shows in plain words with the engine's own word. Only people whose key this browser holds can be added to a chat. Each new group is a room of its own. The people you meet in a group pass on the keys of its other members, so everyone there can check everyone's messages, and you can add them to other chats. A person invited while everyone is connected is introduced at once, with no reconnect. An invitation reaches a person who is connected at once, with the room so far. Someone removed or banned receives the event that removed them and nothing after it: on their page the chat stays, readable and closed, with the reason.</p>
     ${P0}<b>Sending.</b> A clock shows while the engine signs and stores a message; one tick once it is announced, and nothing more: received and read are not tracked yet, so two ticks never show. While no browser of anyone in the chat holds it (the engine's outbox), its info says it is waiting for a browser to take it, and Try again announces it once more. After a reload the engine knows of no browser holding anything until one connects and says what it holds. A message holds up to ${ENGLIMIT.text.toLocaleString()} bytes of text, at most ${ENGLIMIT.mentions} mentions.</p>
@@ -1102,7 +1139,7 @@ function drawList() {
     for (let k = r.ev.length - 1; k >= 0 && k > r.ev.length - 35; k--) if (r.ev[k].status === "failed" && !r.ev[k].del) uns = 1;
     items.push(["r" + r.id + keyOf([on, sel, SEL.size > 0, r.name, r.pic ? r.pic.length : 0, tm, p, n, mk, mu, !!r.pin, uns].join("\u0001")), () => `<button class="rw ri${on ? " on" : ""}${sel ? " sel" : ""}" data-room="${r.id}"${on ? ' aria-current="true"' : ""}${SEL.size ? ` aria-pressed="${sel}"` : ""}>${rav(r)}
       <span class="grow"><span class="t"><span class="n">${esc(r.name)}</span><span class="tm${timeAccented(n, mu) ? " hi" : ""}">${tm}</span></span>
-      <span class="row2"><span class="p">${p}</span>${uns ? `<span class="badge bad" title="Not sent" aria-label="A message was not sent">!</span>` : ""}${r.pin ? mark(pinIcon, "Pinned") : ""}${mu ? mark(I.mute, "Muted") : ""}${["", `<span class="badge dot" title="New messages${r.eng ? ", counted on this page (sample)" : ""}" aria-label="New messages${r.eng ? " (sample)" : ""}"></span>`, `<span class="badge" aria-label="${n} unread${r.eng ? " (sample)" : ""}"${r.eng ? ' title="Counted on this page (sample)"' : ""}>${n > 99 ? "99+" : n}</span>`, `<span class="badge" aria-label="You were mentioned${r.eng ? " (sample)" : ""}">@</span>`][mk]}<span class="chev" data-chev title="Menu" aria-hidden="true">${I.down}</span></span></span></button>`]); };
+      <span class="row2"><span class="p">${p}</span>${uns ? `<span class="badge bad" title="Not sent" aria-label="A message was not sent">!</span>` : ""}${r.pin ? mark(pinIcon, "Pinned") : ""}${mu ? mark(I.mute, "Muted") : ""}${["", `<span class="badge dot" title="New messages${r.eng ? ", counted on this page (sample)" : ""}" aria-label="New messages${r.eng ? " (sample)" : ""}"></span>`, `<span class="badge" aria-label="${n}${r.unCap ? " or more" : ""} unread${r.eng ? " (sample)" : ""}"${r.eng ? ' title="Counted on this page (sample)"' : ""}>${n > 99 ? "99+" : n + (r.unCap ? "+" : "")}</span>`, `<span class="badge" aria-label="You were mentioned${r.eng ? " (sample)" : ""}">@</span>`][mk]}<span class="chev" data-chev title="Menu" aria-hidden="true">${I.down}</span></span></span></button>`]); };
   if (hb) items.push(["hb" + hb[0] + hb[3], `<div class="rw inv hb"><button class="who" data-hb="${hb[0]}"><span class="av ic">${hb[1]}</span><span class="grow"><span class="n">${hb[2]}</span><span class="p">${esc(hb[3])}</span></span></button><button class="icon" data-hbx="${hb[0]}" aria-label="Dismiss: ${hb[2]}" title="Dismiss">${I.x}</button></div>`]);
   if (EN.on && !F) items.push(["eng", `<div class="rw inv hb"><button class="who" data-engabout><span class="av ic">${I.info}</span><span class="grow"><span class="n">Engine mode</span><span class="p">${ENGV.real ? esc("Real messages between browsers. " + engNetWord()) : "On the uor-comms engine in this tab only. Sample people. Kept in this browser."}</span></span></button><button class="btn small" data-engoff>Sample mode</button></div>`]);
   if (find && !q && SQ.length) items.push(["sq" + SQ.join("\u0001"), `<div style="padding:0 16px">${sqChips()}</div>`]);
@@ -1140,6 +1177,7 @@ function saveDraft() { const ta = $("#ta"); if (!ta || !S.cur) return; const d =
   d.trim() ? S.drafts[S.cur] = d : delete S.drafts[S.cur]; S.mode ? S.rep[S.cur] = S.mode : delete S.rep[S.cur]; S.edit ? S.eds[S.cur] = [S.edit, ta.value] : delete S.eds[S.cur]; saveUi(); }
 function drawRoom() {
   const r = R(S.cur), el = $("#room"); dropSel();
+  if (r && r.eng) r._inv = engRoomState(r);   // what engRedraw compares, so the first redraw after opening does not build the room again
   if (!r) { S.edit = null; el.innerHTML = `<div class="home"><div><p>Pick a chat to read it here.</p><div><button class="btn primary" data-home>New chat</button></div></div></div>`; showBtn(); return; }
   el.innerHTML = `<div class="bar" id="rbar"></div>
     <div id="banner" hidden>${I.wifi}<span class="grow" id="bannerText"></span><span id="bannerActs" class="quick"></span></div>
@@ -1221,7 +1259,8 @@ function drawTimeline(toEnd) {
     if (run.length > 2 && !(r.open && r.open[id])) items.push(["f" + id + run.length, pill(`${[j && j + " joined", l && l + " left", o && o + (o > 1 ? " changes" : " change")].filter(Boolean).join(", ")} · <button data-expand="${id}">show</button>`)]);
     else { for (const e of run) items.push(["s" + e.id, pill(esc(sysText(e, r)) + (r.eng && !e.addr ? " · sample, on this page only" : ""))]); if (run.length > 2) items.push(["h" + id, pill(`<button data-expand="${id}">hide these ${run.length}</button>`)]); }
     run = []; };
-  if (start === 0) {   // the top of a chat: what it is, and one quiet mark that says its messages are not encrypted yet
+  if (r.eng && (r.more || start > 0)) items.push(["pg", pill("Earlier messages load as you scroll up")]);   // its key must not start with m, which marks a message row for keeping the reader's place   // engine paging: more of this chat is in the engine, or above the drawn window. Shown in both, so the top row does not change when the window moves
+  else if (start === 0) {   // the top of a chat: what it is, and one quiet mark that says its messages are not encrypted yet
     if (evs[0] && evs[0].kind === "created") items.push(["i" + keyOf(r.name + "\u0001" + (r.topic || "") + (r.pic ? r.pic.length : "") + mod + U[evs[0].from].n), `<div class="intro">${rav(r, "l")}<h3>${esc(r.name)}</h3><p>${esc(sysText(evs[0], r))} · ${dayText(evs[0].ts)}</p>${r.topic ? `<p>${esc(r.topic)}</p>` : ""}<div class="quick">${!r.topic && !r.dm && mod ? '<button class="btn small" data-editroom>Add a description</button>' : ""}${r.dm ? "" : '<button class="btn small" data-invite>Invite people</button>'}</div></div>`]);
     items.push(["enc", `<div class="sys"><button data-why="lock">${I.info}Not encrypted yet</button></div>`]);
     if (r.eng) items.push(["eng", `<div class="sys"><button data-engabout>${I.info}${ENGV.real ? "On the uor-comms engine, between browsers, kept in this browser" : "On the uor-comms engine, in this tab, kept in this browser"}</button></div>`]); }
@@ -1270,13 +1309,14 @@ function toUnread() { const r = R(S.cur), tl = $("#tl"), u = r && r.seenLine && 
   if (!$(".day.new", tl)) jump(u.id); const nl = $(".day.new", tl); if (nl) tl.scrollTop += nl.getBoundingClientRect().top - tl.getBoundingClientRect().top - 8; }
 function onScroll() {
   const tl = $("#tl"), r = R(S.cur); if (!tl || !r || r.lo == null) return;
+  if (tl.scrollTop < 233 && r.lo === 0 && r.eng && r.more) { if (!r.paging) engOlder(r).then(ok => { if (ok && R(S.cur) === r) onScroll(); }); return; }   // the top of what is loaded: the engine's next page back, then the window moves up as before
   const nearTop = tl.scrollTop < 233 && r.lo > 0, nearEnd = r.hi != null && tl.scrollHeight - tl.scrollTop - tl.clientHeight < 233;
   if (!nearTop && !nearEnd) return;
   const total = shownEv(r).length, end = r.hi == null ? total : r.hi;
-  const a = [...tl.children].find(n => n.dataset.k[0] === "m" && n.offsetTop + n.offsetHeight > tl.scrollTop + 55), off = a ? a.offsetTop - tl.scrollTop : 0;
+  const a = [...tl.children].find(n => n.dataset.k[0] === "m" && n.offsetTop + n.offsetHeight > tl.scrollTop + 55), off = a ? a.offsetTop + a.offsetHeight - tl.scrollTop : 0;   // its bottom edge: the row itself can lose its name line when a row of the same sender is added above it
   if (nearTop) { r.lo = Math.max(0, r.lo - WIN); if (end - r.lo > MAXW) r.hi = r.lo + MAXW; }
   else { r.hi = end + WIN; if (r.hi >= total) r.hi = null; r.lo = Math.max(r.lo, (r.hi == null ? total : r.hi) - MAXW); }
-  drawTimeline(); if (a && a.isConnected) tl.scrollTop = a.offsetTop - off;
+  drawTimeline(); const b = a && (a.isConnected ? a : a.dataset.id && tl.querySelector(`.msg[data-id="${a.dataset.id}"]`)); if (b) tl.scrollTop = b.offsetTop + b.offsetHeight - off;   // the row in view is found again by its message when its key changed (it now groups with a row added above)
 }
 function grow() { const ta = $("#ta"), r = R(S.cur), cx = $("#ctx"), b = $("#send"); if (!ta) return; ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px";   // the field grows to about six lines, then scrolls
   const e = S.edit && r && r.ev.find(x => x.id === S.edit), has = !!ta.value.trim() || !!e && !!(e.img || e.file), kind = e ? "save" : mainButton(has, FEATURES.voice);   // Composer.mainButton: one round button, quiet until there is something to send. While an edit is open it saves. A microphone is never drawn while voice is not built
@@ -1346,7 +1386,7 @@ const CARDS = {   // what each card holds: its title, how many items, their rows
   files(r) { const l = shared(r).reverse();
     return ["Media, links and files", l.length, `<div class="yp" style="gap:0">${l.map(e => { const u = !e.img && !e.file && linkOf(e);
       return `<button class="pv" style="width:100%;text-align:left" data-goto="${e.id}">${e.img ? `<img src="${e.img}" alt="">` : `<span class="ph">${u ? I.clip : fileIcon}</span>`}<span><b>${esc(u || e.name || "Picture")}</b><small>${esc(e.from === "me" ? "You" : first(e.from))} · ${listTime(e.ts)}${e.file ? " · " + fmtSize(e.file.size) : ""}</small></span></button>`; }).join("")}</div>`,
-      `Nothing yet. Pictures, links and files sent in this ${r.dm ? "chat" : "room"} are listed here.`]; },
+      `Nothing yet. Pictures, links and files sent in this ${r.dm ? "chat" : "room"} are listed here.`].map((x, i) => i === 2 && r.eng && r.more ? x.replace('<div class="yp" style="gap:0">', '<div class="yp" style="gap:0"><small>From the messages loaded so far. Scroll up in the chat to load earlier ones.</small>') : i === 3 && r.eng && r.more ? x + " Only the messages loaded so far are looked at; scroll up in the chat to load earlier ones." : x); },
   pins(r) { const l = pinsOf(r), can = canPin(r);
     return ["Pinned messages", l.length, `<div class="yp" style="gap:0;padding:8px">${l.map(e => `<div class="pr"><button class="mem" data-goto="${e.id}">${av(U[e.from].n)}<span style="flex:1;min-width:0"><b>${esc(e.from === "me" ? "You" : first(e.from))}</b><span class="snip">${esc(e.body || e.name || "Picture")}</span></span></button>${can ? `<button class="btn small" data-unpin="${e.id}">Unpin</button>` : ""}</div>`).join("")}</div>`,
       `Nothing is pinned. ${can ? "Open the menu of a message and choose Pin." : "Moderators can pin messages everyone should see."}`]; },
@@ -1687,11 +1727,13 @@ function searchDlg(q0 = "") {
     const run = () => { const q = inp.value.trim().toLowerCase(), rs = scope(), bad = rs.filter(r => r.st).length; let hits;   // a chat that is still loading or will not open is named, not passed over in silence
       try { hits = findMsgs(q, rs); }
       catch (x) { box.innerHTML = `<div class="note" role="alert"><span>${explain(`The search stopped before it finished: ${esc(x.message)}.`, "Type again to try again.", "")}</span></div>`; return; }
-      box.innerHTML = (bad ? `<div class="note" role="alert"><span>${explain(`${bad} chat${bad > 1 ? "s were" : " was"} not searched: ${bad > 1 ? "their" : "its"} messages are still loading or could not be read.`, `Open ${bad > 1 ? "them" : "it"}, then search again.`, "")}</span></div>` : "")
+      box.innerHTML = (cut.length ? `<div class="note" role="status"><span>Searched the last ${ENGPAGE.search.toLocaleString()} events of ${cut.map(r => esc(r.name)).join(", ")}; earlier ones were not searched.</span></div>` : "") + (bad ? `<div class="note" role="alert"><span>${explain(`${bad} chat${bad > 1 ? "s were" : " was"} not searched: ${bad > 1 ? "their" : "its"} messages are still loading or could not be read.`, `Open ${bad > 1 ? "them" : "it"}, then search again.`, "")}</span></div>` : "")
         + (hits.length ? `<div class="sect" style="padding-left:0">${hits.length} result${hits.length > 1 ? "s" : ""}${hits.length > lim ? ", showing " + lim : ""}</div>` + hits.slice(0, lim).map(([r, e]) => {
         return `<button class="o" data-hit="${r.id}|${e.id}">${av(U[e.from].n)}<span class="grow" style="min-width:0"><b>${esc(e.from === "me" ? "You" : first(e.from))}</b> <span style="color:var(--ink3)">${all ? esc(r.name) + " · " : ""}${listTime(e.ts)}</span><span class="snip">${snip(e, q, 12)}</span></span></button>`;
       }).join("") + (hits.length > lim ? `<button class="btn" data-more>Show 30 more</button>` : "") : bad ? "" : `<div class="empty">No messages match.</div>`); };
-    const draw = () => { clearTimeout(tm); if (inp.value.trim().length < 2) { box.innerHTML = sqChips() + `<div class="empty">Type at least two letters.</div>`; return; }
+    let cut = [], paging = null; const engAll = () => { if (paging || !scope().some(r => r.eng && r.more)) return false; box.innerHTML = `<div class="empty" role="status">Loading the whole chat from the engine…</div>`;   // engine chats load in windows: search pages each back to its start first, at most ENGPAGE.search events
+      paging = engAllOf(scope()).then(l => { cut = l; paging = null; draw(); }); return true; };
+    const draw = () => { clearTimeout(tm); if (inp.value.trim().length < 2) { box.innerHTML = sqChips() + `<div class="empty">Type at least two letters.</div>`; return; } if (engAll() || paging) return;
       if (scope().reduce((n, r) => n + r.ev.length, 0) < 5000) return run();   // a small search answers at once; a large one says it is working, then answers
       box.innerHTML = `<div class="empty" role="status">Searching…</div>`; tm = setTimeout(run); };
     inp.oninput = () => { lim = 30; draw(); }; draw();
