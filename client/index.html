@@ -633,11 +633,11 @@ async function loadRules() {
    version has no transport, so sample mode stays the default; once on, engine mode keeps its chats in this browser and resumes after a reload ---------- */
 const ENGV = { version: "082f1b036feecacba241a7c3c0fc70d027106ece74cc4f976e6cc204caa2a65c", commit: "4ca4e2c364d33d4d8a6673da7b9230939d41721e", base: "https://uor-foundation.github.io/uor-comms/engine/" };
 /* ENGNEXT, when set, is a pin whose engine carries transport.mjs and trust.mjs: engine mode then talks to real people between browsers. Set to null, engine mode is the earlier in-tab mode on the pin above.
-   Pinned: the version uor-comms published from the merge of #25 (the timeline in windows: timeline(room, { before, limit }) answers { events, hasMore }; with #22, #23, #24 and #27), checked file by file and against the version on 2026-11-20 */
-const ENGNEXT = { version: "917cbd67fe661c3f394582f90a873e03ffd8081451914856874e3993ca0a5fa4", commit: "688a1af90308965ce4a4453c20c2b29c2884d69b" };
+   Pinned: the version uor-comms published from the merge of #30 (messages() from the store only, with mine; mayRedact; and #29: redacted content deleted from each store; with #22 to #28), checked file by file and against the version on 2026-11-20 */
+const ENGNEXT = { version: "36a21d8ab390708d45d4904113e8b2568c549c1cc053f612a214345f9ce70168", commit: "25152c3b37c6487ea638943a7a2fcecba4b1b827" };
 if (ENGNEXT) Object.assign(ENGV, ENGNEXT, { real: 1 });
 const ENGPEOPLE = ["me", "amara", "tomas", "yuki", "lena", "dev", "sofia", "omar"], ENGALG = { name: "ECDSA", hash: "SHA-256" };
-const ENGNOTE = "Room names and pictures, descriptions, attachments, typing, receipts, unread counts, pins, edits and reactions";
+const ENGNOTE = "Room names and pictures, descriptions, attachments, typing, receipts, unread counts and pins";
 const engWhy = er => er && er.reason || String(er && er.message || er);
 const ENGSAY = {   // the one table from the engine's word to plain words: the kernel's reasons (Comms.Reason), then the host's own (host/README.md, "Refusals"). An older pin says only refused
   refused: "The room's rules do not allow this for you, in the room as it stands now. This engine version does not say which rule",
@@ -774,8 +774,22 @@ function engSched() { if (EN.dirty || EN.restoring) return;   /* while restore()
 const engSync = () => (EN.sp = EN.sp.then(engSyncNow).catch(e => engLog("reading the engine failed: " + engWhy(e))));
 const engPerson = h => { let id = EN.who.get(h); if (!id) { id = "x" + (++seq); U[id] = { n: h.slice(0, 8) + "…", eid: h, addr: h }; EN.who.set(h, id); } if (EN.ids && id !== "me") EN.ids.set(id, EN.lib.ev.unhex(h)); return id; };   // a person shows by the start of their identity: the engine has no names
 const ENGKIND = ["join", "leave", "invited", "removed", "banned", "unbanned", , "role", "redacted", "created"];   // by the event's action, 0 to 9 (Comms.Rules); 6, a send, is a message
-async function engEvent(t, a) {   // a page event from one timeline entry: a change, or a message decoded from content version 1
+const engRx = g => Object.fromEntries(Object.entries(g.reactions || {}).map(([k, l]) => [k, l.map(h => h === EN.me.hex ? "me" : engPerson(h))]));   // messages().reactions: key to members, hex, once each; mine by my identity
+function engApply(e, g) {   // what messages() says of a message, onto the row the page already has: text, edited, reactions, and the reply. The row is drawn again only when one of them changed
+  const hx = EN.lib.ev.hex, x = { body: g.text, edited: !!g.edited, rx: engRx(g), mine: g.mine || {}, reply: g.replyTo ? (EN.ev.get(hx(g.replyTo)) || {}).id || null : null, fwd: g.forwarded ? 1 : 0, ment: g.everyone || g.mentions.some(y => hx(y) === EN.me.hex), ts: g.sent, notice: 0, miss: 0 };
+  if (Object.keys(x).some(k => JSON.stringify(e[k]) !== JSON.stringify(x[k]))) { Object.assign(e, x); e._k = null; return true; } return false; }
+function engGone(e) { if (e.engGone) return false; Object.assign(e, { gone: 1, engGone: 1, body: "", rx: {}, edited: false, hist: null, reply: null, notice: 0, miss: 0 }); e._k = null; return true; }   // redacted: the text is dropped from the page, never shown again
+async function engEvent(t, a, mm) {   // a page event from one timeline entry: a change, or a message as messages() gives it. null: no row (an edit, a reaction, or a redaction, which shows on its target)
   const L = EN.lib, hx = L.ev.hex, from = engPerson(hx(t.sender)), id = "n" + a.slice(0, 12);
+  if (mm && t.action === 8) return null;
+  if (mm && t.action === 6) { const x = { id, addr: a, status: "sent", rx: {} }, g = mm.get(a);
+    if (g && !t.redacted) { const e = m(from, 0, "", x); engApply(e, g); return e; }
+    const held = await EN.me.store.get(t.content), kind = held && (L.ct.decodeContent(held) || {}).kind;   // only the kind is read from a copy this browser holds, never its text
+    if (t.redacted) return kind && kind !== 1 || EN.side && EN.side.has(a) ? null : Object.assign(m(from, 0, "", x), { gone: 1, engGone: 1, ts: Date.now() });   // a redacted message, or one whose kind this browser never learned: a redacted message and a redacted reaction look the same (host/README.md, messages)
+    if (held && kind && kind !== 1) engSide(a);
+    if (held && kind === 1 && !EN.reasked.has(a)) { EN.reasked.add(a); EN.reask = 1; return null; }   // its text landed after messages() was read: read again once, not hidden
+    if (held) { EN.hid.add(a); return null; }   // held and not a message: an edit or a reaction, applied by messages(), or content the kernel refused
+    engWant(t.content, a); return m(from, 0, "This message has not arrived in full yet: its content is asked for from the browsers connected now.", Object.assign(x, { ts: Date.now(), notice: 1, miss: 1 })); }
   if (t.action !== 6) return { id, t: "s", from, ts: Date.now(), kind: ENGKIND[t.action] || "changed", to: L.ev.isZero(t.target) ? null : engPerson(hx(t.target)), addr: a };   // a change carries no time: it shows when this tab received it
   const bytes = ENGV.real ? await EN.me.store.get(t.content) : await EN.me.engine.content(t.content), c = bytes && L.ct.decodeContent(bytes), x = { id, addr: a, status: "sent" };   // with real people the text is read from this browser's store; fetching it from peers is the content queue's work, so drawing never waits on the network
   if (!c && ENGV.real && !bytes) { engWant(t.content, a); return m(from, 0, "This message has not arrived in full yet: its content is asked for from the browsers connected now.", Object.assign(x, { ts: Date.now(), notice: 1, miss: 1 })); }
@@ -799,6 +813,12 @@ async function engOlder(r, n = ENGPAGE.size) {   // one page back: the window's 
   catch (er) { engLog("paging back failed: " + engWhy(er)); } finally { r.paging = 0; } return true; }
 async function engAllOf(rooms, cap = ENGPAGE.search) {   // what search needs: each engine chat paged back to its start, at most cap events each. Says which were cut short
   const short = []; for (const r of rooms) { if (!r.eng) continue; while (r.more && (r.n || 0) < cap) if (!(await engOlder(r, Math.min(1000, cap - (r.n || 0))))) break; if (r.more) short.push(r); } return short; }
+const engSide = a => { if (EN.side.has(a)) return; EN.side.add(a); clearTimeout(EN.sideT); EN.sideT = setTimeout(() => engMeta("side", [...EN.side]), 500); };   // the edits and reactions this browser has seen, by address, kept with the room names: after either is redacted its content is gone from every store, and this says it was not a message, so no "Message deleted" line stands for it
+async function engMessages(me, room, tl) {   // messages() for the window shown: the newest messages, as many as the window has message events, paged back with before when more than 1,000
+  if (!me.messages) return null; const n = tl.filter(t => t.action === 6 && !t.redacted).length; if (!n) return new Map();
+  let { messages, hasMore } = await me.messages(room, { limit: Math.min(1000, n) });
+  while (hasMore && messages.length < n) { const q = await me.messages(room, { before: messages[0].address, limit: Math.min(1000, n - messages.length) }); messages = [...q.messages, ...messages]; hasMore = q.hasMore; }
+  return new Map(messages.map(g => [EN.lib.ev.hex(g.address), g])); }
 async function engSyncNow() {   // the chat list, members and timelines, read from my engine: rooms(), members(room), and a window of timeline(room, { before, limit })
   const L = EN.lib, hx = L.ev.hex, me = EN.me.engine, fresh = [], ob = engOutbox();
   for (const room of me.rooms()) { const k = hx(room), mem = me.members(room), my = mem.find(x => x.member === EN.me.hex), st = my ? my.status : 0; let r = EN.rooms.get(k), ousted = null;
@@ -819,9 +839,12 @@ async function engSyncNow() {   // the chat list, members and timelines, read fr
     if (!EN.off.has(k) || EN.offStale.has(k)) { EN.offStale.delete(k); const o = new Map(), tg = new Map(ENGV.real ? [["me", EN.me.identity], ...[...EN.ids].filter(([id]) => engKnown(id))] : ENGPEOPLE.map(id => [id, EN.peers[id].identity]));   // offered(room, target), kernel operation 0f: what the door admits from me toward each person, read once per room until an event lands there. With real people: me, the members, and the people whose key this browser holds
       for (const x of mem) { const id = engPerson(x.member); if (!tg.has(id)) tg.set(id, L.ev.unhex(x.member)); }
       for (const [id, t] of tg) { const l = {}; for (const v of [0, 50, 100]) l[v] = await me.offered(room, t, { granted: v }); o.set(id, l); } EN.off.set(k, o); }   // setPower is answered per level granted: asked for each level the page offers
-    const out = [], paged = oldA ? tl.findIndex(t => hx(t.address) === oldA) : 0;   // events before the old anchor came from paging back: not news
+    const out = [], paged = oldA ? tl.findIndex(t => hx(t.address) === oldA) : 0, mm = await engMessages(me, room, tl);
+    if (me.mayRedact && mm && (EN.mayStale.has(k) || tl.some(t => t.action === 6 && !t.redacted && !EN.may.has(hx(t.address))))) { EN.mayStale.delete(k); for (const t of tl) if (t.action === 6 && !t.redacted && mm.has(hx(t.address))) EN.may.set(hx(t.address), await me.mayRedact(room, t.address).catch(() => false)); }   // engine.mayRedact per message shown, asked again when an event lands in the room, as offered() is   // events before the old anchor came from paging back: not news
     for (const [i, t] of tl.entries()) { const a = hx(t.address); let e = EN.ev.get(a);
-      if (!e) { e = EN.pend.get(a); if (e) { EN.pend.delete(a); e.addr = a; delete e.pend; delete e.after; e._k = null; } else { e = await engEvent(t, a); if (e.from !== "me" && i >= paged && !ENGQ.healed.delete(a)) fresh.push([r, e]); /* a message whose text arrived later was news already */ } EN.ev.set(a, e); }
+      if (mm && t.action === 6 && e && !e.pend) { const g = mm.get(a); if (t.redacted ? engGone(e) : g && engApply(e, g)) r._lv = null; }   // an edit, a reaction or a redaction reaches a message already shown
+      if (!e && EN.hid && (EN.hid.has(a) || EN.side.has(a))) continue;
+      if (!e) { e = EN.pend.get(a); if (e) { EN.pend.delete(a); e.addr = a; delete e.pend; delete e.after; e._k = null; if (mm && mm.get(a)) engApply(e, mm.get(a)); } else { e = await engEvent(t, a, mm); if (!e) { if (EN.hid && t.action !== 6) EN.hid.add(a); continue; } if (e.from !== "me" && i >= paged && !ENGQ.healed.delete(a)) fresh.push([r, e]); /* a message whose text arrived later was news already */ } EN.ev.set(a, e); }
       if (ob && e.from === "me" && e.t === "m" && e.status === "sent") { const w = ob.has(a); if (!!e.wait !== w) { e.wait = w; e._k = null; r._lv = null; } }   // in the engine's outbox: no peer holds it yet. It changes no tick: one tick at sent, and nothing more until receipts exist
       out.push(e); }
     const extra = new Map(); let lastA = "";   // what lives on this page only (a pending send, a refused one, a file, a pin) stays after the engine event it followed
@@ -832,6 +855,7 @@ async function engSyncNow() {   // the chat list, members and timelines, read fr
     if (ev.length !== r.ev.length || ev.some((e, i) => e !== r.ev[i])) { const keep = r.lo != null && shownEv(r)[r.lo]; r.ev = ev; r._lv = null;
       const j = keep ? shownEv(r).indexOf(keep) : -1; if (j >= 0 && j !== r.lo) { if (r.hi != null) r.hi += j - r.lo; r.lo = j; } }   // events added above what is drawn: the drawn window keeps its rows, so the reader's place does not move
     r.unCap = !!(r.more && r.ev.length && r.ev[0].ts > r.lastRead && unread(r) > 0); }   // every message loaded is unread and earlier ones exist: the count covers the loaded window only, and the badge says so with a plus. Not paged back for: unread is not kept across reloads, so every chat would load whole
+  if (EN.reask) { EN.reask = 0; setTimeout(engSched, 50); }
   if (EN.ready) for (const [r, e] of fresh) if (!r.invite && e.t === "m" && S.rooms.includes(r)) arrived(r, e);
 }
 const engRoomState = c => !!c.invite + "" + (c.ousted ? c.ousted.kind : 0);   // invited, or removed or banned: these change the whole room view
@@ -861,7 +885,13 @@ const engId = id => EN.peers && EN.peers[id] ? EN.peers[id].identity : EN.ids &&
 const engOff = r => EN.off && EN.off.get(r.eng) || new Map(), engLv = (r, id) => engOff(r).get(id) || { 0: [], 50: [], 100: [] };
 const engCan = (r, id, a) => a === "setPower" ? [0, 50, 100].some(v => engLv(r, id)[v].includes(a)) : engLv(r, id)[0].includes(a), engCanAny = (r, a) => [...engOff(r).values()].some(l => l[0].includes(a));
 const engCanLv = (r, id, v) => engLv(r, id)[v].includes("setPower");   // offered(), as last read for this room: the page shows a control only when the engine offers it, and a role only at a level it offers   // offered(), as last read for this room: the page shows a control only when the engine offers it
-function engSample(e, label) { e.samp = label; e._k = null; if (EN.told) return; EN.told = 1; toastMsg("Kept on this page only", "uor-comms has not stated how edits and reactions combine, so in engine mode they stay on this page and are not sent.", [], 7000); }
+async function engEdit(r, e, text) {   // content kind 2 naming the message (content.mjs; host/README.md, messages: an edit counts only from the message's sender, the last wins), sent as any content is
+  const L = EN.lib, mt = engMentions(r, text); let bytes; try { bytes = L.ct.encodeContent({ kind: L.ct.KIND.edit, sent: Date.now(), relates: L.ev.unhex(e.addr), text, mentions: mt.ids, everyone: mt.all }); } catch (er) { return engAct("saving the edit", () => { throw er; }); }
+  return engAct("saving the edit", () => EN.me.engine.send(r.room, bytes)); }
+async function engReact(r, e, k) {   // a reaction is content kind 3 naming the message; taking it back redacts every one of my reaction events with that key, as messages().mine lists them (host/README.md, messages: "redacting them all takes the reaction back")
+  const L = EN.lib, me = EN.me.engine;
+  if (!(e.rx[k] || []).includes("me")) { const bytes = L.ct.encodeContent({ kind: L.ct.KIND.reaction, sent: Date.now(), relates: L.ev.unhex(e.addr), key: k }); return engAct("adding the reaction", () => me.send(r.room, bytes)); }
+  for (const a of (e.mine || {})[k] || []) if (!(await engAct("taking the reaction back", () => me.redact(r.room, a)))) return false; return true; }
 function engMakeRoom(x, then) {   // a room through createRoom; the people chosen are invited through the engine. Its name, description and picture stay on this page
   engOp(() => EN.me.engine.createRoom()).then(async g => { const k = EN.lib.ev.hex(g); engMeta(k, { name: x.name, topic: x.topic, pic: x.pic }); await engSync(); const r = EN.rooms.get(k); if (!r) return;   // each group room has its own address (uor-comms #24: a random salt in the creating event)
     await engInvite(r, (x.members || []).filter(id => id !== "me"), 1);
@@ -884,7 +914,7 @@ function engAbout() {
     ${P0}Each sample person is a separate engine in this tab, joined in this tab: what you send is signed with a P-256 key made in this browser, and each of their engines admits or refuses it. Identities and devices are made in this browser; Prism ID is not wired. The sample people accept invitations and answer by script, through their own engines.</p>
     ${P0}<b>Kept in this browser.</b> Each engine keeps every event it admitted, and the content, in its own store (the engine's browserStore, in IndexedDB). This page keeps each person's identity, device and key pair (the keys cannot be read out) and the room names, in a database of its own. After a reload your engine admits every kept event again, checking each signature and asking the kernel, before anything shows; the sample people's engines then do the same, and a message you send meanwhile waits for them with its clock showing${EN.restored ? ` (this load: your engine, ${EN.restored.events.toLocaleString()} events in ${EN.restored.ms.toFixed(0)} ms${EN.restored.others != null ? `; the sample people's engines, ${EN.restored.otherEvents.toLocaleString()} events in ${EN.restored.others.toFixed(0)} ms after that` : ""})` : ""}. If the browser clears them, the page says so and offers a fresh start. Sample mode deletes them. Not kept: messages still sending or not sent, pins, edits and reactions, files, and unread counts; a change of membership shows the time of the load that restored it.</p>
     ${P0}What you may do to a person, whether a room offers an invitation, and whether you may leave are the engine's answer, offered() (kernel operation 0f): the page shows only what it offers, and a direct chat offers no invitation. Its answer on roles is for setting power 0, so the roles show when that is offered and the engine answers each level. A refusal shows in plain words with the engine's own word; this engine version names only refused, direct, unknown room and malformed, not which rule refused.</p>
-    ${P0}On this page only, and sample: ${ENGNOTE.toLowerCase()} (uor-comms has not stated how edits and reactions combine). Deleting is off: this engine version refuses redactions. A change of membership shows when this tab received it; a message shows the time its sender claimed.</p>`;
+    ${P0}On this page only, and sample: ${ENGNOTE.toLowerCase()}. Deleting is off: this in-tab engine version refuses redactions. A change of membership shows when this tab received it; a message shows the time its sender claimed.</p>`;
 }
 
 /* ---------- engine mode with real people (uor-comms host/README.md at #21: "Whose key is whose", "Connecting two browsers"). Only when the pin carries transport.mjs and trust.mjs:
@@ -924,7 +954,7 @@ async function engStartReal(resume) {
   if (EN.on || EN.starting) return; EN.starting = 1; const t0 = performance.now(), slow = setTimeout(() => busy(resume ? "Restoring…" : "Starting the uor-comms engine…"), resume ? 300 : 0);
   if (resume) { EN.hold = 1; engReset(); $("#demo").textContent = "Engine mode: restoring the chats kept in this browser."; drawAll(); drawRoom(); }
   let lost = "";
-  try { const L = EN.lib = await engineLoad(); Object.assign(EN, { q: Promise.resolve(), sp: Promise.resolve(), who: new Map(), ids: new Map(), peers: {}, rooms: new Map(), ev: new Map(), pend: new Map(), meta: new Map(), log: [], off: new Map(), offStale: new Set(), reach: new Set(), status: "offline" });
+  try { const L = EN.lib = await engineLoad(); Object.assign(EN, { hid: new Set(), reasked: new Set(), may: new Map(), mayStale: new Set(), side: new Set(), q: Promise.resolve(), sp: Promise.resolve(), who: new Map(), ids: new Map(), peers: {}, rooms: new Map(), ev: new Map(), pend: new Map(), meta: new Map(), log: [], off: new Map(), offStale: new Set(), reach: new Set(), status: "offline" });
     let was = ""; try { was = localStorage.getItem(ENGON) || ""; } catch (e) {}
     if (resume && !/^real /.test(was)) lost = "older";   // the earlier engine mode, with sample people in this tab: its chats cannot go on between browsers
     if (!resume) await engWipe();
@@ -934,7 +964,7 @@ async function engStartReal(resume) {
     EN.peers.me = { kept };
     if (!lost) {
       if (!own) { own = { identity: crypto.getRandomValues(new Uint8Array(32)), ...(await L.tr.newDeviceKey()) }; await engDbPut("people", "own", own); }   // trust.mjs newDeviceKey: the private half cannot be exported; the raw public key is what the book and links carry
-      for (const [k, v] of meta) EN.meta.set(k, v);
+      for (const [k, v] of meta) EN.meta.set(k, v); EN.side = new Set(EN.meta.get("side") || []);
       const book = L.tr.deviceBook({ hash: L.hash, own, saved: EN.meta.get("book") || null, save: s => engMeta("book", s) });
       const transport = L.tp.webrtcTransport({ rendezvous: L.tp.ntfyRendezvous(), signer: book, verdict: book.verdict, hash: L.hash, store: kept });
       const engine = L.open({ identity: own.identity, device: book.device, kernel: L.kernel, hash: L.hash, store: kept, signer: book, verdict: book.verdict, transport });
@@ -945,7 +975,7 @@ async function engStartReal(resume) {
       for (const h of EN.meta.get("reach") || []) { EN.reach.add(h); transport.reach(L.ev.unhex(h)); }
       transport.onStatus(s => { EN.status = s; engNet(); });
       book.onLearn(({ identity }) => { if (identity !== EN.me.hex) engPerson(identity); for (const k of EN.off.keys()) EN.offStale.add(k); engSched(); });   // a key learned: that person can now be added
-      engine.subscribe(({ room, address }) => { EN.offStale.add(L.ev.hex(room)); engSched(); const f = room && address && engine.eventOf(room, address), d = f && L.ev.decode(f.bytes); if (d && d.action === 6) EN.me.store.has(d.content).then(h => { if (!h) engWant(d.content, L.ev.hex(address)); }); });   // a message admitted: its text is fetched now, not when it is scrolled to. My own sends are in the store already
+      engine.subscribe(({ room, address }) => { EN.offStale.add(L.ev.hex(room)); EN.mayStale.add(L.ev.hex(room)); engSched(); const f = room && address && engine.eventOf(room, address), d = f && L.ev.decode(f.bytes); if (d && d.action === 8) ENGQ.red.add(L.ev.hex(d.target)); if (d && d.action === 6) EN.me.store.has(d.content).then(h => { if (!h) engWant(d.content, L.ev.hex(address)); }); });   // a message admitted: its text is fetched now, not when it is scrolled to. My own sends are in the store already
       if (transport.onDelivered) transport.onDelivered(() => engSched());   // a peer now holds one of my events, or was sent it: it leaves the outbox. No tick changes
       await transport.start(); EN.status = transport.status; }
   } catch (e) { clearTimeout(slow); EN.starting = 0; EN.restoring = 0; busy(); return engFailed(resume, e); }
@@ -961,11 +991,11 @@ async function engStartReal(resume) {
 /* the content queue: a message's text is fetched as soon as its event is admitted, so it is in this browser's store before anyone scrolls to it and after a reload, even when its sender is offline by then.
    engine.content(address) is the engine's path: the store, else the connected peers (host transport fetch, checked against the address), then the store keeps it. A few at a time, the newest asked first;
    what no connected browser holds waits until the set of connected browsers changes. No size cap: message content version 1 holds at most 4,096 bytes of text and no attachment (uor-comms CONFORMANCE RK-16) */
-const ENGQ = { want: [], wait: new Map(), miss: new Map(), healed: new Set(), busy: 0, at: 3 };   // want: content addresses to ask, newest last; wait: content -> the events naming it; miss: what no holder answered, asked again on the next change of peers
+const ENGQ = { want: [], wait: new Map(), miss: new Map(), healed: new Set(), red: new Set(), busy: 0, at: 3 };   // red: events redacted, whose content is never asked for   // want: content addresses to ask, newest last; wait: content -> the events naming it; miss: what no holder answered, asked again on the next change of peers
 function engWant(content, a) { if (!ENGV.real || !EN.on && !EN.starting) return; const k = EN.lib.ev.hex(content), w = ENGQ.wait.get(k); if (w) { if (a) w.add(a); return; }
   ENGQ.wait.set(k, new Set(a ? [a] : [])); ENGQ.want.push(content); engPump(); }
 function engPump() {
-  while (ENGQ.busy < ENGQ.at && ENGQ.want.length) { const c = ENGQ.want.pop(), k = EN.lib.ev.hex(c); ENGQ.busy++;   // the newest first
+  while (ENGQ.busy < ENGQ.at && ENGQ.want.length) { const c = ENGQ.want.pop(), k = EN.lib.ev.hex(c), evs = ENGQ.wait.get(k); if (evs && evs.size && [...evs].every(a => ENGQ.red.has(a))) { ENGQ.wait.delete(k); continue; } ENGQ.busy++;   // the newest first; content only redacted events name is not asked for
     EN.me.engine.content(c).catch(() => null).then(b => { const evs = ENGQ.wait.get(k) || new Set();
       if (b) { ENGQ.wait.delete(k); let heal = 0; for (const a of evs) { const e = EN.ev.get(a); if (e && e.miss) { EN.ev.delete(a); ENGQ.healed.add(a); heal = 1; } } if (heal) engSched(); }   // only the rows that showed the notice are read again; rows are keyed, so the rest stay
       else { ENGQ.wait.delete(k); ENGQ.miss.set(k, { c, evs }); } })
@@ -974,7 +1004,8 @@ function engAgain() { if (!ENGQ.miss.size || !EN.me || !EN.me.transport.peers().
 async function engCatchUp() {   // after restore: kept messages whose text this store does not hold yet, oldest first into the queue, so the newest are asked first. Not for events after my removal from a room: the engine sends none, and none is fetched
   const L = EN.lib, me = EN.me.engine; let n = 0;
   for (const room of me.rooms()) { const evs = engFields(me, room), out = evs.findLastIndex(t => (t.action === 3 || t.action === 4) && L.ev.hex(t.target) === EN.me.hex), mine = me.members(room).find(x => x.member === EN.me.hex), cut = mine && (mine.status === 3 || mine.status === 4) && out >= 0 ? out : evs.length;
-    for (const t of evs.slice(0, cut)) if (t.action === 6 && !(await EN.me.store.has(t.content))) { engWant(t.content, L.ev.hex(t.address)); n++; } }
+    for (const t of evs) if (t.action === 8) ENGQ.red.add(L.ev.hex(t.target));
+    for (const t of evs.slice(0, cut)) if (t.action === 6 && !ENGQ.red.has(L.ev.hex(t.address)) && !(await EN.me.store.has(t.content))) { engWant(t.content, L.ev.hex(t.address)); n++; } }
   EN.catchUp = n; }
 function engAboutReal() {
   const pin = `version <span class="addr">${ENGV.version}</span>, built from uor-comms commit <span class="addr">${ENGV.commit.slice(0, 12)}</span>`;
@@ -985,7 +1016,8 @@ function engAboutReal() {
     ${P0}<b>Kept in this browser.</b> The engine keeps every event it admitted, and the content, in its store (browserStore, in IndexedDB); this page keeps your identity, your key and the book of keys in a database of its own. After a reload the engine admits every kept event again before anything shows${EN.restored ? ` (this load: ${EN.restored.events.toLocaleString()} events in ${EN.restored.ms.toFixed(0)} ms)` : ""}. Not kept: messages not sent, pins, edits and reactions, files and unread counts.</p>
     ${P0}What you may do to a person, whether a room offers an invitation, each role you may give, and whether you may leave are the engine's answer, offered() (kernel operation 0f). A refusal shows in plain words with the engine's own word. Only people whose key this browser holds can be added to a chat. Each new group is a room of its own. The people you meet in a group pass on the keys of its other members, so everyone there can check everyone's messages, and you can add them to other chats. A person invited while everyone is connected is introduced at once, with no reconnect. An invitation reaches a person who is connected at once, with the room so far. Someone removed or banned receives the event that removed them and nothing after it: on their page the chat stays, readable and closed, with the reason.</p>
     ${P0}<b>Sending.</b> A clock shows while the engine signs and stores a message; one tick once it is announced, and nothing more: received and read are not tracked yet, so two ticks never show. While no browser of anyone in the chat holds it (the engine's outbox), its info says it is waiting for a browser to take it, and Try again announces it once more. After a reload the engine knows of no browser holding anything until one connects and says what it holds. A message holds up to ${ENGLIMIT.text.toLocaleString()} bytes of text, at most ${ENGLIMIT.mentions} mentions.</p>
-    ${P0}On this page only, and sample: ${ENGNOTE.toLowerCase()} (uor-comms has not stated how edits and reactions combine). Deleting is off: this engine version refuses redactions.</p>`;
+    ${P0}<b>Edits, reactions and deleting go through the engine.</b> An edit and a reaction are messages that name the one they concern, and the engine applies them (messages()): an edit counts only from the message's sender and the last one wins; a reaction counts once per person; taking a reaction back redacts it. Deleting redacts the message for everyone in the chat: the engine decides who may (your own with the power to send, another's at power 50), and every browser shows "Message deleted". The engine stops passing the text on, and each browser deletes its copy from its store when the deletion reaches it, this one included.</p>
+    ${P0}On this page only, and sample: ${ENGNOTE.toLowerCase()}.</p>`;
 }
 
 const isMac =/Mac|iPhone|iPad/.test(navigator.platform), modKey = isMac ? "⌘" : "Ctrl";
@@ -1235,7 +1267,7 @@ function drawBanner() {
 const phSt = e => { if (!e.th) return ""; const k = Math.min(1, 320 / e.w, 240 / e.h);   // the box a picture will fill, holding its tiny thumbnail scaled up, and so blurred, until the picture itself has loaded
   return `${e.img ? ` class="lz${e._in ? " in" : ""}"` : ""} style="width:${Math.round(e.w * k)}px;height:auto;min-width:0;min-height:0;aspect-ratio:${e.w}/${e.h}"`; };
 const phBg = e => e.th ? ` style="background:url(${e.th}) center/cover;border-radius:8px"` : "";   // the thumbnail sits behind the picture, which fades in over it once it has decoded
-const ghost = e => e.gone ? (e.from === "me" ? "You deleted this message" : "You removed this message as a moderator") + (e.reason ? ". Reason: " + esc(e.reason) : "") + "."   // why a message cannot be shown
+const ghost = e => e.engGone ? "Message deleted" : e.gone ? (e.from === "me" ? "You deleted this message" : "You removed this message as a moderator") + (e.reason ? ". Reason: " + esc(e.reason) : "") + "."   // why a message cannot be shown
   : e.undec ? "This message cannot be shown: this device did not receive its key (sample)." : e.err ? "This message cannot be shown: it arrived damaged and failed its check (sample)." : "";
 const tile = (r, h, p, btn) => `<div class="home" data-k="st" style="min-height:100%" role="status"><section class="hero" style="color:var(--ink)">${rav(r, "l")}<h3>${h}</h3><div style="color:var(--ink2)">${p}</div><div class="quick">${btn}</div></section></div>`;   // a room that is not a timeline yet: invited, loading, or failed to open
 const extOf = n => { const x = /\.([a-z0-9]{1,5})$/i.exec(n); return x ? x[1].toUpperCase() : "File"; };
@@ -1275,7 +1307,7 @@ function drawTimeline(toEnd) {
     const firstOf = !groupsWith(!!prev && prev.from === e.from, !!prev, prev ? Math.floor((e.ts - prev.ts) / M) : 0, !!prev && prev.t === "m");   // Timeline.groupsWith: a run is one sender, one day, messages under five minutes apart
     const q = e.reply && r.ev.find(x => x.id === e.reply);
     const hid = (e.img || e.file) && S.set.media === false && !e.shown, sel = MSEL.has(e.id) ? solo ? 2 : 1 : 0;
-    const sl = e.samp || (r.eng && !e.addr && !e.pend && !e.ewhy ? "Sample: on this page only, not on the engine" : "");   // engine mode: what is not on the engine says so
+    const sl = (r.eng && !e.addr && !e.pend && !e.ewhy ? "Sample: on this page only, not on the engine" : "");   // engine mode: what is not on the engine says so
     let key = e._k;   // the key is kept on the event and worked out again only when the event or its place changed
     if (!key || e._f !== firstOf || e._e !== S.epoch) { e._f = firstOf; e._e = S.epoch; key = e._k = "m" + e.id + keyOf([e.body, e.edited ? 1 : 0, e.status, firstOf ? 1 : 0, JSON.stringify(e.rx), q ? q.from + q.body + (q.gone ? 1 : 0) : "", e.img ? e.img.length : 0, e.file ? e.file.name + e.file.kind : "", U[e.from].n, ghost(e), hid ? 1 : 0, e.up ? 1 : 0, e.notice ? 1 : 0, e.fwd ? 1 : 0, e.th ? e.th.length : 0, e.bad ? 1 : 0, sel, sl].join("\u0001")); }
     prev = e;
@@ -1392,7 +1424,7 @@ const CARDS = {   // what each card holds: its title, how many items, their rows
       `Nothing is pinned. ${can ? "Open the menu of a message and choose Pin." : "Moderators can pin messages everyone should see."}`]; },
   roles(r) { const admin = myPower(r) >= 100, who = (lo, hi) => r.members.filter(id => (r.power[id] || 0) >= lo && (r.power[id] || 0) < hi).sort(byName).map(id => id === "me" ? "You" : first(id)).join(", ") || "Nobody";
     const g = (t, x, can) => `<div class="grp"><h4>${t}</h4><div style="color:var(--ink)">${x}</div><small>${can}</small></div>`;
-    return ["Roles and permissions", 5, `<div class="yp">${g("Who can join", ACCESS[accessOf(r)][0], ACCESS[accessOf(r)][1] + ".")}${g("Admins", esc(who(100, 1e9)), r.eng ? "On the engine: can remove, ban and change the role of anyone below them." : "Can do everything: change roles and who can send, and remove anyone below them.")}${g("Moderators", esc(who(50, 100)), r.eng ? "On the engine: can remove, ban and change the role of anyone below them. Deleting messages is not available in this engine version." : "Can change the name, description and picture, pin and delete messages, and remove or ban members.")}${g("Members", esc(who(0, 50)), r.eng ? "On the engine: can read, send and invite. Reactions stay on this page only." : "Can read, send, react and invite.")}
+    return ["Roles and permissions", 5, `<div class="yp">${g("Who can join", ACCESS[accessOf(r)][0], ACCESS[accessOf(r)][1] + ".")}${g("Admins", esc(who(100, 1e9)), r.eng ? "On the engine: can remove, ban and change the role of anyone below them." : "Can do everything: change roles and who can send, and remove anyone below them.")}${g("Moderators", esc(who(50, 100)), r.eng ? "On the engine: can remove, ban and change the role of anyone below them, and delete anyone's message." : "Can change the name, description and picture, pin and delete messages, and remove or ban members.")}${g("Members", esc(who(0, 50)), r.eng ? "On the engine: can read, send, react, invite, and edit or delete their own messages." : "Can read, send, react and invite.")}
     <div class="grp"><h4>Who can send messages</h4><div class="seg">${[[0, "Everyone"], [50, "Moderators only"]].map(([v, t]) => `<button data-sendp="${v}" aria-pressed="${(r.sendPower || 0) === v}"${admin && !r.eng ? "" : " disabled"}>${t}</button>`).join("")}</div>${r.eng ? "<small>Fixed by this engine version: anyone joined may send.</small>" : admin ? "" : "<small>Only admins can change this.</small>"}</div>${r.eng && ENGV.real ? "<div class=\"grp\"><small>A message a banned person wrote before their ban reached a browser may still show in that browser: the engine judges each message by what its writer had seen.</small></div>" : ""}</div>`]; } };
 const card = k => { const h = R(S.cur).ph || (R(S.cur).ph = []); if (h[h.length - 1] !== k) h.push(k); S.panel = true; drawPanel(); const b = $("#panel [data-pback]"); if (b) b.focus(); };
 function levelDlg(at) { const r = R(S.cur), d = LEVELS.find(x => x[0] === (S.set.defaultLevel || "all"))[1].toLowerCase();   // a chat's notification level: a choice, opened from its info
@@ -1653,7 +1685,7 @@ function msgActs(l) {   // Menu.messageAction decides. What needs one message is
   if (one && ta && can("reply")) a.reply = ["Reply", I.reply];
   if (can("copy")) a.copy = [one ? "Copy text" : "Copy", I.copy];
   if (can("reply")) a.fwd = ["Forward", I.fwd];
-  if (can("remove") && !l.some(x => x.addr || x.pend)) a.remove = ["Delete", I.trash];   // a message on the engine has no Delete: this engine version refuses redactions
+  if (r.eng && l.some(x => x.addr) ? l.every(x => x.addr ? EN.may && EN.may.get(x.addr) === true : can("remove") && !x.pend) : can("remove") && !l.some(x => x.pend || x.engGone)) a.remove = ["Delete", I.trash];   // on the engine: engine.mayRedact, the kernel's answer on the redaction this identity would send, read per message (a refusal stays the fallback); elsewhere Menu.messageAction
   if (!one) return a;
   if (can("retry")) a.retry = ["Try again", I.send];
   if (ta && can("edit") && !e.up && !e.pend) a.edit = ["Edit", I.edit];   // a message still being sent by the engine is neither edited nor deleted
@@ -1966,6 +1998,9 @@ function chainDlg(ev, at) { const r = R(S.cur); let h = "";   // a reply with th
   for (let p = ev, n = 0; p && n < 6; n++, p = p.reply && r.ev.find(x => x.id === p.reply)) h = `<button class="o" data-goto="${p.id}">${av(U[p.from].n)}<span class="grow" style="min-width:0"><b>${esc(p.from === "me" ? "You" : first(p.from))}</b><span style="display:block;overflow-wrap:anywhere;white-space:pre-wrap">${esc(p.gone ? "Message deleted" : p.body || p.name || "Picture")}</span></span></button>` + h;
   choose("Reply chain", h, null, at); }
 function deleteDlg(r, l) { l = [].concat(l); const n = l.length, never = ev => ev.status === "queued" || ev.status === "failed" || !!ev.up, sent = !l.every(never);
+  if (r.eng && l.some(ev => ev.addr)) return confirmDlg(`Delete ${n > 1 ? n + " messages" : "this message"}?`, explain(`${n > 1 ? "They are" : "It is"} removed for everyone in ${esc(r.name)}: each browser shows "Message deleted" in ${n > 1 ? "their" : "its"} place, and the engine stops passing the text on.`, "Each browser in the chat deletes its copy of the text when the deletion reaches it; one that is offline does so when it comes back. Nothing is encrypted yet.", "Deleting cannot be undone."), "Delete", "danger", async () => {
+    for (const ev of l) { if (!ev.addr) { ev.del = true; r.delN = (r.delN || 0) + 1; continue; } if (S.edit === ev.id) startEdit(null); if (!(await engAct("deleting the message", () => EN.me.engine.redact(r.room, EN.lib.ev.unhex(ev.addr))))) break; }   // engine.redact: the engine decides, and a refusal says why
+    r.pins = (r.pins || []).filter(x => !l.some(ev => ev.id === x)); drawTimeline(); drawList(); drawPanel(); });
   dialog(`<header><h3>Delete ${n > 1 ? n + " messages" : "this message"}?</h3></header><div class="c">${explain("Deleting cannot be undone.", sent ? "A reason is optional. Once sending exists moderators will see it; in this sample nobody does." : "", sent ? `${n > 1 ? "They are" : "It is"} removed on this device, and a line stays to say a message was deleted. Once sending exists ${n > 1 ? "they" : "it"} will be removed for everyone in ${esc(r.name)}; in this sample nothing is sent.` : "Never sent, so it just goes from this device.")}
     ${sent ? '<label>Reason<input type="text" id="dr" maxlength="140" placeholder="Optional"></label>' : ""}</div><footer><button class="btn" data-close autofocus>Cancel</button><button class="btn danger" id="dd">Delete</button></footer>`, sc => { $("#dd", sc).onclick = () => { const i = $("#dr", sc), why = i ? i.value.trim() : "";
       for (const ev of l) { if (never(ev)) { ev.del = true; r.delN = (r.delN || 0) + 1; }   // never sent: it just goes
@@ -2153,7 +2188,8 @@ function arrived(r, e) {   // a message from someone else is in the room: read n
   if (level >= 2) toast(r, e);
   drawList();
 }
-function react(ev, k) { ev._k = null; if (ev.addr) engSample(ev, "Your reaction is kept on this page only"); const a = ev.rx[k] || (ev.rx[k] = []); const i = a.indexOf("me"); i < 0 ? (a.push("me"), (ev.rxt = ev.rxt || {})[k] = Date.now()) : a.splice(i, 1); drawTimeline(); }
+function react(ev, k) { ev._k = null; const rr = R(S.cur); if (ev.addr && rr && rr.eng) return engReact(rr, ev, k);   // on the engine: a reaction event, or the redaction of mine
+   const a = ev.rx[k] || (ev.rx[k] = []); const i = a.indexOf("me"); i < 0 ? (a.push("me"), (ev.rxt = ev.rxt || {})[k] = Date.now()) : a.splice(i, 1); drawTimeline(); }
 function cancelMode() { if (S.mode) { S.mode = null; drawCtx(); } }
 /* ---------- editing happens in the message field: the text goes into it and a strip says Editing. Send saves, Escape cancels, and the draft that was there comes back.
    Up and Down step through your own messages while the text is unchanged ---------- */
@@ -2162,7 +2198,8 @@ function startEdit(id, text, show) { const r = R(S.cur), ta = $("#ta"), e = id &
   S.edit = e ? id : null; ta.value = e ? text != null ? text : e.body : S.edWas || ""; if (!e) S.edWas = "";
   S.pop = null; drawPop(); drawCtx(); grow(); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); if (e && show) jump(id); }
 function saveEdit() { const ta = $("#ta"), e = R(S.cur).ev.find(x => x.id === S.edit), t = ta.value.trim(); if (!e) return startEdit(null); if (!t && !e.img && !e.file) return;   // only a caption may be emptied
-  if (t !== e.body) { if (e.addr) engSample(e, "Your edit is kept on this page only"); (e.hist = e.hist || []).push({ body: e.body, ts: Date.now() }); e.body = t; e.edited = true; S.epoch++; } startEdit(null); drawTimeline(); drawList(); }
+  if (t !== e.body && e.addr && R(S.cur).eng) { engEdit(R(S.cur), e, t); startEdit(null); return; }   // on the engine: an edit event; the message shows it once messages() does
+  if (t !== e.body) { (e.hist = e.hist || []).push({ body: e.body, ts: Date.now() }); e.body = t; e.edited = true; S.epoch++; } startEdit(null); drawTimeline(); drawList(); }
 /* ---------- formatting: a bar over the selection, and the same actions from the keyboard ---------- */
 function fmt(k) { const ta = $("#ta"), w = { b: "**", i: "*", s: "~~", e: "`" }[k], z = ta.selectionEnd; let a = ta.selectionStart;
   if (w) { ins(ta, w + ta.value.slice(a, z) + w); ta.setSelectionRange(a + w.length, z + w.length); }
