@@ -114,11 +114,19 @@ definition{
   result: Nat,
   body: (if (isHand =? 0) then 0 else (if (tone <=? 5) then tone else 0))
 }
+
 definition{name: enterNothing, parameters: [], result: Nat, body: 0}
 
 definition{
   name: enterWith,
-  parameters: [composing : Nat, coarse : Nat, shift : Nat, modifier : Nat, requireModifier : Nat, popupOpen : Nat],
+  parameters: [
+    composing : Nat,
+    coarse : Nat,
+    shift : Nat,
+    modifier : Nat,
+    requireModifier : Nat,
+    popupOpen : Nat
+  ],
   result: Nat,
   body: (if (1 <=? composing) then 0 else (if (1 <=? coarse) then (if (1 <=? popupOpen) then 3 else 2) else (enterAction shift modifier requireModifier popupOpen)))
 }

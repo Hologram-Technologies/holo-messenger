@@ -195,6 +195,7 @@ definition{
   result: Nat,
   body: (if (1 <=? connected) then 0 else (if (1 <=? tried) then 2 else 1))
 }
+
 definition{name: gapInRun, parameters: [], result: Nat, body: 2}
 
 definition{name: gapBetweenRuns, parameters: [], result: Nat, body: 6}

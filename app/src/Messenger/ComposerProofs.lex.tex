@@ -269,6 +269,7 @@ theorem{
   proof: reflexivity{},
   axioms: []
 }
+
 theorem{
   name: composingNeverSends,
   parameters: [coarse : Nat, shift : Nat, modifier : Nat, requireModifier : Nat, popupOpen : Nat],
@@ -305,7 +306,14 @@ theorem{
 
 theorem{
   name: enterWithInRange,
-  parameters: [composing : Nat, coarse : Nat, shift : Nat, modifier : Nat, requireModifier : Nat, popupOpen : Nat],
+  parameters: [
+    composing : Nat,
+    coarse : Nat,
+    shift : Nat,
+    modifier : Nat,
+    requireModifier : Nat,
+    popupOpen : Nat
+  ],
   statement: (((Messenger.Composer::enterWith composing coarse shift modifier requireModifier popupOpen) <=? 3) = true),
   proof: linear_arithmetic{
     definitions: [Messenger.Composer::enterAction, Messenger.Composer::enterWith]
