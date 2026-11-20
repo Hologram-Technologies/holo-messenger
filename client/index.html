@@ -135,8 +135,8 @@ button.rw:hover,.inv:hover{background:var(--hover)} .ri.on,.ri.sel{background:va
 .day span,.sys>*{padding:4px 12px;border-radius:8px;background:var(--panel);color:var(--ink2);font-size:var(--meta);font-weight:600}
 .sys>*{font-weight:400;color:var(--ink3)} .sys svg{width:14px;height:14px;vertical-align:-3px;margin-right:4px} .sys span button{color:var(--ink2);text-decoration:underline;text-underline-offset:2px}
 .day.new span{background:var(--sel);color:var(--accent)}
-.msg{position:relative;display:flex;align-items:flex-start;gap:8px;padding:2px 16px;transition:background .2s}
-.msg.first{margin-top:8px} .msg.own{flex-direction:row-reverse} .msg.sel,.msg.act{background:color-mix(in srgb,var(--accent) 16%,transparent)}
+.msg{position:relative;display:flex;align-items:flex-start;gap:8px;padding:0 16px;transition:background .2s}
+.msg.g2{margin-top:2px} .msg.g6{margin-top:6px} .msg.g24{margin-top:24px} .msg.hr:last-child{margin-bottom:20px} .msg.hr+.day,.msg.hr+.sys{margin-top:28px}   /* Timeline.gapAfter: the space under the bubble before, which a day line or a change line replaces with its own 8 */ .msg.own{flex-direction:row-reverse} .msg.sel,.msg.act{background:color-mix(in srgb,var(--accent) 16%,transparent)}
 @media (pointer:coarse){.msg{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}}
 .msg.sw:after{content:"";position:absolute;left:-32px;top:50%;width:24px;height:24px;margin-top:-12px;background:var(--ink2);opacity:var(--sp,0);--m:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M10 7 5 12l5 5M5 12h9a5 5 0 0 1 5 5v1'/></svg>") center/contain no-repeat;-webkit-mask:var(--m);mask:var(--m)}
 .mav{width:28px;flex:none} .mav .av{width:28px;height:28px;font-size:.75rem}
@@ -157,20 +157,22 @@ button.rw:hover,.inv:hover{background:var(--hover)} .ri.on,.ri.sel{background:va
 .meta svg{width:16px;height:16px} .meta button{position:relative;display:grid} .meta button:after{content:"";position:absolute;inset:-12px -6px} .ed{font-style:italic}
 .tkb.bad{width:16px;height:16px;border-radius:50%;background:var(--bad);color:var(--bg);font-weight:700;font-size:.6875rem;place-items:center}
 .bub.pic{padding:4px} .bub.pic>.nm,.bub.pic>.fw,.bub.pic>.body{margin:4px 4px 0 8px} .bub.pic>.quote{margin-bottom:4px}
-.meta.ov{float:none;position:absolute;right:8px;bottom:8px;margin:0;padding:2px 8px;border-radius:99px;background:rgba(0,0,0,.55);color:#fff}
+.meta.ov{float:none;position:absolute;right:8px;bottom:6px;margin:0;padding:2px 8px;font-size:.6875rem;border-radius:99px;background:rgba(0,0,0,.55);color:#fff}
 .quote{display:block;width:100%;text-align:left;margin-bottom:4px;padding:4px 8px;border-left:4px solid var(--accent);border-radius:8px;background:color-mix(in srgb,var(--ink) 8%,transparent);font-size:.8125rem;color:var(--ink2)}
 .quote b{display:block;color:var(--accent)} .quote span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
 .chv{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--b);color:var(--ink2);opacity:0;pointer-events:none} .chv svg{width:16px;height:16px}
 .msg:hover .chv,.chv:focus-visible{opacity:1;pointer-events:auto} @media (hover:none){.chv{display:none}}
-.rxc{position:relative;z-index:1;margin:-4px 8px 0;height:24px;padding:0 8px;border-radius:99px;background:var(--hover);box-shadow:0 0 0 2px var(--bg);font-size:.8125rem;display:flex;align-items:center;gap:4px;color:var(--ink2);font-variant-numeric:tabular-nums}
-.rxc.mine{background:var(--sel);color:var(--accent)} .rxc:after{content:"";position:absolute;inset:0 0 -8px}
+.rxc{position:relative;z-index:1;margin:-4px 8px -20px;height:24px;padding:0 6px;border-radius:99px;background:var(--hover);box-shadow:0 0 0 2px var(--bg);font-size:.8125rem;display:flex;align-items:center;gap:4px;color:var(--ink2);font-variant-numeric:tabular-nums}   /* Budget.reactionPillHeight 24, pillEmojiSize 13: it hangs 20 below a received bubble and 16 below a sent one, in the 24 that Timeline.gapAfter leaves */
+.own .rxc{margin:-8px 8px -16px} .rxc span{font-size:.75rem} .rxc i{font-style:normal;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:.75rem;background:var(--raise)} .rxc i+i{margin-left:-9px}   /* Budget.stackedEmojiCircle 20, stackedEmojiSize 12, overlapping by 5 */
+.rxc.mine{background:var(--sel);color:var(--accent);box-shadow:0 0 0 2px var(--bg),inset 0 0 0 1px var(--accent)} .rxc:after{content:"";position:absolute;inset:0 0 -8px}
 .qrow{position:absolute;z-index:3;bottom:calc(100% - 4px);left:16px;display:flex;background:var(--raise);border-radius:99px;box-shadow:var(--shadow);padding:0 4px;animation:pop .18s} .own .qrow{left:auto;right:16px} .qrow.dn{bottom:auto;top:calc(100% - 4px)}
 .qrow button{width:min(var(--touch),calc((100vw - 40px) / 7));height:var(--touch);font-size:1.5rem;display:grid;place-items:center;border-radius:50%} .qrow button.on{background:var(--sel)}
-.img{display:block;position:relative} .img img,.img video{background:var(--panel);min-width:96px;min-height:56px;display:block;max-width:min(320px,100%);max-height:240px;border-radius:8px}
+.img{display:block;position:relative} .img img,.img video{background:var(--panel);min-width:96px;min-height:56px;display:block;max-width:min(336px,100%);max-height:330px;border-radius:8px}   /* Budget.mediaMaxWidth 336, mediaMaxHeight 330 */
 .file{display:flex;align-items:center;gap:12px;padding:8px 12px;margin-bottom:4px;border-radius:8px;background:color-mix(in srgb,var(--ink) 8%,transparent);max-width:320px;color:inherit;text-decoration:none;text-align:left}
 .file svg{width:24px;height:24px;color:var(--accent)} .file>span{min-width:0} .file small{display:block;color:var(--ink3);font-size:var(--meta)}
 .file b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;font-weight:400}
 audio.media{display:block;width:280px;max-width:100%;margin-bottom:4px} .undec{color:var(--ink3);font-style:italic}
+.bub.uns{--b:transparent;border:1px dashed var(--ink3)} .uns .undec{font-style:normal;font-size:.8125rem} .uns .undec svg{width:16px;height:16px;vertical-align:-3px;margin-right:4px}   /* Timeline.unsupportedShown: a dashed bubble, a 16 px mark, 13 px text */
 .up{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:var(--meta);color:var(--ink3)} .up button{text-decoration:underline}
 .intro{margin:24px 16px 8px;display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center}
 .intro h3{margin:0;font-size:var(--title)} .intro p{margin:0;color:var(--ink2);max-width:55ch}
@@ -184,7 +186,7 @@ audio.media{display:block;width:280px;max-width:100%;margin-bottom:4px} .undec{c
 .ctx b{display:block;color:var(--accent)} .ctx span span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #pre{padding:8px 16px 0;color:var(--ink2);max-height:88px;overflow:auto}
 .cin{display:flex;align-items:flex-end;min-height:var(--composer)} #app .cin .icon{width:var(--touch);height:var(--touch);margin:2px}
-#ta{flex:1;min-width:0;border:0;background:none;resize:none;outline:none;font-size:var(--message);line-height:1.4;padding:calc((var(--composer) - 1.4 * var(--message)) / 2) 0;max-height:calc(7 * var(--message) + var(--composer))}
+#ta{flex:1;min-width:0;border:0;background:none;resize:none;outline:none;font-size:var(--message);line-height:1.4;padding:calc((var(--composer) - 1.4 * var(--message)) / 2) 0;overflow-y:hidden}
 #send{width:var(--round);height:var(--round);border-radius:50%;flex:none;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;transition:background .15s} #send svg{width:24px;height:24px}
 #send:disabled{background:var(--hover);color:var(--ink3);cursor:default}
 .ro{min-height:var(--composer);padding:12px 16px;border-radius:calc(var(--composer) / 2);color:var(--ink2);text-align:center;background:var(--hover);display:grid;place-items:center}
@@ -331,8 +333,27 @@ progress{width:88px;accent-color:var(--accent)}
 /* one strip on top says this is sample data, and its height is taken off everything under it; a picture fades in over its thumbnail */
 #demo{position:fixed;inset:0 0 auto;z-index:120;padding:4px 12px;background:var(--hl);border-bottom:1px solid var(--line);font-size:var(--meta);text-align:center}
 .lz{opacity:0;transition:opacity .2s} .lz.in{opacity:1}
+.vgo{position:absolute;top:50%;left:8px;width:40px;height:40px;margin-top:-20px;border-radius:50%;display:grid;place-items:center;background:var(--raise);color:var(--ink);box-shadow:var(--shadow)} .vgo svg{transform:rotate(90deg)} .vgo.nx{left:auto;right:8px} .vgo.nx svg{transform:rotate(-90deg)}
+.vct{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);padding:2px 8px;border-radius:99px;background:var(--raise);color:var(--ink2);font-size:var(--meta);font-variant-numeric:tabular-nums}   /* Render.viewerArrowsShown: the arrows and "n / m" only with two or more */
 /* under a finger everything pressed is at least a touch high; the picture viewer's bar gives up its gaps so six buttons fit 320 px */
 @media (pointer:coarse){.icon,#toEnd{width:var(--touch);height:var(--touch)} .btn,.dlg footer .btn,.seg button,.pop .o,.qs .o{min-height:var(--touch)} .full header{gap:0;padding:4px 4px 4px 12px}}
+/* two panes or more take Budget's wide set (docs/whatsapp-study.md 12.2); one pane keeps the phone sizes above. Text stays in rem, so the Text size setting still scales it */
+@media (min-width:768px){
+  #lbar,#rbar{height:59px;min-height:59px}   /* Budget.wideHeaderHeight 59 */
+  #rbar .who .av,#rbar .who .meimg{width:40px;height:40px}   /* Budget.wideHeaderPicture 40 */
+  #rbar .who b{font-size:1rem;line-height:1.3125rem} #rbar .sub{font-size:.8125rem;line-height:1.25rem}   /* Budget.wideHeaderNameSize 16 on 21; the second line 13 on 20 */
+  #rooms .ri{--pic:49px;min-height:69px;padding:10px 9px;gap:15px;margin:0 8px;width:calc(100% - 16px);border-radius:12px}   /* Budget.wideRowPicture 49, wideRowPadding 10; the highlight an inset pill */
+  #rooms .ri .n{font-size:1.0625rem;font-weight:400;line-height:1.3125rem}   /* Budget.wideNameSize 17 */
+  #rooms .ri .tm{font-size:.75rem;line-height:.875rem}   /* Budget.wideListTimeSize 12 */
+  #rooms .ri .p{font-size:.8125rem;line-height:1.25rem} #rooms .ri .row2{margin-top:3px}   /* Budget.widePreviewSize 13 */
+  #rooms .ri .badge:not(.dot){padding:0 5px;font-size:.6875rem} #rooms .ri.sel:before{left:42px}   /* Budget.unreadBadgeHeight 20 */
+  :root{--bubble:60%}   /* Budget.wideBubbleMaxPercent 60 */
+  #tl .bub{--r:8px}   /* Budget.wideBubbleCorner 8 */
+  #tl .bub.tail:before{border-top-width:13px}   /* Budget.tailWidth 8, tailHeight 13 */
+  #tl .body:not(.big){font-size:.8875rem;line-height:1.1875rem}   /* Budget.wideMessageTenths 142: 14.2 on 19 */
+  #tl .meta{font-size:.6875rem;line-height:.9375rem}   /* Budget.wideMetaSize 11 */
+  #ta{font-size:.9375rem;line-height:1.5rem;padding:calc((var(--composer) - 1.5rem) / 2) 0}   /* Budget.composerTextSize 15, composerLineHeight 24: five lines are composerMaxHeight 120 */
+}
 </style>
 </head>
 <body>
@@ -578,11 +599,27 @@ const KEYCODE = { ArrowUp: 5, ArrowDown: 6, Home: 9, End: 10, Escape: 11, l: 17,
 let rowShown = (row, panes) => row === 7 ? (panes >= 2 ? 1 : 0) : row <= 8 ? 1 : 0;                                                         // Settings.rowShown: rows 0 profile, 1 account, 2 privacy, 3 devices, 4 chats, 5 notifications, 6 storage, 7 keyboard, 8 about
 let settingsBack = (onSubScreen, openedFromChats) => onSubScreen === 0 ? 0 : openedFromChats >= 1 ? 2 : 1;                                  // Settings.settingsBack: 0 no back, 1 back to You, 2 back to Chats
 let restoredChip = saved => saved <= 3 ? saved : 0;                                                                                         // RoomList.restoredChip
+/* the rules the wa-ui study added (docs/wa-ui-gap.md), which the holo has no request for yet: built-in copies of their definitions, word for word */
+let gapAfter = (nextStartsGroup, hasReactions) => hasReactions >= 1 ? 24 : nextStartsGroup >= 1 ? 6 : 2;                                     // Timeline.gapAfter: px under a bubble
+let reactionCountShown = total => total >= 2 ? 1 : 0;                                                                                       // Timeline.reactionCountShown
+let unsupportedShown = (known, isMessage) => known >= 1 ? 0 : isMessage >= 1 ? 1 : 0;                                                       // Timeline.unsupportedShown: 1 a placeholder
+let timeOnMedia = (isMedia, hasCaption) => isMedia === 0 ? 0 : hasCaption >= 1 ? 0 : 1;                                                     // Timeline.timeOnMedia
+let quickReactions = () => 6;                                                                                                               // Menu.quickReactions
+let reactionAfterPick = (current, picked) => current === picked ? 0 : picked;                                                               // Menu.reactionAfterPick: 0 none, else the one reaction kept
+let enterWith = (composing, coarse, shift, modifier, requireModifier, popupOpen) =>                                                         // Composer.enterWith: 0 nothing (the input method has it), 1 send, 2 a new line, 3 complete
+  composing >= 1 ? 0 : coarse >= 1 ? (popupOpen >= 1 ? 3 : 2) : enterAction(shift, modifier, requireModifier, popupOpen);
+let composerRows = lines => lines === 0 ? 1 : lines > 5 ? 5 : lines;                                                                        // Composer.composerRows
+let badgeNumber = count => count > 999 ? 999 : count;                                                                                       // RoomList.badgeNumber
+let badgePlus = (count, earlierUnknown) => count > 999 ? 1 : earlierUnknown >= 1 ? 1 : 0;                                                   // RoomList.badgePlus
+let previewTicks = (lastIsOwn, unread) => lastIsOwn === 0 ? 0 : unread >= 1 ? 0 : 1;                                                        // RoomList.previewTicks
+let viewerNext = (index, count) => index + 1 < count ? index + 1 : 0;                                                                       // Render.viewerNext
+let viewerPreviousWraps = index => index === 0 ? 1 : 0;                                                                                     // Render.viewerPreviousWraps
+let viewerArrowsShown = count => count >= 2 ? 1 : 0;                                                                                        // Render.viewerArrowsShown
 const TICK = ["none", "clock", "one", "two", "accent"], STATE = { queued: 1, sending: 1, sent: 2, read: 4 };
 const tick = e => { const t = e.from === "me" && !e.gone && !e.up ? tickShown(STATE[e.status] || 0, KNOWS.delivery, KNOWS.read) : 0;   // the one mark of a message you sent: in a chat row now, in a bubble next. Never two ticks while the engine cannot know
   const i = [I.clock, I.check, I.read, I.read][t - 1]; return i ? mark(i, [e.status === "sending" ? "Sending" : "Waiting to send", e.addr ? e.wait ? "Sent; no browser in this chat has taken it yet" : "Sent": "Shown as sent (sample)", "Delivered", "Read"][t - 1], t > 3 ? "tk hi" : "tk") : ""; };
 /* ---------- rules from the verified holo ---------- */
-const COPIES = ["the line under a chat's name", "the reminder over the chats", "the sentence for a change to a room", "mention pills", "which formatting marks apply", "the emoji picker's sections, recents and skin tone", "the offline dialog", "what a failure shows", "the keys for the chat list's width", "the chat list's width steps", "the keys in menus and lists", "which settings rows show and where Back goes", "the side panel's body, Back and Close", "the chip restored after a reload"].join(", ");   // the 14 newer rules held as built-in copies: Layout.headerLine, Session.homeBanner, Timeline.systemLine, Render.mentionPill, Render.formatApplied, Composer.pickerSection, Timeline.offlineDialog, Session.failureView, Keys.listPanelKey, Layout.listAfterResize, Keys.controlKey, Settings.rowShown, Layout.panelShows, RoomList.restoredChip
+const COPIES = ["the line under a chat's name", "the reminder over the chats", "the sentence for a change to a room", "mention pills", "which formatting marks apply", "the emoji picker's sections, recents and skin tone", "the offline dialog", "what a failure shows", "the keys for the chat list's width", "the chat list's width steps", "the keys in menus and lists", "which settings rows show and where Back goes", "the side panel's body, Back and Close", "the chip restored after a reload", "the space between bubbles", "when a reaction count shows", "the placeholder for a message that cannot be drawn", "the time on a picture", "the six quick reactions", "one reaction per person", "the Enter key by input method and screen", "how many lines the field grows to", "the unread number and its plus", "ticks on a chat row", "the viewer's next, previous and arrows"].join(", ");   // the 14 newer rules held as built-in copies: Layout.headerLine, Session.homeBanner, Timeline.systemLine, Render.mentionPill, Render.formatApplied, Composer.pickerSection, Timeline.offlineDialog, Session.failureView, Keys.listPanelKey, Layout.listAfterResize, Keys.controlKey, Settings.rowShown, Layout.panelShows, RoomList.restoredChip; and the wa-ui rules: Timeline.gapAfter, Timeline.reactionCountShown, Timeline.unsupportedShown, Timeline.timeOnMedia, Menu.quickReactions, Menu.reactionAfterPick, Composer.enterWith, Composer.composerRows, RoomList.badgeNumber, RoomList.badgePlus, RoomList.previewTicks, Render.viewerNext, Render.viewerPreviousWraps, Render.viewerArrowsShown
 const RULES = { source: "the built-in copy", asked: 0, fresh: 0, newQ: 0, got: [], differ: [], note: "the holo has not been asked yet" };   // asked: answers compared for the first questions; fresh and newQ: answers compared, and questions answered, of the four newer ones
 const schemeClass = u => /^https:/i.test(u) ? 0 : /^http:/i.test(u) ? 1 : /^mailto:/i.test(u) ? 2 : /^javascript:/i.test(u) ? 3 : /^data:/i.test(u) ? 4 : 5;
 async function loadRules() {
@@ -717,7 +754,7 @@ const engPerson = h => { let id = EN.who.get(h); if (!id) { id = "x" + (++seq); 
 const ENGKIND = ["join", "leave", "invited", "removed", "banned", "unbanned", , "role", "redacted", "created"];   // by the event's action, 0 to 9 (Comms.Rules); 6, a send, is a message
 const engRx = g => Object.fromEntries(Object.entries(g.reactions || {}).map(([k, l]) => [k, l.map(h => h === EN.me.hex ? "me" : engPerson(h))]));   // messages().reactions: key to members, hex, once each; mine by my identity
 function engApply(e, g) {   // what messages() says of a message, onto the row the page already has: text, edited, reactions, and the reply. The row is drawn again only when one of them changed
-  const hx = EN.lib.ev.hex, x = { body: g.text, edited: !!g.edited, rx: engRx(g), mine: g.mine || {}, reply: g.replyTo ? (EN.ev.get(hx(g.replyTo)) || {}).id || null : null, fwd: g.forwarded ? 1 : 0, ment: g.everyone || g.mentions.some(y => hx(y) === EN.me.hex), ts: g.sent, notice: 0, miss: 0 };
+  const hx = EN.lib.ev.hex, x = { body: typeof g.text === "string" ? g.text : "", unk: typeof g.text === "string" ? 0 : 1, edited: !!g.edited, rx: engRx(g), mine: g.mine || {}, reply: g.replyTo ? (EN.ev.get(hx(g.replyTo)) || {}).id || null : null, fwd: g.forwarded ? 1 : 0, ment: g.everyone || g.mentions.some(y => hx(y) === EN.me.hex), ts: g.sent, notice: 0, miss: 0 };
   if (Object.keys(x).some(k => JSON.stringify(e[k]) !== JSON.stringify(x[k]))) { Object.assign(e, x); e._k = null; return true; } return false; }
 function engGone(e) { if (e.engGone) return false; Object.assign(e, { gone: 1, engGone: 1, body: "", rx: {}, edited: false, hist: null, reply: null, notice: 0, miss: 0 }); e._k = null; return true; }   // redacted: the text is dropped from the page, never shown again
 async function engEvent(t, a, mm) {   // a page event from one timeline entry: a change, or a message as messages() gives it. null: no row (an edit, a reaction, or a redaction, which shows on its target)
@@ -1045,8 +1082,8 @@ function rich(text, r) {
 }
 const emojiOnly = t => /^(\p{Extended_Pictographic}|️|‍|\s){1,12}$/u.test(t) && /\p{Extended_Pictographic}/u.test(t);
 const preview = r => { const e = last(r); if (!e) return ""; if (e.t === "s") return esc(sysText(e, r));   // RoomList.previewKind: the row names what the newest message is: text, a photo, a video, a file, or a note that it was deleted
-  const f = e.file, own = e.from === "me", t = esc(e.body.replace(/\s+/g, " ")), g = e.gone ? "Message deleted" : e.undec || e.err ? "Message cannot be shown" : "";
-  return tick(e) + esc(r.dm ? "" : own ? "You: " : first(e.from) + ": ") + (g ? `<i>${g}</i>` : e.img ? I.photo + (t || "Photo") : f ? f.kind === "video" ? I.video + (t || "Video") : fileIcon + esc(f.name) : t); };
+  const f = e.file, own = e.from === "me", t = esc(e.body.replace(/\s+/g, " ")), g = e.gone ? "Message deleted" : e.undec || e.err || e.unk ? "Message cannot be shown" : "";
+  return (previewTicks(own ? 1 : 0, unread(r) > 0 ? 1 : 0) ? tick(e) : "") + esc(r.dm ? "" : own ? "You: " : first(e.from) + ": ") + (g ? `<i>${g}</i>` : e.img ? I.photo + (t || "Photo") : f ? f.kind === "video" ? I.video + (t || "Video") : fileIcon + esc(f.name) : t); };
 const CHANGE = ["created", "join", "leave", "invited", "removed", "banned", "renamed", "topic", "picture"];   // the nine changes the model names, by its codes 0 to 8; any other kind is code 9
 const sysText = (e, r) => { const w = e.from === "me" ? "You" : first(e.from), k = CHANGE.indexOf(e.kind), to = e.to ? first(e.to) : "someone";   // Timeline.systemLine picks the sentence: never an empty line
   return [, `${w} created this ${r.dm ? "chat" : "room"}`, `${w} joined`, `${w} left`, `${w} invited ${to}`, `${w} removed ${to}`, `${w} banned ${to}`, `${w} changed the name${e.text ? " to " + e.text : ""}`, `${w} changed the description`, `${w} changed the picture`, `${w} changed the room`][systemLine(k < 0 ? 9 : k)]; };   // 10, the neutral line, for any change the model does not name
@@ -1090,7 +1127,7 @@ function drawList() {
     for (let k = r.ev.length - 1; k >= 0 && k > r.ev.length - 35; k--) if (r.ev[k].status === "failed" && !r.ev[k].del) uns = 1;
     items.push(["r" + r.id + keyOf([on, sel, SEL.size > 0, r.name, r.pic ? r.pic.length : 0, tm, p, n, mk, mu, !!r.pin, uns].join("\u0001")), () => `<button class="rw ri${on ? " on" : ""}${sel ? " sel" : ""}" data-room="${r.id}"${on ? ' aria-current="true"' : ""}${SEL.size ? ` aria-pressed="${sel}"` : ""}>${rav(r)}
       <span class="grow"><span class="t"><span class="n">${esc(r.name)}</span><span class="tm${timeAccented(n, mu) ? " hi" : ""}">${tm}</span></span>
-      <span class="row2"><span class="p">${p}</span>${uns ? `<span class="badge bad" title="Not sent" aria-label="A message was not sent">!</span>` : ""}${r.pin ? mark(pinIcon, "Pinned") : ""}${mu ? mark(I.mute, "Muted") : ""}${["", `<span class="badge dot" title="New messages${r.eng ? ", counted on this page (sample)" : ""}" aria-label="New messages${r.eng ? " (sample)" : ""}"></span>`, `<span class="badge" aria-label="${n}${r.unCap ? " or more" : ""} unread${r.eng ? " (sample)" : ""}"${r.eng ? ' title="Counted on this page (sample)"' : ""}>${n > 99 ? "99+" : n + (r.unCap ? "+" : "")}</span>`, `<span class="badge" aria-label="You were mentioned${r.eng ? " (sample)" : ""}">@</span>`][mk]}<span class="chev" data-chev title="Menu" aria-hidden="true">${I.down}</span></span></span></button>`]); };
+      <span class="row2"><span class="p">${p}</span>${uns ? `<span class="badge bad" title="Not sent" aria-label="A message was not sent">!</span>` : ""}${r.pin ? mark(pinIcon, "Pinned") : ""}${mu ? mark(I.mute, "Muted") : ""}${["", `<span class="badge dot" title="New messages${r.eng ? ", counted on this page (sample)" : ""}" aria-label="New messages${r.eng ? " (sample)" : ""}"></span>`, `<span class="badge" aria-label="${badgeNumber(n)}${badgePlus(n, r.unCap ? 1 : 0) ? " or more" : ""} unread${r.eng ? " (sample)" : ""}"${r.eng ? ' title="Counted on this page (sample)"' : ""}>${badgeNumber(n) + (badgePlus(n, r.unCap ? 1 : 0) ? "+" : "")}</span>`, `<span class="badge" aria-label="You were mentioned${r.eng ? " (sample)" : ""}">@</span>`][mk]}<span class="chev" data-chev title="Menu" aria-hidden="true">${I.down}</span></span></span></button>`]); };
   if (hb) items.push(["hb" + hb[0] + hb[3], `<div class="rw inv hb"><button class="who" data-hb="${hb[0]}"><span class="av ic">${hb[1]}</span><span class="grow"><span class="n">${hb[2]}</span><span class="p">${esc(hb[3])}</span></span></button><button class="icon" data-hbx="${hb[0]}" aria-label="Dismiss: ${hb[2]}" title="Dismiss">${I.x}</button></div>`]);
   if (EN.on && !F) items.push(["eng", `<div class="rw inv hb"><button class="who" data-engabout><span class="av ic">${I.info}</span><span class="grow"><span class="n">Engine mode</span><span class="p">${esc("Real messages between browsers. " + engNetWord())}</span></span></button><button class="btn small" data-engoff>Sample mode</button></div>`]);
   if (find && !q && SQ.length) items.push(["sq" + SQ.join("\u0001"), `<div style="padding:0 16px">${sqChips()}</div>`]);
@@ -1187,7 +1224,7 @@ const phSt = e => { if (!e.th) return ""; const k = Math.min(1, 320 / e.w, 240 /
   return `${e.img ? ` class="lz${e._in ? " in" : ""}"` : ""} style="width:${Math.round(e.w * k)}px;height:auto;min-width:0;min-height:0;aspect-ratio:${e.w}/${e.h}"`; };
 const phBg = e => e.th ? ` style="background:url(${e.th}) center/cover;border-radius:8px"` : "";   // the thumbnail sits behind the picture, which fades in over it once it has decoded
 const ghost = e => e.engGone ? "Message deleted" : e.gone ? (e.from === "me" ? "You deleted this message" : "You removed this message as a moderator") + (e.reason ? ". Reason: " + esc(e.reason) : "") + "."   // why a message cannot be shown
-  : e.undec ? "This message cannot be shown: this device did not receive its key (sample)." : e.err ? "This message cannot be shown: it arrived damaged and failed its check (sample)." : "";
+  : e.unk ? "This message cannot be shown: this version of Holo Messenger cannot draw its kind" + (e.addr ? "." : " (sample).") : e.undec ? "This message cannot be shown: this device did not receive its key (sample)." : e.err ? "This message cannot be shown: it arrived damaged and failed its check (sample)." : "";
 const tile = (r, h, p, btn) => `<div class="home" data-k="st" style="min-height:100%" role="status"><section class="hero" style="color:var(--ink)">${rav(r, "l")}<h3>${h}</h3><div style="color:var(--ink2)">${p}</div><div class="quick">${btn}</div></section></div>`;   // a room that is not a timeline yet: invited, loading, or failed to open
 const extOf = n => { const x = /\.([a-z0-9]{1,5})$/i.exec(n); return x ? x[1].toUpperCase() : "File"; };
 const rowMedia = e => { const f = e.file; if (!f) return ""; if (e.bad) return '<div class="file undec">This file cannot be opened: it is missing or damaged.</div>';   // a video fills its bubble; a document is a card: icon, name, then size and type
@@ -1204,7 +1241,7 @@ function drawTimeline(toEnd) {
   const end = r.hi == null ? all.length : Math.min(r.hi, all.length);
   if (r.hi == null && end - r.lo > MAXW) r.lo = end - WIN;
   const start = Math.max(0, Math.min(r.lo, end - 1)), evs = all.slice(start, end);
-  const items = [], grp = !r.dm, solo = MSEL.size === 1, mod = myPower(r) >= 50, pill = t => `<div class="sys"><span>${t}</span></div>`; let prev = null, run = [], lined = false;
+  const items = [], grp = !r.dm, solo = MSEL.size === 1, mod = myPower(r) >= 50, pill = t => `<div class="sys"><span>${t}</span></div>`; let prev = null, run = [], lined = false, lastRx = 0;
   const flush = () => { if (!run.length) return;
     const id = run[0].id, n = k => run.filter(e => e.kind === k).length, j = n("join"), l = n("leave"), o = run.length - j - l;   // a run of three or more changes folds into one line, and unfolds
     if (run.length > 2 && !(r.open && r.open[id])) items.push(["f" + id + run.length, pill(`${[j && j + " joined", l && l + " left", o && o + (o > 1 ? " changes" : " change")].filter(Boolean).join(", ")} · <button data-expand="${id}">show</button>`)]);
@@ -1227,19 +1264,20 @@ function drawTimeline(toEnd) {
     const q = e.reply && r.ev.find(x => x.id === e.reply);
     const hid = (e.img || e.file) && S.set.media === false && !e.shown, sel = MSEL.has(e.id) ? solo ? 2 : 1 : 0;
     const sl = (r.eng && !e.addr && !e.pend && !e.ewhy ? "Sample: on this page only, not on the engine" : "");   // engine mode: what is not on the engine says so
+    const gap = items.length && items[items.length - 1][0][0] === "m" ? gapAfter(firstOf ? 1 : 0, lastRx) : 0, hr = Object.values(e.rx).some(v => v.length) ? 1 : 0; lastRx = hr;   // Timeline.gapAfter, from the bubble drawn just before; after a day or change line that line keeps its own space
     let key = e._k;   // the key is kept on the event and worked out again only when the event or its place changed
-    if (!key || e._f !== firstOf || e._e !== S.epoch) { e._f = firstOf; e._e = S.epoch; key = e._k = "m" + e.id + keyOf([e.body, e.edited ? 1 : 0, e.status, firstOf ? 1 : 0, JSON.stringify(e.rx), q ? q.from + q.body + (q.gone ? 1 : 0) : "", e.img ? e.img.length : 0, e.file ? e.file.name + e.file.kind : "", U[e.from].n, ghost(e), hid ? 1 : 0, e.up ? 1 : 0, e.notice ? 1 : 0, e.fwd ? 1 : 0, e.th ? e.th.length : 0, e.bad ? 1 : 0, sel, sl].join("\u0001")); }
+    if (!key || e._f !== firstOf || e._g !== gap || e._e !== S.epoch) { e._f = firstOf; e._g = gap; e._e = S.epoch; key = e._k = "m" + e.id + keyOf([gap, e.body, e.edited ? 1 : 0, e.status, firstOf ? 1 : 0, JSON.stringify(e.rx), q ? q.from + q.body + (q.gone ? 1 : 0) : "", e.img ? e.img.length : 0, e.file ? e.file.name + e.file.kind : "", U[e.from].n, ghost(e), hid ? 1 : 0, e.up ? 1 : 0, e.notice ? 1 : 0, e.fwd ? 1 : 0, e.th ? e.th.length : 0, e.bad ? 1 : 0, e.unk ? 1 : 0, sel, sl].join("\u0001")); }
     prev = e;
     items.push([key, () => { const g = ghost(e), side = bubbleSide(own ? 1 : 0), n = U[e.from].n, pic = !hid && !e.bad && (e.img || e.file && e.file.kind === "video"), rxs = Object.entries(e.rx).filter(([, v]) => v.length);
-      const txt = g ? `<span class="undec">${g}</span>` : e.body.startsWith("/me ") ? `<i>${esc(first(e.from))} ${rich(e.body.slice(4), r)}</i>` : rich(e.body, r), tk = own && tick(e);
+      const uns = e.unk ? unsupportedShown(0, 1) : 0, txt = g ? `<span class="undec">${uns ? I.info : ""}${g}</span>` : e.body.startsWith("/me ") ? `<i>${esc(first(e.from))} ${rich(e.body.slice(4), r)}</i>` : rich(e.body, r), tk = own && tick(e);
       const meta = ov => `<span class="meta${ov ? " ov" : ""}">${e.edited ? '<button class="ed" aria-label="Edited. Show what it said before">edited</button>' : ""}<span>${clock(e.ts)}</span>${failed ? '<button class="tkb bad" data-why aria-label="Not sent. Why, and what you can do" title="Not sent">!</button>' : tk ? `<button class="tkb" data-why title="What this mark means">${tk}</button>` : ""}</span>`;
-      return `<div class="msg${side ? " own" : ""}${firstOf ? " first" : ""}${sel ? " sel" : ""}" data-id="${e.id}">${grp && !side ? firstOf ? `<button class="mav" data-user="${e.from}" tabindex="-1" aria-label="${esc(n)}">${av(n)}</button>` : '<span class="mav"></span>' : ""}<div class="mc">${sel === 2 && messageAction("react", own, true, mod, failed) ? `<div class="qrow" role="group" aria-label="React">${EMOJI.slice(0, 6).map(([k]) => `<button data-q="${k}" aria-label="React with ${k}"${(e.rx[k] || []).includes("me") ? ' class="on"' : ""}>${k}</button>`).join("")}<button data-q="" aria-label="More emoji" title="More emoji">${I.plus}</button></div>` : ""}
-      <div class="bub${tailShown(firstOf ? 1 : 0) ? " tail" : ""}${pic ? " pic" : ""}">${grp && !side && firstOf ? `<button class="nm" data-user="${e.from}" style="color:color-mix(in srgb,hsl(${hue(n)} 70% 50%) 72%,var(--ink))">${esc(n)}</button>` : ""}${e.fwd ? '<div class="fw">Forwarded</div>' : ""}${sl ? `<div class="fw">${esc(sl)}</div>` : ""}
+      return `<div class="msg${side ? " own" : ""}${firstOf ? " first" : ""}${gap ? " g" + gap : ""}${hr ? " hr" : ""}${sel ? " sel" : ""}" data-id="${e.id}">${grp && !side ? firstOf ? `<button class="mav" data-user="${e.from}" tabindex="-1" aria-label="${esc(n)}">${av(n)}</button>` : '<span class="mav"></span>' : ""}<div class="mc">${sel === 2 && messageAction("react", own, true, mod, failed) ? `<div class="qrow" role="group" aria-label="React">${EMOJI.slice(0, quickReactions()).map(([k]) => `<button data-q="${k}" aria-label="React with ${k}"${(e.rx[k] || []).includes("me") ? ' class="on"' : ""}>${k}</button>`).join("")}<button data-q="" aria-label="More emoji" title="More emoji">${I.plus}</button></div>` : ""}
+      <div class="bub${tailShown(firstOf ? 1 : 0) ? " tail" : ""}${pic ? " pic" : ""}${uns ? " uns" : ""}">${grp && !side && firstOf ? `<button class="nm" data-user="${e.from}" style="color:color-mix(in srgb,hsl(${hue(n)} 70% 50%) 72%,var(--ink))">${esc(n)}</button>` : ""}${e.fwd ? '<div class="fw">Forwarded</div>' : ""}${sl ? `<div class="fw">${esc(sl)}</div>` : ""}
       ${q ? `<button class="quote" data-jump="${q.id}"><b>${esc(q.from === "me" ? "You" : first(q.from))}</b><span>${esc(q.gone ? "Message deleted" : q.body || q.name || "Picture")}</span></button>` : ""}
       ${hid ? `<button class="file" data-show>${e.img ? "Picture" : "File"} hidden. Show it</button>` : (e.img ? `<button class="img" data-view="${e.id}" aria-label="Open image"${phBg(e)}><img src="${e.img}" alt="${esc(e.name || "image")}"${phSt(e)}></button>` : "") + rowMedia(e)}
       ${e.up ? `<div class="up">Getting the file ready <progress max="1" value="0"></progress><button data-upx>Cancel</button></div>` : ""}
-      ${txt || !pic ? `<div class="body${emojiOnly(e.body) ? " big" : ""}${e.notice ? " nt" : ""}">${txt}${meta()}</div>` : meta(1)}${e.gone ? "" : `<button class="chv" data-act="more" aria-label="Message menu" title="Menu">${I.down}</button>`}</div>
-      ${rxs.length ? `<button class="rxc${rxs.some(([, v]) => v.includes("me")) ? " mine" : ""}" data-rxall aria-label="Reactions: ${rxs.map(([k, v]) => k + " " + v.length).join(", ")}. Show who reacted">${rxs.slice(0, 3).map(x => x[0]).join("")}${rxs.reduce((a, x) => a + x[1].length, 0) > 1 ? `<span>${rxs.reduce((a, x) => a + x[1].length, 0)}</span>` : ""}</button>` : ""}</div></div>`; }]);
+      ${!timeOnMedia(pic ? 1 : 0, txt ? 1 : 0) ? `<div class="body${emojiOnly(e.body) ? " big" : ""}${e.notice ? " nt" : ""}">${txt}${meta()}</div>` : meta(1)}${e.gone ? "" : `<button class="chv" data-act="more" aria-label="Message menu" title="Menu">${I.down}</button>`}</div>
+      ${rxs.length ? `<button class="rxc${rxs.some(([, v]) => v.includes("me")) ? " mine" : ""}" data-rxall aria-label="Reactions: ${rxs.map(([k, v]) => k + " " + v.length).join(", ")}. Show who reacted">${rxs.length > 1 ? rxs.slice(0, 3).map(x => `<i>${x[0]}</i>`).join("") : rxs[0][0]}${reactionCountShown(rxs.reduce((a, x) => a + x[1].length, 0)) ? `<span>${rxs.reduce((a, x) => a + x[1].length, 0)}</span>` : ""}</button>` : ""}</div></div>`; }]);
   }
   flush();
   const old = new Map(); for (const n of tl.children) old.set(n.dataset.k, n);
@@ -1269,9 +1307,9 @@ function onScroll() {
   else { r.hi = end + WIN; if (r.hi >= total) r.hi = null; r.lo = Math.max(r.lo, (r.hi == null ? total : r.hi) - MAXW); }
   drawTimeline(); const b = a && (a.isConnected ? a : a.dataset.id && tl.querySelector(`.msg[data-id="${a.dataset.id}"]`)); if (b) tl.scrollTop = b.offsetTop + b.offsetHeight - off;   // the row in view is found again by its message when its key changed (it now groups with a row added above)
 }
-function grow() { const ta = $("#ta"), r = R(S.cur), cx = $("#ctx"), b = $("#send"); if (!ta) return; ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px";   // the field grows to about six lines, then scrolls
+function grow() { const ta = $("#ta"), r = R(S.cur), cx = $("#ctx"), b = $("#send"); if (!ta) return; ta.style.height = "auto"; const cs = getComputedStyle(ta), lh = parseFloat(cs.lineHeight) || 22, pad = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom), lines = Math.round((ta.scrollHeight - pad) / lh), rows = composerRows(lines); ta.style.height = rows * lh + pad + "px"; ta.style.overflowY = lines > rows ? "auto" : "hidden";   // Composer.composerRows: the field grows from one line to five, then scrolls
   const e = S.edit && r && r.ev.find(x => x.id === S.edit), has = !!ta.value.trim() || !!e && !!(e.img || e.file), kind = e ? "save" : mainButton(has, FEATURES.voice);   // Composer.mainButton: one round button, quiet until there is something to send. While an edit is open it saves. A microphone is never drawn while voice is not built
-  if (b.dataset.k !== kind) { const t = e ? "Save" : "Send"; b.dataset.k = kind; b.innerHTML = e ? I.check : I.send; b.setAttribute("aria-label", t); b.title = `${t} (${S.set.modSend || touch ? modKey + " Enter" : "Enter"})`; }
+  if (b.dataset.k !== kind) { const t = e ? "Save" : "Send"; b.dataset.k = kind; b.innerHTML = e ? I.check : I.send; b.setAttribute("aria-label", t); b.title = touch ? t : `${t} (${S.set.modSend ? modKey + " Enter" : "Enter"})`; }
   b.disabled = !has;
   if (!r || !cx) return; let p = $("#pre"); const h = rich(ta.value, r), on = h !== esc(ta.value);   // how the message will look, shown once it holds a name, a link or formatting
   if (on && !p) { p = document.createElement("div"); p.id = "pre"; p.className = "body"; p.setAttribute("aria-label", "How it will look"); cx.after(p); }
@@ -1632,7 +1670,7 @@ function doAct(k, l, at) { const r = R(S.cur), e = l[0], ta = $("#ta"); if (k ==
 function msgMenu(l, at, bar) {   // every action of a message. At the message it is an anchored menu with the emoji row on top; from the bar over a selection it is the rest of the actions, as a sheet on a phone
   const r = R(S.cur), e = l[0], a = msgActs(l), keys = Object.keys(a).filter(k => bar ? !barActs(l).includes(k) : k !== "remove"); if (!bar && a.remove) keys.push("remove"); if (!e) return;
   const quick = !bar && l.length === 1 && messageAction("react", e.from === "me", true, myPower(r) >= 50, e.status === "failed"), p = at && at.getBoundingClientRect ? at.getBoundingClientRect() : null;
-  const body = (quick ? `<div class="emo" style="grid-template-columns:repeat(7,1fr)">${EMOJI.slice(0, 6).map(([k]) => `<button data-q="${k}" aria-label="React with ${k}">${k}</button>`).join("")}<button data-q="" aria-label="More emoji" title="More emoji">${I.plus}</button></div><hr>` : "")
+  const body = (quick ? `<div class="emo" style="grid-template-columns:repeat(7,1fr)">${EMOJI.slice(0, quickReactions()).map(([k]) => `<button data-q="${k}" aria-label="React with ${k}">${k}</button>`).join("")}<button data-q="" aria-label="More emoji" title="More emoji">${I.plus}</button></div><hr>` : "")
     + keys.map(k => `${k === "remove" ? "<hr>" : ""}<button class="o" data-g="${k}"${k === "remove" ? ' style="color:var(--bad)"' : ""}>${a[k][1]}<span class="grow">${a[k][0]}</span></button>`).join("") + (bar ? "" : `<hr><button class="o" data-g="select">${I.check}<span class="grow">Select</span></button>`);
   const on = root => root.addEventListener("click", ev => { const b = ev.target.closest("[data-g],[data-q]"); if (!b) return; ev.stopPropagation(); closeOverlay();
     if (b.dataset.g) doAct(b.dataset.g, l); else { clearSel(); b.dataset.q ? react(e, b.dataset.q) : picker($(`.msg[data-id="${e.id}"] .bub`), k => react(e, k)); } });
@@ -1885,12 +1923,12 @@ function previewRoom(id, st = "invite", why = "") {
 
 /* ---------- messages: the viewer, reactions, history, deleting, why, forwarding; sending files ---------- */
 /* ---------- image viewer: zoom, rotate, download ---------- */
-function viewer(id) {
+function viewer(id) {   // Render.viewerNext, viewerPreviousWraps: with several pictures, the arrows, keys and swipes step through them and wrap at both ends
   const r = R(S.cur), all = r.ev.filter(x => !x.del && (x.img || x.file && x.file.kind === "video")), i = all.findIndex(x => x.id === id), e = all[i]; if (!e) return; let z = 1, rot = 0, t0 = null;
-  const src = e.img || e.file.url, go = d => { if (all[i + d]) viewer(all[i + d].id); }, st = 'id="vi" style="max-width:100%;max-height:100%;border-radius:8px;transition:transform .12s"';
+  const src = e.img || e.file.url, go = d => { if (viewerArrowsShown(all.length)) viewer(all[d > 0 ? viewerNext(i, all.length) : viewerPreviousWraps(i) ? all.length - 1 : i - 1].id); }, st = 'id="vi" style="max-width:100%;max-height:100%;border-radius:8px;transition:transform .12s"';
   dialog(`<header><h3 style="font-size:var(--preview);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.from === "me" ? "You" : U[e.from].n)} · ${listTime(e.ts)}</h3><button class="icon" id="zo" aria-label="Zoom out" title="Zoom out (−)"><b>−</b></button><button class="icon" id="zi" aria-label="Zoom in" title="Zoom in (+)"><b>+</b></button>
     <button class="icon" id="ro" aria-label="Rotate" title="Rotate (R)">${I.reply}</button><a class="icon" href="${src}" download="${esc(e.name || "image")}" aria-label="Download" title="Download">${I.send.replace("M5 12h13M13 6l6 6-6 6", "M12 4v13M6 12l6 6 6-6M5 21h14")}</a><button class="icon" id="vm" aria-label="More" title="More">${I.more}</button>${CLOSE}</header>
-    <div class="c" style="overflow:hidden;touch-action:none">${e.img ? `<img ${st} src="${src}" alt="${esc(e.name || "")}">` : `<video ${st} src="${src}" controls autoplay></video>`}</div>`, sc => {
+    <div class="c" style="overflow:hidden;touch-action:none;position:relative">${e.img ? `<img ${st} src="${src}" alt="${esc(e.name || "")}">` : `<video ${st} src="${src}" controls autoplay></video>`}${viewerArrowsShown(all.length) ? `<button class="vgo" data-vgo="-1" aria-label="Previous" title="Previous (Left)">${I.down}</button><button class="vgo nx" data-vgo="1" aria-label="Next" title="Next (Right)">${I.down}</button><span class="vct">${i + 1} / ${all.length}</span>` : ""}</div>`, sc => {
     sc.firstChild.classList.add("full");   // full screen. Wheel, keys and two fingers zoom; a swipe or the arrow keys move to the next picture
     const up = () => { $("#vi", sc).style.transform = `scale(${z}) rotate(${rot}deg)`; }, zoom = f => { z = Math.max(.5, Math.min(8, z * f)); up(); }, dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
     const menu = at => choose("More", `<button class="o" data-v="1">${I.reply}<span class="grow">Show in chat</span></button><button class="o" data-v="">${I.fwd}<span class="grow">Forward</span></button>`, root => root.addEventListener("click", ev => { const b = ev.target.closest("[data-v]"); if (!b) return; ev.stopPropagation(); shut(root); b.dataset.v ? gotoMsg(id) : fwdDlg(e); }), at, 1, 1);
@@ -1901,7 +1939,7 @@ function viewer(id) {
     sc.ontouchstart = ev => { const t = ev.touches; t0 = t.length === 2 ? { d: dist(t), z } : { x: t[0].clientX }; };
     sc.ontouchmove = ev => { if (t0 && t0.d && ev.touches.length === 2) { z = Math.max(.5, Math.min(8, t0.z * dist(ev.touches) / t0.d)); up(); } };
     sc.ontouchend = ev => { if (t0 && t0.x != null && z === 1) { const dx = ev.changedTouches[0].clientX - t0.x; if (Math.abs(dx) > 55) go(dx < 0 ? 1 : -1); } t0 = null; };
-    $("#zi", sc).onclick = () => zoom(1.25); $("#zo", sc).onclick = () => zoom(.8); $("#ro", sc).onclick = () => { rot += 90; up(); };
+    sc.querySelectorAll("[data-vgo]").forEach(b => { b.onclick = ev => { ev.stopPropagation(); go(+b.dataset.vgo); }; }); $("#zi", sc).onclick = () => zoom(1.25); $("#zo", sc).onclick = () => zoom(.8); $("#ro", sc).onclick = () => { rot += 90; up(); };
   });
 }
 function whoReacted(ev, at) { let tab = "";   // who reacted, with a tab for each emoji. Your own is a button: tap it to take the reaction back. A time shows only where one was recorded: your own
@@ -2108,7 +2146,8 @@ function arrived(r, e) {   // a message from someone else is in the room: read n
   drawList();
 }
 function react(ev, k) { ev._k = null; const rr = R(S.cur); if (ev.addr && rr && rr.eng) return engReact(rr, ev, k);   // on the engine: a reaction event, or the redaction of mine
-   const a = ev.rx[k] || (ev.rx[k] = []); const i = a.indexOf("me"); i < 0 ? (a.push("me"), (ev.rxt = ev.rxt || {})[k] = Date.now()) : a.splice(i, 1); drawTimeline(); }
+   const was = Object.keys(ev.rx).find(x => ev.rx[x].includes("me")) || 0, pick = reactionAfterPick(was, k);   // Menu.reactionAfterPick, sample mode only: one reaction per person; the same pick takes it back, another replaces it. The engine still holds several per person (uor-comms need N-6), so engine chats stay as the engine counts
+   if (was) ev.rx[was].splice(ev.rx[was].indexOf("me"), 1); if (pick) { (ev.rx[pick] || (ev.rx[pick] = [])).push("me"); (ev.rxt = ev.rxt || {})[pick] = Date.now(); } drawTimeline(); }
 function cancelMode() { if (S.mode) { S.mode = null; drawCtx(); } }
 /* ---------- editing happens in the message field: the text goes into it and a strip says Editing. Send saves, Escape cancels, and the draft that was there comes back.
    Up and Down step through your own messages while the text is unchanged ---------- */
@@ -2488,7 +2527,7 @@ document.addEventListener("keydown", e => {
   const ta = e.target;
   if (S.pop && (k === "ArrowDown" || k === "ArrowUp")) { e.preventDefault(); const n = S.pop.items.length; S.pop.idx = (S.pop.idx + (k === "ArrowDown" ? 1 : n - 1)) % n; drawPop(); return; }
   if (S.pop && k === "Tab") { e.preventDefault(); complete(S.pop.idx); return; }
-  if (k === "Enter" && !e.isComposing) { const a = enterAction(e.shiftKey, mod, S.set.modSend || touch, !!S.pop);
+  if (k === "Enter") { const a = enterWith(e.isComposing || e.keyCode === 229 ? 1 : 0, touch ? 1 : 0, e.shiftKey ? 1 : 0, mod ? 1 : 0, S.set.modSend ? 1 : 0, S.pop ? 1 : 0);   // Composer.enterWith: nothing while an input method composes; on a touch screen Enter adds a line and only the button sends
     if (a === 3) { e.preventDefault(); complete(S.pop.idx); } else if (a === 1) { e.preventDefault(); S.edit ? saveEdit() : send(); } return; }
   if (S.pop) return;
   if (S.edit) { if (k === "ArrowUp" && !ta.selectionEnd || k === "ArrowDown" && ta.selectionStart === ta.value.length) { const l = ownMsgs(R(S.cur)), i = l.findIndex(x => x.id === S.edit); if (i < 0 || ta.value.trim() !== l[i].body) return;   // changed text is never dropped by a step
@@ -2606,7 +2645,7 @@ else if (!ID.created) onboard(0);
 else { for (const k in UI.ph || {}) if (R(k)) R(k).ph = UI.ph[k]; if (R(UI.cur) && panes(innerWidth) > 1) { openRoom(UI.cur); if (UI.panel) S.panel = true; } }
 /* sample events that show the cases the timeline must handle. They join after the first chats are opened, as they always did, so what counts as new at start-up is unchanged */
 (() => { const r3 = R("r3"), r5 = R("r5"); if (!r3 || !r5) return;
-  r3.ev.push(m("sofia", 5 * H, "The full write-up is in [the lab notes](https://example.org/lab/notes-7)."), m("omar", 20 * H, "", { undec: true }));
+  r3.ev.push(m("sofia", 5 * H, "The full write-up is in [the lab notes](https://example.org/lab/notes-7)."), m("omar", 20 * H, "", { undec: true }), m("dev", D + 30 * M, "", { unk: 1 }));   // a message of a kind this version cannot draw: Timeline.unsupportedShown shows it as a placeholder, never hides it
   r3.ev.sort((a, b) => a.ts - b.ts); r3._lv = null; r5.sendPower = 50;
   r5.ev.push(m("lena", 23 * H, "Chapter one, read aloud", { name: "chapter-1.mp3", file: { name: "chapter-1.mp3", size: 48213, kind: "audio", url: "data:audio/mpeg;base64,AA" } }),   // a sound and a file whose bytes are missing, to show how each says so
     m("lena", 22 * H, "My notes", { name: "notes.pdf", file: { name: "notes.pdf", size: 20480, kind: "file", url: "blob:gone" } })); })();

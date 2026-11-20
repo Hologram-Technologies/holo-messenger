@@ -97,6 +97,15 @@ These are what the client needs. uor-comms decides whether and how; its answer o
 
 ## 4. Decisions for Ilya
 
+Followed as recommended while building Phase 1 in `client/index.html` (2026-11-20), each reversible, pending Ilya:
+
+- One reaction per person per message (`Menu.reactionAfterPick`), in sample mode; engine mode keeps what the engine counts until N-6. Reversible, pending Ilya.
+- No typing bubble (decision 8): the line under the chat name stays alone. Reversible, pending Ilya.
+- The list column keeps its widths (decision 9): 240, 320 and 384 px. Reversible, pending Ilya.
+- The tail stays on the first bubble of a run (decision 6, `Timeline.tailShown`). Reversible, pending Ilya.
+- Not followed: no viewer wrap (decision 7). `Render.viewerNext` and `Render.viewerPreviousWraps` take no setting that turns wrapping off, so the page follows the rules and wraps at both ends; stopping at the ends needs a change to those rules first. Pending Ilya.
+- Not touched: the 32 px emoji-only size (decision 2), which belongs to the emoji item, left as it was.
+
 The standing rulings were kept: calls Phase 3, status and updates dropped, verifying another person and room-key recovery Phase 2, direct chats of exactly two, X-Wing, device keys in invite links until Prism ID. Feature complete in WhatsApp's sense needs no change to any of them except, possibly, the last (5).
 
 1. Which emoji set to pin: jdecked/twemoji v17.0.3 (recommended, Emoji 17.0) or twitter/twemoji v14.0.2 (the original, Emoji 14.0). `docs/emoji.md`.
