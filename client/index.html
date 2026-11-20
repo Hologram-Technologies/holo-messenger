@@ -632,14 +632,22 @@ async function loadRules() {
    uor-comms is the reference (host/README.md, docs/DESIGN.md); this adapter maps the page onto its calls and decides nothing. Opt-in: this engine
    version has no transport, so sample mode stays the default; once on, engine mode keeps its chats in this browser and resumes after a reload ---------- */
 const ENGV = { version: "082f1b036feecacba241a7c3c0fc70d027106ece74cc4f976e6cc204caa2a65c", commit: "4ca4e2c364d33d4d8a6673da7b9230939d41721e", base: "https://uor-foundation.github.io/uor-comms/engine/" };
+/* ENGNEXT, when set, is a pin whose engine carries transport.mjs and trust.mjs: engine mode then talks to real people between browsers. Set to null, engine mode is the earlier in-tab mode on the pin above.
+   Pinned: the version uor-comms published from the merge of #21 (device trust), checked file by file and against the version on 2026-11-20 */
+const ENGNEXT = { version: "7567d541cf8507dbbddbde51e2860966e545bd224d46858a405445156ddfac35", commit: "b490e2fa1e53b6ba0975a0ad36a74a83ad0f3ddc" };
+if (ENGNEXT) Object.assign(ENGV, ENGNEXT, { real: 1 });
 const ENGPEOPLE = ["me", "amara", "tomas", "yuki", "lena", "dev", "sofia", "omar"], ENGALG = { name: "ECDSA", hash: "SHA-256" };
 const ENGNOTE = "Room names and pictures, descriptions, attachments, typing, receipts, unread counts, pins, edits and reactions";
 const engWhy = er => er && er.reason || String(er && er.message || er);
-const ENGSAY = {   // the one table from the engine's word to plain words. These are the words this engine version gives (host/engine.mjs at 1474466); the kernel's finer reasons come with a later version
+const ENGSAY = {   // the one table from the engine's word to plain words: the kernel's reasons (Comms.Reason), then the host's own (host/README.md, "Refusals"). An older pin says only refused
   refused: "The room's rules do not allow this for you, in the room as it stands now. This engine version does not say which rule",
+  banned: "You are banned from this room", closed: "This room needs an invitation to join", "not joined": "You are not a member of this room yet",
+  "needs power": "Your role in this room is too low for this", "not allowed": "The room's rules do not allow you this toward that person", "unknown action": "The engine does not know this action",
   direct: "A direct chat is for two people, so no one else can be invited to it",
-  "unknown room": "The engine in this tab does not hold that room",
-  malformed: "The engine could not read it as an event",
+  "unknown room": "Your engine does not hold that room",
+  malformed: "The engine could not read it as an event", content: "The engine refused the message's content",
+  tampered: "It does not match its own address: it was changed on the way", signature: "Its signature does not check against any key this browser holds for the sender",
+  device: "It was signed by a device this browser does not hold for the sender", "parents unknown": "It cites messages that have not arrived yet, so it waits for them",
   "a direct room names a target": "A direct chat needs the other person" };
 const engSay = er => { const w = engWhy(er); return [ENGSAY[w] || (er && er.reason ? "The engine refused it" : /unreachable/.test(w) ? "The engine stopped instead of answering. This engine version is known to stop on message text over about 450 bytes" : "The engine could not process it"), w]; };   // [plain words, the engine's own word]
 const engLog = t => { (EN.log = EN.log || []).push(t); if (EN.log.length > 200) EN.log.shift(); };
@@ -647,24 +655,24 @@ async function engineLoad() {   // host/README.md, "Loading it in a page": pin t
   const t0 = performance.now(), { blake3, blake3Hex, loadArchive } = await import(new URL("../worker-runtime/index.mjs", document.baseURI).href);
   const dir = ENGV.base + ENGV.version + "/", get = async n => { let r; try { r = await fetch(dir + n, { cache: "no-store" }); } catch (e) { throw `${n} could not be fetched (${engWhy(e)})`; } if (!r.ok) throw `${n}: the site answered ${r.status}`; return new Uint8Array(await r.arrayBuffer()); };
   let man; const raw = await get("manifest.json"); try { man = JSON.parse(new TextDecoder().decode(raw)); } catch (e) { throw "manifest.json is not JSON"; }
-  const names = Object.keys(man.files || {}).sort(), want = ["content.mjs", "engine.mjs", "event.mjs", "kernel.mjs", "room-kernel.holo", "store.mjs"];
+  const names = Object.keys(man.files || {}).sort(), want = ["content.mjs", "engine.mjs", "event.mjs", "kernel.mjs", "room-kernel.holo", "store.mjs", ...(ENGV.real ? ["transport.mjs", "trust.mjs"] : [])];
   if (man.version !== ENGV.version) throw `the manifest names version ${man.version}; this page pins ${ENGV.version}`;
   if (man.commit !== ENGV.commit) throw `the manifest names commit ${man.commit}; this page pins ${ENGV.commit}`;
-  if (names.join() !== want.join()) throw `the manifest lists ${names.join(", ")}, not the six files this page loads`;
+  if (names.join() !== want.join()) throw `the manifest lists ${names.join(", ")}, not the ${want.length} files this page loads`;
   if (blake3Hex(new TextEncoder().encode(names.map(n => `${n} ${man.files[n]}\n`).join(""))) !== ENGV.version) throw "the pinned version is not the BLAKE3 of the manifest's file list";
   const b = {}; let size = raw.length;
   for (const n of names) { b[n] = await get(n); size += b[n].length; const h = blake3Hex(b[n]); if (h !== man.files[n]) throw `${n} has BLAKE3 ${h}; the manifest says ${man.files[n]}`; }
   /* only the checked bytes run: each module is imported from a blob of its checked bytes, its relative imports of checked siblings pointed at their blobs. Any other import is refused */
-  const url = {}, dec = new TextDecoder("utf-8", { fatal: true }), mods = ["event.mjs", "content.mjs", "kernel.mjs", "store.mjs", "engine.mjs"];
+  const url = {}, dec = new TextDecoder("utf-8", { fatal: true }), mods = ["event.mjs", "content.mjs", "kernel.mjs", "store.mjs", ...(ENGV.real ? ["trust.mjs", "transport.mjs"] : []), "engine.mjs"];
   try { for (const n of mods) { const rest = [], src = dec.decode(b[n]).split("\n").map(line => {   // allowed: a whole line `import { names } from "./sibling.mjs";` naming a sibling already checked
         const x = line.match(/^import\s*\{[\w\s,]*\}\s*from\s*(["'])\.\/([a-z0-9-]+\.mjs)\1;\s*$/);
         if (!x) { rest.push(line); return line; } if (!url[x[2]]) throw `${n} imports ${x[2]}, which is not a checked sibling`; return line.replace(x[1] + "./" + x[2] + x[1], JSON.stringify(url[x[2]])); }).join("\n");
       if (/\bimport\b|\bexport\s*\*|\bexport\s*\{[^}]*\}\s*from|\bfrom\s*["'`]/.test(rest.join("\n"))) throw `${n} imports something this page does not check`;   // any other import, anywhere, even in a comment or a string, refuses the start
       url[n] = URL.createObjectURL(new Blob([src], { type: "text/javascript" })); }
-    const [ev, ct, kn, st, en] = await Promise.all(mods.map(n => import(url[n])));
+    const got = await Promise.all(mods.map(n => import(url[n]))), [ev, ct, kn, st] = got, en = got[got.length - 1], tr = ENGV.real ? got[4] : null, tp = ENGV.real ? got[5] : null;
     const app = await loadArchive(b["room-kernel.holo"]); if (!app.identities || !app.identities.verified) throw "the room kernel holo did not verify";
     Object.assign(ENGV, { size, ms: performance.now() - t0 });
-    return { ev, ct, open: en.open, memoryStore: st.memoryStore, browserStore: st.browserStore, kernel: kn.kernel(q => app.dispatch(q)), hash: x => blake3(x) };
+    return { ev, ct, tr, tp, open: en.open, memoryStore: st.memoryStore, browserStore: st.browserStore, kernel: kn.kernel(q => app.dispatch(q)), hash: x => blake3(x) };
   } finally { for (const u of Object.values(url)) URL.revokeObjectURL(u); }
 }
 const engOp = fn => { const run = EN.q.then(() => fn()); EN.q = run.catch(() => {}); return run; };   // one engine call at a time in this tab, so no two admissions interleave
@@ -680,9 +688,10 @@ const engDbPut = (s, k, v) => EN.db ? idbDo(EN.db.transaction(s, "readwrite").ob
 const engDbAll = async s => { const o = EN.db.transaction(s, "readonly").objectStore(s), [k, v] = await Promise.all([idbDo(o.getAllKeys()), idbDo(o.getAll())]); return new Map(k.map((x, i) => [x, v[i]])); };
 const engMeta = (k, v) => { EN.meta.set(k, v); engDbPut("meta", k, v).catch(e => engLog("a room name was not kept: " + engWhy(e))); };   // a room's name, description and picture: this page's sample, kept with the keys
 async function engWipe() {   // deletes every engine database in this browser and the markers; the sample's saved state is left as it is
+  try { clearInterval(EN.tick); EN.me && EN.me.transport && EN.me.transport.stop(); } catch (e) {}
   for (const p of Object.values(EN.peers || {})) try { p.kept.close(); } catch (e) {}
   try { EN.db && EN.db.close(); } catch (e) {} EN.db = null;
-  await Promise.all([ENGDB, ...ENGPEOPLE.map(id => "uor-comms:" + engStoreName(id))].map(n => new Promise(ok => { const q = indexedDB.deleteDatabase(n); q.onsuccess = q.onerror = q.onblocked = () => ok(); })));
+  await Promise.all([ENGDB, ...[...ENGPEOPLE, "device"].map(id => "uor-comms:" + engStoreName(id))].map(n => new Promise(ok => { const q = indexedDB.deleteDatabase(n); q.onsuccess = q.onerror = q.onblocked = () => ok(); })));
   try { for (const k of Object.keys(localStorage)) if (k.startsWith("uor-comms:holo-messenger-")) localStorage.removeItem(k); localStorage.removeItem(ENGON); } catch (e) {}
 }
 /* the order kept events are handed back to restore(): each after the events it cites, as they first arrived. browserStore gives them by address,
@@ -714,14 +723,19 @@ async function enginePeer(id, rec) {   // a 32-byte identity and device and a P-
 }
 const ENGSTRIP = "Engine mode: rooms, members and messages run on the uor-comms engine in this tab, with sample people. Kept in this browser. Nothing is encrypted or leaves this tab; Prism ID is not wired.";
 function engLost(kind) {   // what restore found, said before anything is shown: never a partial set of chats as if it were all
-  const ev = kind === "evicted", why = ev ? "The browser cleared the engine chats it was keeping for this page. Browsers do this when storage runs low, or when site data is cleared." : "The keys the engines sign with are gone from this browser, while their chats are still kept. Without the keys the kept messages cannot be checked or continued.";
-  dialog(`<header><h3>${ev ? "The engine chats were cleared" : "The engine keys are missing"}</h3></header><div class="c">${explain(why, "Start fresh deletes what is left of engine mode in this browser and starts it again with the sample people. Sample mode deletes it and goes back to the sample chats.", "Nothing is shown from what is left, so no chat looks complete when it is not. Deleted chats cannot be brought back.")}</div><footer><button class="btn" id="eg-s">Sample mode</button><button class="btn primary" id="eg-f" autofocus>Start fresh</button></footer>`,
+  const ev = kind === "evicted", old = kind === "older", why = old ? "The engine chats kept in this browser are from the earlier engine mode, with sample people in this tab. They cannot go on between browsers." : ev ? "The browser cleared the engine chats it was keeping for this page. Browsers do this when storage runs low, or when site data is cleared." : ENGV.real ? "The key this browser signs with is gone, while its chats are still kept. Without it the kept messages cannot be continued, and the people you know cannot reach this browser." : "The keys the engines sign with are gone from this browser, while their chats are still kept. Without the keys the kept messages cannot be checked or continued.";
+  dialog(`<header><h3>${old ? "The engine chats are from an earlier version" : ev ? "The engine chats were cleared" : "The engine keys are missing"}</h3></header><div class="c">${explain(why, `Start fresh deletes what is left of engine mode in this browser and starts it again${ENGV.real ? ", with a new identity and key" : " with the sample people"}. Sample mode deletes it and goes back to the sample chats.`, "Nothing is shown from what is left, so no chat looks complete when it is not. Deleted chats cannot be brought back.")}</div><footer><button class="btn" id="eg-s">Sample mode</button><button class="btn primary" id="eg-f" autofocus>Start fresh</button></footer>`,
     sc => { $("#eg-f", sc).onclick = () => { closeOverlay(); engWipe().then(() => engineStart()); }; $("#eg-s", sc).onclick = () => { closeOverlay(); engWipe().then(engineOff); }; });
 }
+const engReset = () => { S.yt = null; S.rooms = []; S.cur = null; S.panel = false; S.typing = {}; S.mode = null; S.edit = null; HIST.length = 0; hpos = -1; REC = []; MSEL.clear(); SEL.clear(); $("#app").classList.remove("in-room"); };
+function engFailed(resume, e) {
+  if (resume) dialog(`<header><h3>The engine chats could not be opened</h3></header><div class="c">${explain(`The uor-comms engine could not be loaded and checked: ${esc(engWhy(e))}.`, "Check the connection and try again. A file that does not match the BLAKE3 this page pins is never run.", "The chats are still kept in this browser. Sample chats for now shows the sample data in this tab only, and the next load tries again.")}</div><footer><button class="btn" id="eg-l">Sample chats for now</button><button class="btn primary" id="eg-r" autofocus>Try again</button></footer>`, sc => { $("#eg-r", sc).onclick = () => location.reload(); $("#eg-l", sc).onclick = () => { try { sessionStorage.setItem("hm-engine-skip", "1"); } catch (er) {} location.reload(); }; });
+  else dialog(`<header><h3>Engine mode did not start</h3>${CLOSE}</header><div class="c">${explain(`The uor-comms engine could not be loaded and checked: ${esc(engWhy(e))}.`, "Check the connection and try again. A file that does not match the BLAKE3 this page pins is never run.", "The page stays on sample data; nothing changed.")}</div><footer><button class="btn primary" data-close autofocus>OK</button></footer>`);
+}
 async function engineStart(resume) {   // resume: engine mode was on before this load, so its engines are opened on their kept stores and restored, not made anew
+  if (ENGV.real) return engStartReal(resume);
   if (EN.on || EN.starting) return; EN.starting = 1; const t0 = performance.now(), slow = setTimeout(() => busy(resume ? "Restoring…" : "Starting the uor-comms engine…"), resume ? 300 : 0);
-  const reset = () => { S.yt = null; S.rooms = []; S.cur = null; S.panel = false; S.typing = {}; S.mode = null; S.edit = null; HIST.length = 0; hpos = -1; REC = []; MSEL.clear(); SEL.clear(); $("#app").classList.remove("in-room"); };
-  if (resume) { EN.hold = 1; reset(); $("#demo").textContent = ENGSTRIP; drawAll(); drawRoom(); }   // hold: from here this load writes none of the sample's saved state   // the sample chats are not shown while the kept ones are read
+  if (resume) { EN.hold = 1; engReset(); $("#demo").textContent = ENGSTRIP; drawAll(); drawRoom(); }   // hold: from here this load writes none of the sample's saved state   // the sample chats are not shown while the kept ones are read
   let lost = "";
   try { EN.lib = await engineLoad(); Object.assign(EN, { q: Promise.resolve(), sp: Promise.resolve(), dev: new Map(), who: new Map(), peers: {}, rooms: new Map(), ev: new Map(), pend: new Map(), meta: new Map(), log: [], off: new Map(), offStale: new Set() });
     if (!resume) await engWipe();   // a fresh start never mixes with anything left from before
@@ -736,13 +750,10 @@ async function engineStart(resume) {   // resume: engine mode was on before this
       EN.restoring = 0; EN.restored = { ms: performance.now() - r0, events: n, all: performance.now() - t0 };
       const r1 = performance.now(); engOp(async () => { let k = 0; for (const p of Object.values(EN.peers)) if (p.id !== "me") { await p.engine.restore(); k += (await p.kept.events()).length; } Object.assign(EN.restored, { others: performance.now() - r1, otherEvents: k }); })   // the sample people's engines next, before any other engine call: a send waits for them, with its clock showing
         .catch(e => engLog("a sample person's engine was not restored: " + engWhy(e))); }
-  } catch (e) { clearTimeout(slow); EN.starting = 0; EN.restoring = 0; busy();
-    if (resume) dialog(`<header><h3>The engine chats could not be opened</h3></header><div class="c">${explain(`The uor-comms engine could not be loaded and checked: ${esc(engWhy(e))}.`, "Check the connection and try again. A file that does not match the BLAKE3 this page pins is never run.", "The chats are still kept in this browser. Sample chats for now shows the sample data in this tab only, and the next load tries again.")}</div><footer><button class="btn" id="eg-l">Sample chats for now</button><button class="btn primary" id="eg-r" autofocus>Try again</button></footer>`, sc => { $("#eg-r", sc).onclick = () => location.reload(); $("#eg-l", sc).onclick = () => { try { sessionStorage.setItem("hm-engine-skip", "1"); } catch (er) {} location.reload(); }; });
-    else dialog(`<header><h3>Engine mode did not start</h3>${CLOSE}</header><div class="c">${explain(`The uor-comms engine could not be loaded and checked: ${esc(engWhy(e))}.`, "Check the connection and try again. A file that does not match the BLAKE3 this page pins is never run.", "The page stays on sample data; nothing changed.")}</div><footer><button class="btn primary" data-close autofocus>OK</button></footer>`);
-    return; }
+  } catch (e) { clearTimeout(slow); EN.starting = 0; EN.restoring = 0; busy(); return engFailed(resume, e); }
   if (lost) { clearTimeout(slow); EN.starting = 0; busy(); return engLost(lost); }
   EN.me = EN.peers.me; EN.me.engine.subscribe(({ room }) => { EN.offStale.add(EN.lib.ev.hex(room)); engSched(); });   // an event in a room may change what offered() answers there
-  closeOverlay(); Object.assign(EN, { on: 1 }); reset(); $("#demo").textContent = ENGSTRIP;
+  closeOverlay(); Object.assign(EN, { on: 1 }); engReset(); $("#demo").textContent = ENGSTRIP;
   try { localStorage.setItem(ENGON, ENGV.version); } catch (e) {}   // engine mode stays on across reloads until Sample mode
   if (!resume) { const P = EN.peers, me = EN.me.identity, txt = t => EN.lib.ct.encodeContent({ text: t, sent: Date.now() });   // the scripted start: two sample people write first, through their own engines
     try { await engOp(async () => { const g = await P.amara.engine.createRoom(); engMeta(EN.lib.ev.hex(g), { name: "Engine trial", topic: "A sample room on the uor-comms engine, in this tab." });
@@ -756,12 +767,13 @@ async function engineStart(resume) {   // resume: engine mode was on before this
 const engineOff = () => { try { history.replaceState(null, "", location.href.split("#")[0]); sessionStorage.setItem("hm-engine-was", "1"); } catch (e) {} location.reload(); };
 function engSched() { if (EN.dirty || EN.restoring) return;   /* while restore() admits the kept events, nothing is read: a room is shown whole or not at all */ EN.dirty = 1; setTimeout(() => { EN.dirty = 0; engSync().then(engRedraw); }, 0); }
 const engSync = () => (EN.sp = EN.sp.then(engSyncNow).catch(e => engLog("reading the engine failed: " + engWhy(e))));
-const engPerson = h => { let id = EN.who.get(h); if (!id) { id = "x" + (++seq); U[id] = { n: h.slice(0, 8) + "…" }; EN.who.set(h, id); } return id; };
+const engPerson = h => { let id = EN.who.get(h); if (!id) { id = "x" + (++seq); U[id] = { n: h.slice(0, 8) + "…", eid: h, addr: h }; EN.who.set(h, id); } if (EN.ids && id !== "me") EN.ids.set(id, EN.lib.ev.unhex(h)); return id; };   // a person shows by the start of their identity: the engine has no names
 const ENGKIND = ["join", "leave", "invited", "removed", "banned", "unbanned", , "role", "redacted", "created"];   // by the event's action, 0 to 9 (Comms.Rules); 6, a send, is a message
 async function engEvent(t, a) {   // a page event from one timeline entry: a change, or a message decoded from content version 1
   const L = EN.lib, hx = L.ev.hex, from = engPerson(hx(t.sender)), id = "n" + a.slice(0, 12);
   if (t.action !== 6) return { id, t: "s", from, ts: Date.now(), kind: ENGKIND[t.action] || "changed", to: L.ev.isZero(t.target) ? null : engPerson(hx(t.target)), addr: a };   // a change carries no time: it shows when this tab received it
   const bytes = await EN.me.engine.content(t.content), c = bytes && L.ct.decodeContent(bytes), x = { id, addr: a, status: "sent" };
+  if (!c && ENGV.real) { setTimeout(() => engRefetch(a, t), 4000); return m(from, 0, "This message has not arrived in full yet: its content is asked for from the browsers connected now.", Object.assign(x, { ts: Date.now(), notice: 1 })); }
   if (!c) return m(from, 0, "This message's content could not be read.", Object.assign(x, { ts: Date.now(), notice: 1 }));
   x.ts = Number(c.sent);
   if (c.kind === 1) return m(from, 0, c.text, Object.assign(x, { reply: c.relates ? (EN.ev.get(hx(c.relates)) || {}).id || null : null, fwd: c.forwarded ? 1 : 0, ment: c.everyone || c.mentions.some(y => hx(y) === EN.me.hex) }));
@@ -779,9 +791,9 @@ async function engSyncNow() {   // the chat list, members and timelines, read fr
     const by = s => mem.filter(x => x.status === s).map(x => engPerson(x.member));
     r.members = by(2); r.invited = by(1).filter(x => x !== "me"); r.banned = by(4); r.power = Object.fromEntries(mem.filter(x => x.status === 2).map(x => [engPerson(x.member), x.power]));
     if (st === 1) { const iv = [...tl].reverse().find(t => (t.action === 2 || t.action === 9) && hx(t.target) === EN.me.hex); r.invite = iv ? engPerson(hx(iv.sender)) : "me"; } else delete r.invite;
-    if (!EN.off.has(k) || EN.offStale.has(k)) { EN.offStale.delete(k); const tg = new Map(ENGPEOPLE.map(id => [id, EN.peers[id].identity])), o = new Map();   // offered(room, target), kernel operation 0f: what the door admits from me toward each person, read once per room until an event lands there
+    if (!EN.off.has(k) || EN.offStale.has(k)) { EN.offStale.delete(k); const o = new Map(), tg = new Map(ENGV.real ? [["me", EN.me.identity], ...[...EN.ids].filter(([id]) => engKnown(id))] : ENGPEOPLE.map(id => [id, EN.peers[id].identity]));   // offered(room, target), kernel operation 0f: what the door admits from me toward each person, read once per room until an event lands there. With real people: me, the members, and the people whose key this browser holds
       for (const x of mem) { const id = engPerson(x.member); if (!tg.has(id)) tg.set(id, L.ev.unhex(x.member)); }
-      for (const [id, t] of tg) o.set(id, await me.offered(room, t)); EN.off.set(k, o); }
+      for (const [id, t] of tg) { const l = {}; for (const v of [0, 50, 100]) l[v] = await me.offered(room, t, { granted: v }); o.set(id, l); } EN.off.set(k, o); }   // setPower is answered per level granted: asked for each level the page offers
     const out = [];
     for (const t of tl) { const a = hx(t.address); let e = EN.ev.get(a);
       if (!e) { e = EN.pend.get(a); if (e) { EN.pend.delete(a); e.addr = a; delete e.pend; delete e.after; e._k = null; } else { e = await engEvent(t, a); if (e.from !== "me") fresh.push([r, e]); } EN.ev.set(a, e); }
@@ -795,7 +807,7 @@ async function engSyncNow() {   // the chat list, members and timelines, read fr
   if (EN.ready) for (const [r, e] of fresh) if (!r.invite && e.t === "m" && S.rooms.includes(r)) arrived(r, e);
 }
 function engRedraw() { drawList(); drawPanel(); const c = R(S.cur); if (!c || !c.eng) return; if (c._inv !== !!c.invite) { c._inv = !!c.invite; drawRoom(); } else { drawTimeline(); drawRbar(); drawBanner(); } }
-const engMentions = (r, text) => { const ids = [], all = /(^|\s)@room\b/i.test(text); for (const id of r.members) if (id !== "me" && EN.peers[id] && new RegExp("(^|\\s)@" + first(id) + "\\b", "i").test(text)) ids.push(EN.peers[id].identity); return { ids, all }; };
+const engMentions = (r, text) => { const ids = [], all = /(^|\s)@room\b/i.test(text); for (const id of r.members) if (id !== "me" && engId(id) && new RegExp("(^|\\s)@" + first(id) + "\\b", "i").test(text)) ids.push(engId(id)); return { ids, all }; };
 function engSend(r, text, x = {}) {   // content version 1: text, mentions by identity, the reply. The clock while it is signed and stored, one tick once announced; a refusal shows Not sent with the engine's reason
   const L = EN.lib, hx = L.ev.hex, e = m("me", 0, text, { ts: Date.now(), status: "sending", reply: x.reply || null, fwd: x.fwd ? 1 : 0, pend: 1, steps: [] }), q = x.reply && r.ev.find(y => y.id === x.reply), mt = engMentions(r, text); r.ev.push(e);
   const fail = er => { e.status = "failed"; e.ewhy = engWhy(er); e.ecrash = !(er && er.reason); delete e.pend; e._k = null; for (const [k, v] of EN.pend) if (v === e) EN.pend.delete(k); engRedraw(); };
@@ -804,7 +816,8 @@ function engSend(r, text, x = {}) {   // content version 1: text, mentions by id
     .then(() => { engSync().then(engRedraw); engReply(r); }, fail);
   return e;
 }
-function engReply(r) {   // the scripted sample answer, as in sample mode, sent by the answering person's own engine as a real event
+function engReply(r) {   // the scripted sample answer, as in sample mode, sent by the answering person's own engine as a real event. Not with real people
+  if (ENGV.real) return;
   const who = r.dm ? [r.dm] : r.members.filter(x => x !== "me" && !BLOCKED.includes(x) && EN.peers[x]), l = who.slice(0, r.dm ? 1 : r.tyN = (r.tyN || 0) % 3 + 1); if (!l.length || !EN.peers[l[0]]) return;
   setTimeout(() => setTyping(r, l), 700);
   setTimeout(() => { setTyping(r, null); const p = EN.peers[l[0]]; engOp(() => p.engine.send(r.room, EN.lib.ct.encodeContent({ text: ["Got it.", "Sounds good.", "On it 👍", "Thanks, that helps."][Math.floor(Math.random() * 4)], sent: Date.now() }))).catch(e => engLog(`${l[0]} could not answer: ${engWhy(e)}`)); }, 2100);
@@ -813,21 +826,30 @@ async function engAct(what, fn) {   // a change of membership or power through t
   try { await engOp(fn); await engSync(); engRedraw(); return true; }
   catch (er) { const [say, w] = engSay(er); dialog(`<header><h3>${er && er.reason ? "The engine refused" : "The engine could not finish"} ${esc(what)}</h3>${CLOSE}</header><div class="c">${explain(esc(say) + ".", w === "direct" ? "Start a group room to talk with more people." : "Check who is a member and their roles, or ask someone with more power in the room.", "Nothing was announced, and the room is unchanged.")}<p class="ex">The engine's word: “${esc(w)}”.</p></div><footer><button class="btn primary" data-close autofocus>OK</button></footer>`); return false; }
 }
-const engId = id => EN.peers[id] && EN.peers[id].identity;
-const engOff = r => EN.off && EN.off.get(r.eng) || new Map(), engCan = (r, id, a) => (engOff(r).get(id) || []).includes(a), engCanAny = (r, a) => [...engOff(r).values()].some(l => l.includes(a));   // offered(), as last read for this room: the page shows a control only when the engine offers it
+const engId = id => EN.peers && EN.peers[id] ? EN.peers[id].identity : EN.ids && EN.ids.get(id);
+const engOff = r => EN.off && EN.off.get(r.eng) || new Map(), engLv = (r, id) => engOff(r).get(id) || { 0: [], 50: [], 100: [] };
+const engCan = (r, id, a) => a === "setPower" ? [0, 50, 100].some(v => engLv(r, id)[v].includes(a)) : engLv(r, id)[0].includes(a), engCanAny = (r, a) => [...engOff(r).values()].some(l => l[0].includes(a));
+const engCanLv = (r, id, v) => engLv(r, id)[v].includes("setPower");   // offered(), as last read for this room: the page shows a control only when the engine offers it, and a role only at a level it offers   // offered(), as last read for this room: the page shows a control only when the engine offers it
 function engSample(e, label) { e.samp = label; e._k = null; if (EN.told) return; EN.told = 1; toastMsg("Kept on this page only", "uor-comms has not stated how edits and reactions combine, so in engine mode they stay on this page and are not sent.", [], 7000); }
 function engMakeRoom(x, then) {   // a room through createRoom; the people chosen are invited through the engine. Its name, description and picture stay on this page
-  engOp(() => EN.me.engine.createRoom()).then(async g => { engMeta(EN.lib.ev.hex(g), { name: x.name, topic: x.topic, pic: x.pic }); await engSync(); const r = EN.rooms.get(EN.lib.ev.hex(g)); if (!r) return;
-    for (const id of (x.members || []).filter(id => id !== "me" && engId(id))) await engAct("the invitation of " + first(id), () => EN.me.engine.invite(g, engId(id)));
+  const had = new Set(EN.me.engine.rooms().map(EN.lib.ev.hex));
+  engOp(() => EN.me.engine.createRoom()).then(async g => { const k = EN.lib.ev.hex(g), same = had.has(k); if (!same) engMeta(k, { name: x.name, topic: x.topic, pic: x.pic }); await engSync(); const r = EN.rooms.get(k); if (!r) return;
+    if (same) { closeOverlay(); openRoom(r.id); return confirmDlg("You already have your room", explain("This engine version makes a room from who creates it and nothing else, so each device has one group room.", "Invite people to the room you have.", `${esc(r.name)} is open; no new room was made, and its name is unchanged.`), "OK", "primary", () => {}); }   // createRoom's event names only its creator, so a second one is the first room again
+    await engInvite(r, (x.members || []).filter(id => id !== "me"), 1);
     closeOverlay(); openRoom(r.id); if (then) then(); }, er => engAct("creating the room", () => { throw er; }));
 }
 function engOpenDm(id) {   // a direct room through createDirect: the other person starts invited, and their engine joins by script
   const f = engId(id) && EN.me.engine.findDirect(engId(id)), r = f && EN.rooms.get(EN.lib.ev.hex(f)); if (r && S.rooms.includes(r)) { closeOverlay(); return openRoom(r.id); }   // the host's findDirect: one direct room per pair, reused
-  if (!engId(id)) return confirmDlg("No engine for this person", explain(`${esc(U[id].n)} is not one of the sample people with an engine in this tab.`, "", "Only the sample people can be reached in engine mode."), "OK", "primary", () => {});
+  if (!engId(id) || ENGV.real && !engKnown(id)) return confirmDlg(ENGV.real ? "You cannot reach this person yet" : "No engine for this person", ENGV.real ? explain("This browser holds no key for them, and the engine reaches only people whose key it holds.", "Send them your invite link, or open theirs.", "Nothing was made.") : explain(`${esc(U[id].n)} is not one of the sample people with an engine in this tab.`, "", "Only the sample people can be reached in engine mode."), "OK", "primary", () => {});
   engOp(() => EN.me.engine.createDirect(engId(id))).then(async d => { await engSync(); const x = EN.rooms.get(EN.lib.ev.hex(d)); closeOverlay(); if (x) openRoom(x.id); }, er => engAct("the new chat", () => { throw er; }));
 }
-function engInvite(r, ids) { closeOverlay(); (async () => { for (const id of ids) if (engId(id)) await engAct("the invitation of " + first(id), () => EN.me.engine.invite(r.room, engId(id))); drawPanel(); })(); }
+async function engInvite(r, ids, kept) { if (!kept) closeOverlay(); const no = ENGV.real ? ids.filter(id => !engKnown(id)) : [], on = new Set(ENGV.real ? EN.me.transport.peers() : []); let near = 0;
+  for (const id of ids) if (engId(id) && !no.includes(id) && await engAct("the invitation of " + first(id), () => EN.me.engine.invite(r.room, engId(id))) && on.has(EN.lib.ev.hex(engId(id)))) near = 1;
+  if (near) { EN.me.transport.stop(); await EN.me.transport.start(); }   // the transport sends a room's earlier events only when two browsers meet, so a person invited while connected is met again to receive it
+  if (no.length) confirmDlg(`${no.length > 1 ? no.length + " people were" : esc(U[no[0]].n) + " was"} not added`, explain("This browser holds no key for them, so the engine cannot reach them: a key arrives only with an invite link.", "Send them your invite link, or open theirs; start a chat; then add them.", "Everyone else was invited."), "OK", "primary", () => {});
+  drawPanel(); }
 function engAbout() {
+  if (ENGV.real) return engAboutReal();
   const pin = `version <span class="addr">${ENGV.version}</span>, built from uor-comms commit <span class="addr">${ENGV.commit.slice(0, 12)}</span>`;
   if (!EN.on) return `${P0}Engine mode is off. Under Try a situation, “Run on the uor-comms engine, in this tab” starts it with sample people. It loads the uor-comms engine, ${pin}, from uor-foundation.github.io, and runs it only after every file matches the BLAKE3 this page pins.</p>`;
   return `${P0}<b>Engine mode is on.</b> Rooms, membership, sending and the timeline run on the uor-comms engine, ${pin}, loaded from uor-foundation.github.io and checked file by file against its BLAKE3 manifest before it ran (${ENGV.size.toLocaleString()} bytes, in ${ENGV.ms.toFixed(0)} ms).</p>
@@ -835,6 +857,87 @@ function engAbout() {
     ${P0}<b>Kept in this browser.</b> Each engine keeps every event it admitted, and the content, in its own store (the engine's browserStore, in IndexedDB). This page keeps each person's identity, device and key pair (the keys cannot be read out) and the room names, in a database of its own. After a reload your engine admits every kept event again, checking each signature and asking the kernel, before anything shows; the sample people's engines then do the same, and a message you send meanwhile waits for them with its clock showing${EN.restored ? ` (this load: your engine, ${EN.restored.events.toLocaleString()} events in ${EN.restored.ms.toFixed(0)} ms${EN.restored.others != null ? `; the sample people's engines, ${EN.restored.otherEvents.toLocaleString()} events in ${EN.restored.others.toFixed(0)} ms after that` : ""})` : ""}. If the browser clears them, the page says so and offers a fresh start. Sample mode deletes them. Not kept: messages still sending or not sent, pins, edits and reactions, files, and unread counts; a change of membership shows the time of the load that restored it.</p>
     ${P0}What you may do to a person, whether a room offers an invitation, and whether you may leave are the engine's answer, offered() (kernel operation 0f): the page shows only what it offers, and a direct chat offers no invitation. Its answer on roles is for setting power 0, so the roles show when that is offered and the engine answers each level. A refusal shows in plain words with the engine's own word; this engine version names only refused, direct, unknown room and malformed, not which rule refused.</p>
     ${P0}On this page only, and sample: ${ENGNOTE.toLowerCase()} (uor-comms has not stated how edits and reactions combine). Deleting is off: this engine version refuses redactions. A change of membership shows when this tab received it; a message shows the time its sender claimed.</p>`;
+}
+
+/* ---------- engine mode with real people (uor-comms host/README.md at #21: "Whose key is whose", "Connecting two browsers"). Only when the pin carries transport.mjs and trust.mjs:
+   one engine, this browser's own identity and device key, the device book as signer and verdict, and the WebRTC transport with ntfy.sh as its rendezvous. The book alone decides whose key is whose ---------- */
+const ENGHONEST = [   // what is real and what is not, said once on the first start, in About, and short in the strip
+  "Messages go between real browsers: yours and those of the people you invite. No server keeps or passes them on.",
+  "Browsers find each other through ntfy.sh, a public server, on topics made from room and identity addresses, so anyone who has seen a room's address can see when its members connect. Connections use a public STUN server (Google's), and the people you connect to see your network address. There is no relay: two people both behind strict networks may not connect, and both must be online at the same time. Keys travel in invite links until Prism ID.",
+  "Nothing is encrypted yet; post-quantum encryption is planned. A message over about 450 bytes cannot be sent yet. Your identity, device key, the keys you hold for others, and every chat are kept in this browser until you choose Sample mode."];
+const engStrip = () => `Engine mode: real messages between browsers. Setup over ntfy.sh, a public server; people you connect to see your network address; not encrypted yet. ${engNetWord()}`;
+const engNetWord = () => { const s = EN.status, n = EN.me && EN.me.transport ? EN.me.transport.peers().length : 0; return s === "online" ? `Connected to ${n} browser${n === 1 ? "" : "s"}.` : s === "connecting" ? "Looking for the people you know." : "Offline."; };
+const engKnown = id => { const t = engId(id); return !!t && id !== "me" && EN.me.book.devicesOf(t).length > 0; };   // the book holds a key for this person: only they can be reached or added
+const engHide = id => ENGV.real && EN.on && !(EN.ids && EN.ids.has(id));   // in engine mode with real people the sample people are not offered
+function engNet() {   // transport.onStatus: the strip, the list's engine row, the banner in a chat
+  if (!EN.on || !ENGV.real) return; $("#demo").textContent = engStrip(); drawList(); drawBanner(); }
+const engRoomNet = r => { if (!ENGV.real || !EN.on || !r || !r.eng) return ""; if (EN.status !== "online") return EN.status === "offline" ? "off" : "wait";
+  const on = new Set(EN.me.transport.peers()); return [...r.members, ...(r.invited || [])].some(id => id !== "me" && engId(id) && on.has(EN.lib.ev.hex(engId(id)))) ? "" : "wait"; };
+function engHonest(first) { dialog(`<header><h3>${first ? "Engine mode is on" : "What engine mode is"}</h3>${CLOSE}</header><div class="c">${explain(...ENGHONEST)}${P0}Invite someone from Start a chat, or open an invite link someone sent you. About has all of this again.</p></div><footer><button class="btn primary" data-close autofocus>OK</button></footer>`); }
+function engInviteDlg() {   // book.invite(base): this device's key and a fresh one-time token, as a link and its picture code
+  const link = EN.me.book.invite(location.href.split("#")[0]);
+  dialog(`<header><h3>Invite someone</h3>${CLOSE}</header><div class="c">${explain("Whoever has this link can reach you, once. It carries your device key and a one-time token.", "Send it to one person, or let them scan the code. When they open it with engine mode on, their browser connects to yours while both of you are online, and either of you can start a chat.", "The first browser to use the token is the one you trust; make a new link for each person. Anyone who sees the link learns your device key.")}<div class="addr">${esc(link)}</div>${qrPic(link, "Picture code of your invite link")}</div>
+    <footer><button class="btn" data-close>Close</button><button class="btn primary" id="shc" autofocus>Copy link</button></footer>`, sc => { $("#shc", sc).onclick = () => copyText(link, "Link copied", "It works once, for one person."); });
+}
+function engLinkOpen(link) {   // an invite link opened: transport.reach(book.accept(link)), then a chat is offered
+  try { history.replaceState(history.state, "", location.href.split("#")[0]); } catch (e) {}
+  let resumes = false; try { resumes = /^real /.test(localStorage.getItem(ENGON) || "") && !sessionStorage.getItem("hm-engine-skip"); } catch (e) {}
+  if (!EN.on || !EN.ready) { EN.link = link; if (EN.on || EN.starting || resumes) return;   // engine mode resumes on this load and accepts the link then
+    return dialog(`<header><h3>An invite to engine mode</h3>${CLOSE}</header><div class="c">${explain("This link lets you reach the person who sent it, on the uor-comms engine, with real messages between your browsers.", "Turn engine mode on: it makes your identity and device key in this browser, then looks for their browser while both of you are online.", "Your sample chats are put away while engine mode is on. " + ENGHONEST[2])}</div><footer><button class="btn" data-close>Not now</button><button class="btn primary" id="eg-on" autofocus>Turn on engine mode</button></footer>`,
+      sc => { $("#eg-on", sc).onclick = () => { closeOverlay(); engineStart(); }; $("[data-close]", sc).addEventListener("click", () => { EN.link = null; }); }); }
+  const L = EN.lib, who = EN.me.book.accept(link);
+  if (!who || L.ev.hex(who) === EN.me.hex) return confirmDlg("That link did not work", explain(who ? "It is your own invite link." : "It is not a whole invite link.", who ? "Send it to someone else." : "Ask for the link again and open all of it.", ""), "OK", "primary", () => {});
+  const h = L.ev.hex(who), id = engPerson(h); EN.me.transport.reach(who);
+  if (!EN.reach.has(h)) { EN.reach.add(h); engMeta("reach", [...EN.reach]); }   // whom to look for after a reload, until a chat is shared
+  const f = EN.me.engine.findDirect(who), r = f && EN.rooms.get(L.ev.hex(f)); if (r && S.rooms.includes(r)) { closeOverlay(); return openRoom(r.id); }
+  confirmDlg(`Start a chat with ${U[id].n}?`, explain("You opened their invite link, so this browser holds their device key and is looking for their browser.", "The chat starts once you confirm, and reaches them while both of you are online.", "They learn your key when your browsers connect, from the one-time token in the link."), "Start chat", "primary", () => engOpenDm(id));
+}
+async function engStartReal(resume) {
+  if (EN.on || EN.starting) return; EN.starting = 1; const t0 = performance.now(), slow = setTimeout(() => busy(resume ? "Restoring…" : "Starting the uor-comms engine…"), resume ? 300 : 0);
+  if (resume) { EN.hold = 1; engReset(); $("#demo").textContent = "Engine mode: restoring the chats kept in this browser."; drawAll(); drawRoom(); }
+  let lost = "";
+  try { const L = EN.lib = await engineLoad(); Object.assign(EN, { q: Promise.resolve(), sp: Promise.resolve(), who: new Map(), ids: new Map(), peers: {}, rooms: new Map(), ev: new Map(), pend: new Map(), meta: new Map(), log: [], off: new Map(), offStale: new Set(), reach: new Set(), status: "offline" });
+    let was = ""; try { was = localStorage.getItem(ENGON) || ""; } catch (e) {}
+    if (resume && !/^real /.test(was)) lost = "older";   // the earlier engine mode, with sample people in this tab: its chats cannot go on between browsers
+    if (!resume) await engWipe();
+    const { db, made } = await engDbOpen(); EN.db = db; const recs = made ? new Map() : await engDbAll("people"), meta = made ? new Map() : await engDbAll("meta");
+    let own = recs.get("own"); const kept = await L.browserStore(L.hash, { name: engStoreName("device") });
+    if (resume && !lost && !own) lost = "keys"; if (resume && !lost && kept.evicted) lost = "evicted";
+    EN.peers.me = { kept };
+    if (!lost) {
+      if (!own) { own = { identity: crypto.getRandomValues(new Uint8Array(32)), ...(await L.tr.newDeviceKey()) }; await engDbPut("people", "own", own); }   // trust.mjs newDeviceKey: the private half cannot be exported; the raw public key is what the book and links carry
+      for (const [k, v] of meta) EN.meta.set(k, v);
+      const book = L.tr.deviceBook({ hash: L.hash, own, saved: EN.meta.get("book") || null, save: s => engMeta("book", s) });
+      const transport = L.tp.webrtcTransport({ rendezvous: L.tp.ntfyRendezvous(), signer: book, verdict: book.verdict, hash: L.hash, store: kept });
+      const engine = L.open({ identity: own.identity, device: book.device, kernel: L.kernel, hash: L.hash, store: kept, signer: book, verdict: book.verdict, transport });
+      EN.me = EN.peers.me = { id: "me", identity: own.identity, hex: L.ev.hex(own.identity), engine, book, transport, kept, store: kept, joining: new Set() }; EN.who.set(EN.me.hex, "me");
+      for (const h of Object.keys((EN.meta.get("book") || {}).people || {})) if (h !== EN.me.hex) engPerson(h);   // the people this browser holds a key for
+      const r0 = performance.now(); EN.restoring = 1;   // host/README.md: restore() once; it admits every kept event again, parents first
+      const n = await engOp(async () => { await engine.restore(); return (await kept.events()).length; }); EN.restoring = 0; EN.restored = { ms: performance.now() - r0, events: n, all: performance.now() - t0 };
+      for (const h of EN.meta.get("reach") || []) { EN.reach.add(h); transport.reach(L.ev.unhex(h)); }
+      transport.onStatus(s => { EN.status = s; engNet(); });
+      book.onLearn(({ identity }) => { if (identity !== EN.me.hex) engPerson(identity); for (const k of EN.off.keys()) EN.offStale.add(k); engSched(); });   // a key learned: that person can now be added
+      engine.subscribe(({ room }) => { EN.offStale.add(L.ev.hex(room)); engSched(); });
+      await transport.start(); EN.status = transport.status; }
+  } catch (e) { clearTimeout(slow); EN.starting = 0; EN.restoring = 0; busy(); return engFailed(resume, e); }
+  if (lost) { clearTimeout(slow); EN.starting = 0; busy(); return engLost(lost); }
+  closeOverlay(); EN.on = 1; engReset(); $("#demo").textContent = engStrip();
+  try { localStorage.setItem(ENGON, "real " + ENGV.version); } catch (e) {}   // engine mode stays on across reloads until Sample mode
+  await engSync(); EN.ready = 1; EN.starting = 0; clearTimeout(slow); busy(); drawAll(); drawRoom(); engNet();
+  EN.tick = setInterval(() => { const k = EN.me.transport.peers().sort().join(); if (k !== EN.pk) { EN.pk = k; engNet(); } }, 2000);   // who is connected, for the banner in each chat
+  if (!resume) engHonest(true);
+  if (EN.link) { const l = EN.link; EN.link = null; engLinkOpen(l); }
+}
+async function engRefetch(a, t, n = 0) {   // content that no connected browser had yet: asked again, ten times five seconds apart, and the message redrawn once it arrives
+  const b = EN.on && await EN.me.engine.content(t.content).catch(() => null); if (b) { EN.ev.delete(a); engSched(); } else if (EN.on && n < 10) setTimeout(() => engRefetch(a, t, n + 1), 5000); }
+function engAboutReal() {
+  const pin = `version <span class="addr">${ENGV.version}</span>, built from uor-comms commit <span class="addr">${ENGV.commit.slice(0, 12)}</span>`;
+  if (!EN.on) return `${P0}Engine mode is off. Under Try a situation, “Message real people on the uor-comms engine” starts it. It loads the uor-comms engine, ${pin}, from uor-foundation.github.io, and runs it only after every file matches the BLAKE3 this page pins.</p>${explain(...ENGHONEST)}`;
+  return `${P0}<b>Engine mode is on.</b> Rooms, membership, sending and the timeline run on the uor-comms engine, ${pin}, loaded from uor-foundation.github.io and checked file by file against its BLAKE3 manifest before it ran (${ENGV.size.toLocaleString()} bytes, in ${ENGV.ms.toFixed(0)} ms). ${esc(engNetWord())}</p>${explain(...ENGHONEST)}
+    ${P0}<b>Whose key is whose.</b> Your identity is 32 random bytes made in this browser, and your device's address is the BLAKE3 of its public key; the private key cannot be read out. Until Prism ID, the engine's device book learns a key in three ways only: you open someone's invite link; someone opens yours and their browser shows its one-time token when it connects; or a device of theirs already trusted vouches for a new one. A browser with no link is refused. People show by the start of their identity: the engine has no names.</p>
+    ${P0}<b>Kept in this browser.</b> The engine keeps every event it admitted, and the content, in its store (browserStore, in IndexedDB); this page keeps your identity, your key and the book of keys in a database of its own. After a reload the engine admits every kept event again before anything shows${EN.restored ? ` (this load: ${EN.restored.events.toLocaleString()} events in ${EN.restored.ms.toFixed(0)} ms)` : ""}. Not kept: messages not sent, pins, edits and reactions, files and unread counts.</p>
+    ${P0}What you may do to a person, whether a room offers an invitation, each role you may give, and whether you may leave are the engine's answer, offered() (kernel operation 0f). A refusal shows in plain words with the engine's own word. Only people whose key this browser holds can be added to a group, and everyone in a group needs the keys of those who write there. This engine version gives each device one group room, and does not send a removal or a ban to the person removed.</p>
+    ${P0}On this page only, and sample: ${ENGNOTE.toLowerCase()} (uor-comms has not stated how edits and reactions combine). Deleting is off: this engine version refuses redactions.</p>`;
 }
 
 const isMac =/Mac|iPhone|iPad/.test(navigator.platform), modKey = isMac ? "⌘" : "Ctrl";
@@ -965,7 +1068,7 @@ function drawBar() {   // the title line: the name and one menu, or, while chats
 }
 /* Search.switcherShows, one path for the switcher and the home search field: the chats you opened last come first, then people you have no chat with, then the hand-off to message search */
 const finds = v => { const q = v.trim().toLowerCase(), has = n => n.toLowerCase().includes(q), seen = r => REC.indexOf(r.id) + 1 || 99;
-  return { chats: S.rooms.filter(r => !r.invite && has(r.name)).sort((a, b) => seen(a) - seen(b) || listOrder(a, b)), people: q ? Object.keys(U).filter(id => id !== "me" && has(U[id].n) && !S.rooms.some(r => r.dm === id)).slice(0, 5) : [], msgs: v.trim().length > 1 }; };
+  return { chats: S.rooms.filter(r => !r.invite && has(r.name)).sort((a, b) => seen(a) - seen(b) || listOrder(a, b)), people: q ? Object.keys(U).filter(id => id !== "me" && !engHide(id) && has(U[id].n) && !S.rooms.some(r => r.dm === id)).slice(0, 5) : [], msgs: v.trim().length > 1 }; };
 const findOn = () => !!S.find && panes(innerWidth) === 1;   // on one pane the search field is the switcher: it opens when the field takes the focus and holds one history state, so Back closes it
 const closeFind = () => { const f = $("#filter"), had = $(".search").contains(document.activeElement); S.find = false; f.value = ""; drawList(); hsync(); const b = had && $("#rooms .ri"); b ? b.focus({ preventScroll: true }) : had && f.blur(); };
 /* one reminder at a time on top of the chats, the recovery kit first: it opens its flow, its close button dismisses it for good, and it is gone once done */
@@ -990,7 +1093,7 @@ function drawList() {
       <span class="grow"><span class="t"><span class="n">${esc(r.name)}</span><span class="tm${timeAccented(n, mu) ? " hi" : ""}">${tm}</span></span>
       <span class="row2"><span class="p">${p}</span>${uns ? `<span class="badge bad" title="Not sent" aria-label="A message was not sent">!</span>` : ""}${r.pin ? mark(pinIcon, "Pinned") : ""}${mu ? mark(I.mute, "Muted") : ""}${["", `<span class="badge dot" title="New messages${r.eng ? ", counted on this page (sample)" : ""}" aria-label="New messages${r.eng ? " (sample)" : ""}"></span>`, `<span class="badge" aria-label="${n} unread${r.eng ? " (sample)" : ""}"${r.eng ? ' title="Counted on this page (sample)"' : ""}>${n > 99 ? "99+" : n}</span>`, `<span class="badge" aria-label="You were mentioned${r.eng ? " (sample)" : ""}">@</span>`][mk]}<span class="chev" data-chev title="Menu" aria-hidden="true">${I.down}</span></span></span></button>`]); };
   if (hb) items.push(["hb" + hb[0] + hb[3], `<div class="rw inv hb"><button class="who" data-hb="${hb[0]}"><span class="av ic">${hb[1]}</span><span class="grow"><span class="n">${hb[2]}</span><span class="p">${esc(hb[3])}</span></span></button><button class="icon" data-hbx="${hb[0]}" aria-label="Dismiss: ${hb[2]}" title="Dismiss">${I.x}</button></div>`]);
-  if (EN.on && !F) items.push(["eng", `<div class="rw inv hb"><button class="who" data-engabout><span class="av ic">${I.info}</span><span class="grow"><span class="n">Engine mode</span><span class="p">On the uor-comms engine in this tab only. Sample people. Kept in this browser.</span></span></button><button class="btn small" data-engoff>Sample mode</button></div>`]);
+  if (EN.on && !F) items.push(["eng", `<div class="rw inv hb"><button class="who" data-engabout><span class="av ic">${I.info}</span><span class="grow"><span class="n">Engine mode</span><span class="p">${ENGV.real ? esc("Real messages between browsers. " + engNetWord()) : "On the uor-comms engine in this tab only. Sample people. Kept in this browser."}</span></span></button><button class="btn small" data-engoff>Sample mode</button></div>`]);
   if (find && !q && SQ.length) items.push(["sq" + SQ.join("\u0001"), `<div style="padding:0 16px">${sqChips()}</div>`]);
   if (inv.length) { sect("Invitations", `<span class="badge" aria-label="${inv.length} waiting">${inv.length}</span>`); for (const r of inv) items.push(["v" + r.id + keyOf(r.name + r.invite), `<div class="rw inv"><button class="who" data-room="${r.id}">${rav(r)}<span class="grow"><span class="n">${esc(r.name)}</span><span class="p">${esc(first(r.invite))} invited you</span></span></button>
     <button class="icon ok" data-accept="${r.id}" aria-label="Accept" title="Accept">${I.check}</button><button class="icon" data-decline="${r.id}" aria-label="Decline" title="Decline">${I.x}</button></div>`]); }
@@ -1008,7 +1111,7 @@ function drawList() {
     if (!hs) items.push(["busy", `<div class="empty" role="status">Searching messages…</div>`]);
     else if (hs.length) { sect("Messages", " · " + hs.length); for (const [r, e] of hs.slice(0, 20)) items.push(["h" + e.id + q, `<button class="rw ri" data-hit="${r.id}|${e.id}">${rav(r)}<span class="grow"><span class="t"><span class="n">${esc(r.name)}</span><span class="tm">${listTime(e.ts)}</span></span><span class="p">${esc(e.from === "me" ? "You" : first(e.from))}: ${snip(e, q, 12)}</span></span></button>`]); }
     none = none && !ppl.length && !!hs && !hs.length; }
-  if (none) items.push(["e" + q + S.flt, `<div class="empty">${q ? `Nothing matches "${esc(q)}".` : ["No chats yet.", "Nothing is unread.", "No favourites yet.", "No groups yet."][S.flt]}<div><button class="btn primary" ${q || S.flt ? "data-clear>Show all chats" : "data-home>New chat"}</button></div></div>`]);
+  if (none) items.push(["e" + q + S.flt, `<div class="empty">${q ? `Nothing matches "${esc(q)}".` : [ENGV.real && EN.on ? "No chats yet. Invite someone, or open their invite link." : "No chats yet.", "Nothing is unread.", "No favourites yet.", "No groups yet."][S.flt]}<div><button class="btn primary" ${q || S.flt ? "data-clear>Show all chats" : "data-home>New chat"}</button></div></div>`]);
   const keep = new Set(items.map(x => x[0])), old = new Map(), nodes = []; for (const n of [...box.children]) keep.has(n.dataset.k) ? old.set(n.dataset.k, n) : n.remove();   // rows that left go first, so a row that stays is never moved and keeps the focus
   let cur = box.firstChild, built = 0;
   for (const [k, html] of items) { let n = old.get(k); if (!n) { tpl.innerHTML = typeof html === "function" ? html() : html; n = tpl.content.firstElementChild; n.dataset.k = k; built++; } nodes.push(n); if (n === cur) cur = cur.nextSibling; else box.insertBefore(n, cur); }
@@ -1072,9 +1175,10 @@ function showBtn() {   // while the list is hidden, the way back to it sits wher
 function drawBanner() {
   const b = $("#banner"), r = R(S.cur); if (!b || !r) return; let q = 0, f = 0, w = 0;   // waiting anywhere, failed here, waiting here
   for (const x of S.rooms) for (const e of x.ev) if (!e.del) e.status === "queued" ? (q++, x === r && w++) : e.status === "failed" && x === r && f++;
-  b.hidden = !S.offline && !f;
+  const es = engRoomNet(r); b.hidden = !S.offline && !f && !es;
   $("#bannerActs").innerHTML = (S.offline ? '<button class="btn small" data-net>Why?</button>' : "") + (f ? '<button class="btn small" data-unsent="1">Try all again</button>' : "") + (f || w ? '<button class="btn small" data-unsent="">Remove all</button>' : "");
   $("#bannerText").textContent = (S.offline ? "No connection" + (S.sim ? " (simulated)." : ".") + (q ? ` ${q} message${q > 1 ? "s" : ""} will send when you are back.` : " You can keep reading and writing.") : "") + (f ? ` ${f} message${f > 1 ? "s were" : " was"} not sent.` : "");
+  if (es && !S.offline) $("#bannerText").textContent = (es === "off" ? "Not connected. What you send is kept in this browser and goes out when you connect." : "Nobody else in this chat is connected now. What you send is kept, and goes to them when you are both online.") + $("#bannerText").textContent;   // engine mode with real people: transport.onStatus, and who is connected
 }
 /* Rows are keyed by a hash of everything that shows, standing in for the event's content address.
    A row whose key is unchanged keeps its DOM node, and only the last WIN rows of a room are built. */
@@ -1108,7 +1212,7 @@ function drawTimeline(toEnd) {
   if (start === 0) {   // the top of a chat: what it is, and one quiet mark that says its messages are not encrypted yet
     if (evs[0] && evs[0].kind === "created") items.push(["i" + keyOf(r.name + "\u0001" + (r.topic || "") + (r.pic ? r.pic.length : "") + mod + U[evs[0].from].n), `<div class="intro">${rav(r, "l")}<h3>${esc(r.name)}</h3><p>${esc(sysText(evs[0], r))} · ${dayText(evs[0].ts)}</p>${r.topic ? `<p>${esc(r.topic)}</p>` : ""}<div class="quick">${!r.topic && !r.dm && mod ? '<button class="btn small" data-editroom>Add a description</button>' : ""}${r.dm ? "" : '<button class="btn small" data-invite>Invite people</button>'}</div></div>`]);
     items.push(["enc", `<div class="sys"><button data-why="lock">${I.info}Not encrypted yet</button></div>`]);
-    if (r.eng) items.push(["eng", `<div class="sys"><button data-engabout>${I.info}On the uor-comms engine, in this tab, kept in this browser</button></div>`]); }
+    if (r.eng) items.push(["eng", `<div class="sys"><button data-engabout>${I.info}${ENGV.real ? "On the uor-comms engine, between browsers, kept in this browser" : "On the uor-comms engine, in this tab, kept in this browser"}</button></div>`]); }
   for (const e of evs) {
     const dk = e._d || (e._d = dayKey(e.ts));   // an event's day never changes, so it is worked out once
     if (!prev || prev._d !== dk) { flush(); const t = dayText(e.ts); items.push(["d" + dk + t, `<div class="day"><span>${t}</span></div>`]); prev = null; }
@@ -1193,7 +1297,7 @@ const linkOf = e => e.body.includes("http") && (/https?:\/\/[^\s)]+/.exec(e.body
 const shared = r => r.ev.filter(e => e.t === "m" && !e.del && (e.img || e.file || linkOf(e)));   // what a chat holds besides text: pictures, files, and messages with a link
 const personRows = id => { const me = id === "me", ver = me || ID.verified.includes(id);   // what is known of a person, the same rows in a chat's info and on a person's card
   return (me ? "" : irow(ver ? "" : `data-pa="verify:${id}"`, I.lock, "Verification", ver ? "Marked verified (sample)" : "Not verified"))
-    + irow(`data-pa="copy:${id}"`, I.copy, "Holo ID", shortId(addrFor(id)) + (U[id].addr ? "" : " · sample, not a real hash")) + (me ? "" : irow(`data-pa="share:${id}"`, I.qr, "Share contact"))
+    + irow(`data-pa="copy:${id}"`, I.copy, "Holo ID", shortId(addrFor(id)) + (U[id].addr ? "" : " · sample, not a real hash")) + (me || U[id].eid ? "" : irow(`data-pa="share:${id}"`, I.qr, "Share contact"))
     + (!me && inviteRooms(id).length ? irow(`data-pa="invite:${id}"`, I.addp, "Invite to a room") : ""); };
 function drawPanel() {
   const p = $("#panel"), r = R(S.cur), docked = panes(innerWidth) === 3, old = $("#mq"), keep = old && !old.hidden ? old.value : null, kf = old && document.activeElement === old;      // Layout.rightPanelMode. A redraw keeps the search for a person, and how far the screen was scrolled
@@ -1420,12 +1524,12 @@ function youSub(t) {   // one settings screen. Every setting sits under the head
         ["Cancel reply or edit", "Esc"], ["Complete a suggestion", "Enter or Tab"], ["Attach a file", modKey + " Shift U"]],
       "Panels, menus and dialogs": [["Show or hide info", modKey + " ."], ["You, and back to chats", modKey + " `"], ["Settings", modKey + " ,"], ["This list", modKey + " /"], ["Move between areas", "F6"], ["Move in a menu, tabs or a set of choices", "Arrows, Home, End"], ["Save in a dialog", modKey + " S"], ["Close, or back", "Esc"]]
     }).map(([c, l]) => `${head(c)}<div class="keys" style="padding:4px 16px 8px">${l.map(([a, k]) => `<span>${a}</span><span class="kbd">${k}</span>`).join("")}</div>`).join("");
-  return `<div class="yp"><p style="margin:0;color:var(--ink)">Holo Messenger 0.1.0, prototype. ${EN.on ? "Engine mode: sample people, each an engine in this tab; nothing leaves this tab." : "Sample people and messages; nothing is sent anywhere."}</p>
+  return `<div class="yp"><p style="margin:0;color:var(--ink)">Holo Messenger 0.1.0, prototype. ${EN.on ? ENGV.real ? "Engine mode: real messages between browsers, as below." : "Engine mode: sample people, each an engine in this tab; nothing leaves this tab." : "Sample people and messages; nothing is sent anywhere."}</p>
     ${P0}${RULES.source === "the verified holo" ? `The verified holo answers these rules: panes, notification level, the Enter key, which links open, message actions${RULES.got.map(x => ", " + x).join("")}. ${RULES.asked} of its answers were compared with the built-in copy in ${RULES.ms.toFixed(0)} ms: ${RULES.differ.length ? RULES.differ.length + " differ. " + esc(RULES.differ.slice(0, 3).join("; ")) : "none differ"}. Of the 4 newer questions (tabs, send button, ticks, day labels) it answered ${RULES.newQ}: ${RULES.fresh} more answers compared.
     Every other rule is a built-in copy of the model's definition, not an answer from the holo: ${["tabs", "send button", "ticks", "day labels"].filter(x => !RULES.got.includes(x)).map(x => x + ", ").join("")}bubble side, tail, grouping, which surface an overlay takes, ${COPIES}, and the chat list's chips, row mark, time accent, order and menu entries.` : `Every rule is answered by the built-in copy of the model's definitions, among them ${COPIES}. The holo is not in use: ${esc(RULES.note)}.`}</p>
     ${engAbout()}
     ${S.perf.open != null ? `${P0}Measured on this device, script time: last chat opened in ${S.perf.open.toFixed(1)} ms; last timeline update ${S.perf.draw.toFixed(1)} ms, building ${S.perf.built} of ${S.perf.rows} rows shown from ${S.perf.total} messages${S.perf.send != null ? `; last send ${S.perf.send.toFixed(1)} ms` : ""}${S.perf.list != null ? `; last chat list update ${S.perf.list.toFixed(1)} ms, building ${S.perf.lb} of ${S.perf.ln} rows` : ""}.</p>` : ""}
-    ${P0}This page loads itself, plus the rules holo and its loader from the same site${EN.on ? ", and the uor-comms engine from uor-foundation.github.io" : ", and nothing from anywhere else"}. There is no account. A key pair is made at first run to show the step; it is not kept or used yet, and the identity shown is a sample.</p>
+    ${P0}This page loads itself, plus the rules holo and its loader from the same site${EN.on ? ", and the uor-comms engine from uor-foundation.github.io" + (ENGV.real ? "; engine mode also reaches ntfy.sh, Google's STUN server and the browsers of the people you know" : "") : ", and nothing from anywhere else"}. There is no account. A key pair is made at first run to show the step; it is not kept or used yet, and the identity shown is a sample.</p>
     <div class="grp"><h4>This build: the sha256 of this page as it was served</h4><div class="addr" id="ba">Working it out…</div></div></div>${irow('data-legal="lic"', fileIcon, "Licences")}${irow('data-legal=""', I.lock, "Privacy")}`;
 }
 const nameDlg = () => dialog(`<header><h3>Your name</h3></header><div class="c"><input type="text" id="acName" aria-label="Your name" value="${esc(S.set.name)}" maxlength="40" data-was="${esc(S.set.name)}" autofocus></div><footer><button class="btn" data-close>Cancel</button><button class="btn primary" data-acsave>Save</button></footer>`,
@@ -1458,7 +1562,7 @@ function selAct(a, b) { const l = [...SEL].map(R), done = () => { SEL.clear(); d
   else if (a === "mute") { for (const r of l) on ? r.level !== "mute" && (r.was = r.level, setLevel(r, "mute")) : setLevel(r, r.was || "default"); done(); }
   else if (a === "leave") leaveDlg(l, done); else { const p = b.getBoundingClientRect(); chatMenu(l, p.right, p.bottom, done, 1, 1); } }
 function situations() {   // simulations, each one labelled as such where it shows. Opened from You
-  const L = [["Run on the uor-comms engine, in this tab", engineStart, EN.on], [S.offline ? S.sim ? "Go back online" : "No connection: this one is real" : "No connection", toggleOffline, S.offline && !S.sim],
+  const L = [[ENGV.real ? "Message real people on the uor-comms engine" : "Run on the uor-comms engine, in this tab", engineStart, EN.on], [S.offline ? S.sim ? "Go back online" : "No connection: this one is real" : "No connection", toggleOffline, S.offline && !S.sim],
     ["A new message", () => { const r = R("r1"); if (r && !r.invite) incoming(r, "amara", `@${first("me")} one more thing for Thursday: bring the phone build.`); }], ["A verification request", incomingVerify],
     ["A session that will not open", () => dialog(`<header><h3>Your saved session could not be opened</h3></header><div class="c">${SIM}${explain("The data kept in this browser is damaged, or comes from a newer version.", "Try again, or clear this device.", "Clearing is real: it deletes what this page saved in this browser.")}</div><footer><button class="btn danger" id="rc">Clear this device</button><button class="btn primary" data-close autofocus>Try again</button></footer>`, sc => { $("#rc", sc).onclick = signOut; })],
     ["Storage cleared by the browser", () => dialog(`<header><h3>The browser removed this app's data</h3></header><div class="c">${SIM}${explain("Browsers clear stored data when space runs low, or when history is cleared.", "Restore from a kit, or start fresh.", "Your identity is no longer on this device. In this prototype the kit is a sample and brings nothing back.")}</div><footer><button class="btn" id="ef">Start fresh</button><button class="btn primary" id="er" autofocus>Restore from a kit</button></footer>`, sc => { $("#er", sc).onclick = () => { closeOverlay(); restore(); }; $("#ef", sc).onclick = () => { closeOverlay(); onboard(0); }; })],
@@ -1603,7 +1707,7 @@ function indexDlg() {
 function legal(k) {   // opened over Settings, and closes back to it
   const g = (t, x) => `<div class="grp"><h4>${t}</h4><div>${x}</div></div>`;
   dialog(k ? `<header><h3>Licences</h3>${CLOSE}</header><div class="c">${g("Holo Messenger", "MIT or Apache 2.0, your choice.")}${g("Code from others", "None. This page holds only its own code.")}${g("MIT licence", `<div class="addr" style="white-space:pre-wrap">${MIT}</div>`)}${g("Apache licence 2.0", `Too long to show here. Its full text is kept by the Apache Software Foundation and opens in a new tab: <span class="body" style="font-size:inherit">${rich("https://www.apache.org/licenses/LICENSE-2.0", { members: [] })}</span>`)}</div>`
-    : `<header><h3>Privacy</h3>${CLOSE}</header><div class="c">${g("What is kept", "In this browser only: your identity record (that it was created, the recovery kit flag, blocked people, verified people, linked devices, notices you dismissed); your settings, with your name and picture; the notification level and the favourite and pin marks of each sample chat; the chat and panel last open, recently opened chats and each chat's panel history; recent searches; recent emoji and skin tone.")}${g("What is sent", "No message, name or key. The page loads itself, plus the rules holo and its loader from the same site, and nothing from anywhere else.")}${g("In engine mode", EN.on ? "Also kept in this browser: each engine's events and content, and the sample people's identities, devices and keys, in IndexedDB, until you choose Sample mode or sign out." : "Off. When it is on, its chats, identities and keys are kept in this browser until you choose Sample mode or sign out.")}${g("What is not kept", "The sample messages. They start again each time the page loads.")}${g("How to remove it", "Sign out, in You under Account. It clears all of the above.")}</div>`, null, true);
+    : `<header><h3>Privacy</h3>${CLOSE}</header><div class="c">${g("What is kept", "In this browser only: your identity record (that it was created, the recovery kit flag, blocked people, verified people, linked devices, notices you dismissed); your settings, with your name and picture; the notification level and the favourite and pin marks of each sample chat; the chat and panel last open, recently opened chats and each chat's panel history; recent searches; recent emoji and skin tone.")}${g("What is sent", "No message, name or key. The page loads itself, plus the rules holo and its loader from the same site, and nothing from anywhere else.")}${g("In engine mode", EN.on && ENGV.real ? "Also kept in this browser: the engine's events and content, your identity and device key, and the keys you hold for others, in IndexedDB, until you choose Sample mode or sign out. Sent: your messages and changes, to the browsers of the people in each chat; connection setup to ntfy.sh, a public server; your network address to Google's STUN server and to the people you connect to." : EN.on ? "Also kept in this browser: each engine's events and content, and the sample people's identities, devices and keys, in IndexedDB, until you choose Sample mode or sign out." : "Off. When it is on, its chats, identities and keys are kept in this browser until you choose Sample mode or sign out.")}${g("What is not kept", "The sample messages. They start again each time the page loads.")}${g("How to remove it", "Sign out, in You under Account. It clears all of the above.")}</div>`, null, true);
 }
 const linkDev = () => confirmDlg("Link a new device?", explain("A linked device can read your chats and send as you.", "On the new device choose “I have a recovery kit”, then “Confirm from another device”, and compare the pictures with this one.", "On this sample page a sample device is added, then the pictures show."), "Link", "primary",
   () => { const d = { id: "d" + Date.now(), name: "A new device", verified: false }; ID.devices.push(d); saveId(); verifyFlow({ kind: "device", id: d.id, name: d.name, onDone: () => settings("devices") }); });
@@ -1613,13 +1717,13 @@ const linkDev = () => confirmDlg("Link a new device?", explain("A linked device 
 function profile(id) {
   const u = U[id], r = R(S.cur), room = r && !r.dm && !r.invite ? r : null; if (!u) return;
   const me = id === "me", ver = me || ID.verified.includes(id), blocked = ID.blocked.includes(id), lvl = room ? room.power[id] || 0 : 0, mine = room ? myPower(room) : 0, tier = lvl >= 100 ? 100 : lvl >= 50 ? 50 : 0;
-  const here = !!room && room.members.includes(id), banned = !!room && (room.banned || []).includes(id), may = a => room && room.eng ? engCan(room, id, a) : a === "unban" ? banned : here, canMod = !me && (room && room.eng ? ["setPower", "kick", "ban", "unban"].some(may) : mine >= 50 && mine > lvl && (here || banned));   // an engine room: offered() toward this person. Its setPower is answered for granting 0 only, so the roles show when it is offered and the engine's refusal answers each level
+  const here = !!room && room.members.includes(id), banned = !!room && (room.banned || []).includes(id), may = a => room && room.eng ? engCan(room, id, a) : a === "unban" ? banned : here, canMod = !me && (room && room.eng ? ["setPower", "kick", "ban", "unban"].some(may) : mine >= 50 && mine > lvl && (here || banned));   // an engine room: offered() toward this person, setPower asked for each level, so a role shows only at a level the engine offers
   const face = me && S.set.avatar ? `<img class="meimg xl" src="${S.set.avatar}" alt="">` : av(u.n, "xl"), pa = (a, v = "") => `data-pa="${a}:${id}${v}"`;
   dialog(`${pageHead("")}<div class="c" style="padding:0 0 16px;gap:0">
     <div class="hero"><button data-avbig="${id}" aria-label="Show picture full size${ver ? ". Marked verified (sample)" : ""}">${ver ? `<span class="ring" title="Marked verified (sample)">${face}</span>` : face}</button><h3>${esc(u.n)}${me ? " (you)" : ""}</h3><p>${here && role(lvl) ? role(lvl) + " in " + esc(room.name) : banned ? "Banned from " + esc(room.name) : u.addr ? "Known only by this ID" : ""}</p></div>
     <div class="qa">${me ? qact(pa("edit"), I.edit, "Edit") : qact(pa("msg"), I.chat, "Message") + (here && $("#ta") ? qact(pa("mention"), "@", "Mention") : "")}</div>
     ${blocked ? '<p style="margin:0;padding:8px 16px;color:var(--warn);font-weight:600">You have blocked this person. Their messages are hidden.</p>' : ""}${personRows(id)}
-    ${canMod ? `<hr><div class="sect">In ${esc(room.name)}</div>${(here && may("setPower") ? [[100, "Make admin"], [50, "Make moderator"], [0, "Dismiss as " + role(tier).toLowerCase()]].filter(([v]) => v !== tier && (room.eng || v <= mine)).map(([v, t]) => irow(pa("role", ":" + v), I.key, t)).join("") : "") + (may("kick") ? irow(pa("kick"), I.out, "Remove from room", "", " bad") : "") + (may("ban") ? irow(pa("ban"), I.x, "Ban", "", " bad") : "") + (may("unban") ? irow(pa("unban"), I.check, "Lift the ban") : "")}` : ""}
+    ${canMod ? `<hr><div class="sect">In ${esc(room.name)}</div>${(here && may("setPower") ? [[100, "Make admin"], [50, "Make moderator"], [0, "Dismiss as " + role(tier).toLowerCase()]].filter(([v]) => v !== tier && (room.eng ? engCanLv(room, id, v) : v <= mine)).map(([v, t]) => irow(pa("role", ":" + v), I.key, t)).join("") : "") + (may("kick") ? irow(pa("kick"), I.out, "Remove from room", "", " bad") : "") + (may("ban") ? irow(pa("ban"), I.x, "Ban", "", " bad") : "") + (may("unban") ? irow(pa("unban"), I.check, "Lift the ban") : "")}` : ""}
     ${me ? "" : "<hr>" + irow(pa("block"), I.x, (blocked ? "Unblock " : "Block ") + esc(first(id)), "", " bad")}</div>`, sc => sc.firstChild.classList.add("page"));
 }
 function personAct(a, id, v, at) {   // what a row or a quick action does to a person, from their card or from a chat's info
@@ -1631,12 +1735,12 @@ function personAct(a, id, v, at) {   // what a row or a quick action does to a p
   else if (a === "verify") verifyFlow({ kind: "user", id, name: first(id) });
   else if (a === "mention") { closeOverlay(); const ta = $("#ta"); if (ta) { ta.setRangeText("@" + first(id) + " ", ta.selectionStart, ta.selectionEnd, "end"); grow(); ta.focus(); } }
   else if (a === "copy") copyText(addr, "ID copied", u.addr ? "" : "A sample address, made from the name.");
-  else if (a === "share") shareDlg(me ? "Your code" : "Share " + u.n, linkTo("u-" + addr), me ? "A sample link, made from your name. Nobody can reach you with it yet." : "Anyone who opens this link sees this card and can start a chat.");
+  else if (a === "share") ENGV.real && EN.on && me ? engInviteDlg() : shareDlg(me ? "Your code" : "Share " + u.n, linkTo("u-" + addr), me ? "A sample link, made from your name. Nobody can reach you with it yet." : "Anyone who opens this link sees this card and can start a chat.");
   else if (a === "invite") choose(`Invite ${n1} to`, inviteRooms(id).map(x => `<button class="o" data-invto="${x.id}">${rav(x)}<span class="grow">${esc(x.name)}</span></button>`).join(""), root => root.addEventListener("click", e => { const b = e.target.closest("[data-invto]"); if (b) { e.stopPropagation(); sendInvites(R(b.dataset.invto), [id]); } }), at);
   else if (a === "block") { const on = !ID.blocked.includes(id), go = () => { closeOverlay(); setBlocked(id, on); drawPanel(); }; on ? confirmDlg(`Block ${u.n}?`, explain("", "", `${n1}'s messages are hidden on this device.`), "Block", "danger", go) : go(); }
   else if (a === "role") { const set = () => room.eng ? engAct("the change of role", () => EN.me.engine.setPower(room.room, engId(id), +v)).then(ok => ok && profile(id)) : (+v ? room.power[id] = +v : delete room.power[id], after("role"), profile(id));
     +v === 100 ? confirmDlg(`Make ${u.n} an admin?`, explain("You cannot take it back: admins cannot change other admins.", "", `${n1} can change roles and room settings, and remove people.`), "Make admin", "primary", set) : set(); }
-  else if (a === "kick") confirmDlg(`Remove ${u.n} from ${room.name}?`, explain(room.eng ? `The removal is announced to every engine in this tab, and ${n1} gets no new messages.` : `Once sending exists ${n1} will stop getting new messages right away; in this sample only this page changes.`, "", `${n1} leaves the room, and can come back with a new invitation.`), "Remove", "danger", () => room.eng ? engAct("removing " + n1, () => EN.me.engine.kick(room.room, engId(id))) : out(false));
+  else if (a === "kick") confirmDlg(`Remove ${u.n} from ${room.name}?`, explain(room.eng ? ENGV.real ? `The removal goes to the browsers in this room that are connected. This engine version does not send it to ${n1}, whose browser still shows the room.` : `The removal is announced to every engine in this tab, and ${n1} gets no new messages.` : `Once sending exists ${n1} will stop getting new messages right away; in this sample only this page changes.`, "", `${n1} leaves the room, and can come back with a new invitation.`), "Remove", "danger", () => room.eng ? engAct("removing " + n1, () => EN.me.engine.kick(room.room, engId(id))) : out(false));
   else if (a === "ban") confirmDlg(`Ban ${u.n} from ${room.name}?`, explain("A ban stays until a moderator lifts it.", "", `${n1} is removed and cannot come back, even with an invitation.`), "Ban", "danger", () => room.eng ? engAct("the ban of " + n1, () => EN.me.engine.ban(room.room, engId(id))) : out(true));
   else if (a === "unban" && room.eng) engAct("lifting the ban", () => EN.me.engine.unban(room.room, engId(id))).then(ok => ok && profile(id));
   else if (a === "unban") { room.banned = room.banned.filter(x => x !== id); after("unbanned"); profile(id); }
@@ -1674,7 +1778,7 @@ function shareDlg(title, link, what) {
 const shareRoom = r => shareDlg("Share " + r.name, linkTo("j-" + r.id), ACCESS[accessOf(r)][1] + ". The link shows people the room.");
 const personRow = (id, hint = "") => `<div class="pr"><button class="o" data-dm="${id}">${av(U[id].n)}<span class="grow">${esc(U[id].n)}</span><span style="color:var(--ink3)">${hint}</span></button><button class="icon" data-user="${id}" aria-label="Profile of ${esc(U[id].n)}" title="Profile">${I.info}</button></div>`;
 const codeRow = x => { const r = x.room ? XR[x.room] : R(x.invite || x.open);
-  return x.user ? personRow(x.user, "Start chat") : x.addr ? `<button class="o" data-code>${av("?")}<span class="grow" style="min-width:0;overflow-wrap:anywhere">${shortId(x.addr)}<small>Not someone you know yet</small></span></button>`
+  return x.uc1 ? `<button class="o" data-code>${av("?")}<span class="grow">An invite link<small>Opening it lets this browser reach the person who made it</small></span></button>` : x.user ? personRow(x.user, "Start chat") : x.addr ? `<button class="o" data-code>${av("?")}<span class="grow" style="min-width:0;overflow-wrap:anywhere">${shortId(x.addr)}<small>Not someone you know yet</small></span></button>`
     : r ? `<button class="o" data-code>${av(r.name)}<span class="grow">${esc(r.name)}<small>${x.open ? "You are in this room" : "Invitation from " + esc(first(r.by || r.invite))}</small></span></button>` : x.err ? `<div class="empty">${esc(x.err)}</div>` : ""; };
 function addByCode() {
   let x = {};
@@ -1716,18 +1820,18 @@ function pickPeople(o) {
 }
 function invitePeople() { const r = R(S.cur);
   pickPeople({ title: "Invite to " + r.name, pool: Object.keys(U).filter(id => id !== "me" && (r.eng ? engCan(r, id, "invite") : ![...r.members, ...(r.invited || []), ...(r.banned || [])].includes(id))), verb: n => n > 1 ? `Invite ${n} people` : "Invite",
-    empty: r.eng ? "The engine offers no invitation to anyone you know here." : "Everyone you know is already here.", skip: r.eng ? "the engine offers no invitation to them" : "already here, invited or banned", link: () => shareRoom(r), done: ids => sendInvites(r, ids) }); }
-const groupChat = () => pickPeople({ title: "New group chat", pool: Object.keys(U).filter(id => id !== "me"), verb: n => n > 1 ? `Start a chat with ${n} people` : "Start chat", empty: "You know nobody yet. Paste an ID to add someone.", skip: "that is you",
+    empty: r.eng ? ENGV.real ? "Nobody you can add. Only people whose key this browser holds can be added: someone who opened your invite link, or whose link you opened." : "The engine offers no invitation to anyone you know here." : "Everyone you know is already here.", skip: r.eng ? "the engine offers no invitation to them" : "already here, invited or banned", link: () => shareRoom(r), done: ids => sendInvites(r, ids) }); }
+const groupChat = () => pickPeople({ title: "New group chat", pool: Object.keys(U).filter(id => id !== "me" && !engHide(id) && (!ENGV.real || !EN.on || engKnown(id))), verb: n => n > 1 ? `Start a chat with ${n} people` : "Start chat", empty: "You know nobody yet. Paste an ID to add someone.", skip: "that is you",
   done: ids => ids.length === 1 ? startDm(ids[0]) : makeRoom({ group: true, name: ids.map(first).join(", ").slice(0, 60), members: ["me", ...ids], power: Object.fromEntries(["me", ...ids].map(id => [id, 100])) }) });
 
 /* ---------- start a chat: a person by name, ID or link; a group; a room; a code ---------- */
 function newChat() {   // a search field, then what you can start, then people. On a phone it fills the screen
   let x = null; const act = (k, icon, t) => `<button class="o" data-nc="${k}"><span class="av ic">${icon}</span><span class="grow">${t}</span></button>`;
   dialog(`<header><button class="icon" data-close aria-label="Back">${I.back}</button><label class="search grow" style="margin:0"><span class="sr">Find a person by name, ID or link</span>${I.search}<input type="search" id="np" placeholder="Name, ID or link" autocomplete="off" spellcheck="false"></label></header>
-    <div class="c qs"><div id="npa">${act("group", I.group, "New group")}${act("room", I.hash, "New room")}${act("code", I.addp, "New contact")}${act("mine", I.qr, "Show my code")}<div class="sect" style="padding:12px 0 0">People</div></div><div id="npr"></div></div>`, sc => {
+    <div class="c qs"><div id="npa">${act("group", I.group, "New group")}${act("room", I.hash, "New room")}${act("code", I.addp, ENGV.real && EN.on ? "Invite someone" : "New contact")}${act("mine", I.qr, "Show my code")}<div class="sect" style="padding:12px 0 0">People</div></div><div id="npr"></div></div>`, sc => {
     sc.firstChild.classList.add("page"); const np = $("#np", sc);
-    const draw = () => { const v = np.value.trim(), q = v.toLowerCase(); x = /blake3:|#[uj]-|holo-room:/i.test(v) ? resolveCode(v) : null; $("#npa", sc).hidden = !!v;
-      const ids = Object.keys(U).filter(id => id !== "me" && U[id].n.toLowerCase().includes(q)).sort(byName);
+    const draw = () => { const v = np.value.trim(), q = v.toLowerCase(); x = /blake3:|#[uj]-|holo-room:|#uc1\./i.test(v) ? resolveCode(v) : null; $("#npa", sc).hidden = !!v;
+      const ids = Object.keys(U).filter(id => id !== "me" && !engHide(id) && U[id].n.toLowerCase().includes(q)).sort(byName);
       $("#npr", sc).innerHTML = x ? codeRow(x) : ids.length ? ids.map(id => personRow(id)).join("") : `<div class="empty">Nobody matches. Paste an ID or a link to add someone new.</div>`; };
     np.oninput = draw; draw(); np.onkeydown = e => { const f = $("#npr button", sc); if (e.key === "Enter" && f && np.value.trim()) f.click(); };
     sc.addEventListener("click", e => { if (e.target.closest("[data-code]")) useCode(x); });
@@ -1818,10 +1922,10 @@ function deleteDlg(r, l) { l = [].concat(l); const n = l.length, never = ev => e
 function retry(ev) { const r = R(S.cur); ev._k = null; if (ev.ewhy) { ev.del = true; r.delN = (r.delN || 0) + 1; engSend(r, ev.body, { reply: ev.reply, fwd: ev.fwd }); drawTimeline(); drawList(); drawBanner(); return; }   /* refused by the engine: asked again, as a new send */ if (ev.rf) { ev.status = "sending"; ev.up = 1; upload(r, ev, ev.rf); } else { ev.status = S.offline ? "queued" : "sending"; if (!S.offline) deliver(r, ev); } drawTimeline(); drawBanner(); }   // a file whose read failed is read again
 function rmFail(ev) { const r = R(S.cur); ev.del = true; r.delN = (r.delN || 0) + 1; drawTimeline(); drawList(); drawBanner(); }
 function whyDlg(ev, mode) { const r = R(S.cur), lock = mode === "lock" || !ev, info = mode === "info", own = !lock && ev.from === "me", f = own && ev.status === "failed", n = lock ? "" : esc(first(ev.from));
-  const enc = explain("Encryption is planned, and is not on yet.", EN.on ? `This engine version does not encrypt. Once the engine does, only the people in ${esc(r.name)} will hold the keys.` : `When the engine arrives, only the people in ${esc(r.name)} will hold the keys.`, lock ? EN.on ? "Until then messages on the engine in this tab are not encrypted." : "Until then these sample messages are not encrypted." : own ? "You wrote this message on this device." : ID.verified.includes(ev.from) ? `${n} is marked verified, as a sample.` : `${n} is not marked verified. Verifying on this page is a sample too.`);
-  const eg = !lock && !!(ev.addr || ev.pend), sent = eg ? ["Sent on the engine in this tab", explain("One tick: the uor-comms engine in this tab signed it, stored it and announced it to the sample people's engines, and each of them checked it.", "Nothing leaves this tab. The engine cannot tell whether it was delivered or read.", "So two ticks never show here.")] : ["Shown as sent (sample)", explain("One tick means this page marked the message as sent.", "Nothing leaves this device yet: sending is not built, so nothing can tell whether it was delivered or read.", "So two ticks never show here.")];
+  const enc = explain("Encryption is planned, and is not on yet.", EN.on ? `This engine version does not encrypt. Once the engine does, only the people in ${esc(r.name)} will hold the keys.` : `When the engine arrives, only the people in ${esc(r.name)} will hold the keys.`, lock ? EN.on ? ENGV.real ? "Until then messages on the engine travel and are kept as they are, readable." : "Until then messages on the engine in this tab are not encrypted." : "Until then these sample messages are not encrypted." : own ? "You wrote this message on this device." : ID.verified.includes(ev.from) ? `${n} is marked verified, as a sample.` : `${n} is not marked verified. Verifying on this page is a sample too.`);
+  const eg = !lock && !!(ev.addr || ev.pend), sent = eg && ENGV.real ? ["Sent on the engine", explain("One tick: the uor-comms engine signed it, stored it and announced it to the browsers in this chat that are connected; each checks it before taking it.", "A browser that was not connected gets it when you next meet. The engine cannot tell whether it was delivered or read.", "So two ticks never show here.")] : eg ? ["Sent on the engine in this tab", explain("One tick: the uor-comms engine in this tab signed it, stored it and announced it to the sample people's engines, and each of them checked it.", "Nothing leaves this tab. The engine cannot tell whether it was delivered or read.", "So two ticks never show here.")] : ["Shown as sent (sample)", explain("One tick means this page marked the message as sent.", "Nothing leaves this device yet: sending is not built, so nothing can tell whether it was delivered or read.", "So two ticks never show here.")];
   const st = !own ? null : { failed: ev.ewhy ? ["Not sent", explain(`${esc(engSay(ev.ecrash ? { message: ev.ewhy } : { reason: ev.ewhy })[0])}. The engine's word: “${esc(ev.ewhy)}”.`, "Try again, or remove it.", "It was not announced; it is kept only on this page.")] : ["Not sent", explain(ev.why ? "You chose “A message that fails to send”, so this page made this one fail." : "The file could not be read on this device.", "Try again, or remove it.", "Until it is sent it is kept only on this device.")],
-    queued: ["Waiting to send", explain("There is no connection.", "It is marked as sent, in order, as soon as you are back. Nothing leaves this device yet.", "The clock stays until then.")], sending: eg ? ["Sending", explain("The engine in this tab is signing and storing it.", "", "One tick shows once it is announced.")] : ["Sending (sample)", explain("This page shows the step a message will take.", "Nothing leaves this device yet.", "One tick shows in a moment.")], sent, read: sent }[ev.status];
+    queued: ["Waiting to send", explain("There is no connection.", "It is marked as sent, in order, as soon as you are back. Nothing leaves this device yet.", "The clock stays until then.")], sending: eg ? ["Sending", explain(ENGV.real ? "The engine is signing and storing it." : "The engine in this tab is signing and storing it.", "", "One tick shows once it is announced.")] : ["Sending (sample)", explain("This page shows the step a message will take.", "Nothing leaves this device yet.", "One tick shows in a moment.")], sent, read: sent }[ev.status];
   const seen = !info || r.dm && !own || !S.set.showReceipts || ev.up || /failed|queued|sending/.test(ev.status) ? null : ev.ts <= Date.now() - 10 * M ? readers(r, ev) : [], g = (t, x) => `<div class="grp"><h4>${t}</h4>${x}</div>`;   // read receipts are sample data: everyone here is shown as having read what is older than ten minutes. Who it was delivered to is never listed: the engine cannot know
   const readAt = id => { const t = Math.min(Date.now(), ev.ts + (1 + hue(id) % 9) * M); return (daysAgo(t) ? dayText(t) + ", " : "") + clock(t); };   // a sample time each, within ten minutes of the message
   const body = lock ? enc : !info ? st[1] : `<div class="set"><div class="grow">${own ? "You" : esc(U[ev.from].n)}<small>${dayText(ev.ts)}, ${clock(ev.ts)}${ev.edited ? " · edited" : ""}</small></div></div>${st ? g(st[0], st[1]) : ""}
@@ -1926,7 +2030,7 @@ function signOut() {
 function netDlg(tried) { const v = offlineDialog(S.offline ? 0 : 1, tried ? 1 : 0);   // Timeline.offlineDialog: closed once connected; while offline the causes, and after a try the answer to it
   if (!v) { closeOverlay(); if (tried) toastMsg("Back online", "Messages that waited now show as sent. On this sample page nothing is really sent.", [], 4000); return; }
   dialog(`<header><h3>No connection</h3>${CLOSE}</header><div class="c">${S.sim ? SIM : ""}
-    ${EN.on ? `${P0}Engine mode: the engines are all in this tab, so a message in an engine chat is sent to them with or without a connection.</p>` : ""}${explain("No server sits in between, so a message leaves only when this device can reach another device of the chat.", `Check Wi-Fi or mobile data: the browser reports ${navigator.onLine ? "online" : "offline"}. A device of the other person must be on too, which this prototype cannot check yet.`, "Messages wait on this device and send, in order, when you are back.")}
+    ${EN.on ? `${P0}${ENGV.real ? "Engine mode: a message waits in this browser and goes out when you and someone in its chat are both connected." : "Engine mode: the engines are all in this tab, so a message in an engine chat is sent to them with or without a connection."}</p>` : ""}${explain("No server sits in between, so a message leaves only when this device can reach another device of the chat.", `Check Wi-Fi or mobile data: the browser reports ${navigator.onLine ? "online" : "offline"}. A device of the other person must be on too, which this prototype cannot check yet.`, "Messages wait on this device and send, in order, when you are back.")}
     ${v === 2 ? `<p style="margin:0;color:var(--ink)" role="status">Tried again at ${new Date().toLocaleTimeString()}: ${S.sim ? "the simulation is still on, so nothing changed" : "this device is still offline"}.</p>` : ""}</div>
     <footer>${S.sim ? '<button class="btn" id="nx">End the simulation</button>' : ""}<button class="btn primary" id="nt" autofocus>Try again</button></footer>`, sc => {
     $("#nt", sc).onclick = () => { if (!S.sim && navigator.onLine) toggleOffline(true); netDlg(1); }; if (S.sim) $("#nx", sc).onclick = () => { toggleOffline(navigator.onLine); netDlg(1); }; });
@@ -1967,7 +2071,7 @@ function send() {
   const c = text.match(/^\/(note|shrug|spoiler)(?:\s+([^]*))?$/);   // commands that change what is sent; /me is kept and shown as an action
   if (c) { const t = c[2] || ""; if (!t && c[1] !== "shrug") return; text = c[1] === "shrug" ? (t + " ¯\\_(ツ)_/¯").trim() : c[1] === "spoiler" ? "||" + t + "||" : t; x.notice = c[1] === "note" ? 1 : 0; }
   const t0 = performance.now();       // Composer.sendable
-  if (r.eng) engSend(r, text, { reply: S.mode ? S.mode.id : null });   // engine mode: the engine signs, stores and announces it; the engines are in this tab, so no connection is needed
+  if (r.eng) engSend(r, text, { reply: S.mode ? S.mode.id : null });   // engine mode: the engine signs, stores and announces it; with no connection it is kept and goes out when two browsers meet
   else { const e = m("me", 0, text, Object.assign(x, { ts: Date.now(), status: S.offline ? "queued" : "sending", reply: S.mode ? S.mode.id : null })); r.ev.push(e); if (!S.offline) deliver(r, e); }
   S.mode = null; ta.value = ""; delete S.drafts[r.id]; r.lastRead = Date.now(); r.seenLine = 0; S.pop = null; drawPop();
   grow(); drawCtx(); drawTimeline(true); drawList(); drawBanner();
@@ -2054,7 +2158,7 @@ function openDm(id) { if (EN.on) return engOpenDm(id);                          
 }
 function startDm(id) {   // a new chat is confirmed by name before it exists
   if (S.rooms.some(x => x.dm === id && !x.invite)) return openDm(id);
-  confirmDlg(`Start a chat with ${U[id].n}?`, explain("A new chat starts only once you confirm it.", "", EN.on ? `A direct room is created on the uor-comms engine in this tab. ${esc(first(id))} is a sample person whose own engine joins it by script.` : `A sample chat is created on this device. It is not encrypted yet, and ${esc(first(id))} is not told.`), "Start chat", "primary", () => openDm(id));
+  confirmDlg(`Start a chat with ${U[id].n}?`, explain("A new chat starts only once you confirm it.", "", EN.on && ENGV.real ? `A direct room is created on the uor-comms engine, and reaches ${esc(U[id].n)} while both of you are online.` : EN.on ? `A direct room is created on the uor-comms engine in this tab. ${esc(first(id))} is a sample person whose own engine joins it by script.` : `A sample chat is created on this device. It is not encrypted yet, and ${esc(first(id))} is not told.`), "Start chat", "primary", () => openDm(id));
 }
 function sendInvites(r, ids, force) { if (r.eng) return engInvite(r, ids);
   let k = 0; const failed = [];
@@ -2074,15 +2178,18 @@ function addInvite(c) { let r = S.rooms.find(x => x.code === c);
 function resolveCode(text) { const t = text.trim(); let mm = t.match(/blake3:[0-9a-f]{64}/i);
   if (mm) { const a = mm[0].toLowerCase(), id = idOf(a); return id === "me" ? { err: "That is your own ID." } : id ? { user: id } : { addr: a }; }
   if ((mm = t.match(/(?:holo-room:|#j-)([a-z0-9]+)/i))) { const c = mm[1].toLowerCase(), r = R(c) || S.rooms.find(x => x.code === c); return r ? { [r.invite ? "invite" : "open"]: r.id } : XR[c] ? { room: c } : { err: "No room matches that code." }; }
+  if (ENGV.real && /#uc1\./.test(t)) return { uc1: t };   // an invite link to engine mode
   return { err: t ? "That is not an ID, a link or a room code. An ID starts with blake3: and has 64 more characters." : "" }; }
 function useCode(x) {
   if (x.user) profile(x.user);
   else if (x.addr) confirmDlg("Start a chat with this ID?", `<div class="addr">${x.addr}</div>` + explain("Nobody you know has this ID, and this page cannot check that it exists.", "", "A chat is created. The person shows by their ID until you learn their name."), "Start chat", "primary", () => openDm(personFor(x.addr)));
   else if (x.room || x.invite) previewRoom(x.invite || addInvite(x.room).id);
   else if (x.open) { closeOverlay(); openRoom(x.open); }
+  else if (x.uc1) { closeOverlay(); engLinkOpen(x.uc1); }
   else if (x.err) confirmDlg("That did not work", `${P0}${esc(x.err)}</p>`, "OK", "primary", () => {});
 }
 function openHash() {   // a link to a person opens the same card as inside a room; a link to a room opens it or its invitation
+  if (ENGV.real && /^#uc1\./.test(location.hash) && !$("#onb") && !$("#lock")) return engLinkOpen(location.href);   // an invite link to engine mode
   const h = decodeURIComponent(location.hash.slice(1)); if (!/^[ujm]-/.test(h) || $("#onb") || $("#lock")) return;
   try { history.replaceState(history.state, "", location.href.split("#")[0]); } catch (e) {}
   if (h[0] === "m") { const id = h.slice(2), r = S.rooms.find(x => !x.invite && x.ev.some(e => e.id === id && !e.del));   // a link to a message opens its chat at that message
@@ -2141,7 +2248,7 @@ function makeId(sim) {
 /* ---------- first run: name, recovery kit, notifications. Each step shows once and can be skipped; a step already done is left out ---------- */
 const needNotify = () => "Notification" in window && Notification.permission === "default" && !ID.promptOff;
 function onboard(step = 0) {
-  const total = needNotify() ? 3 : 2, dots = n => `<div class="steps">${Array.from({ length: total }, (_, i) => `<i class="${i < n ? "on" : ""}"></i>`).join("")}</div>`, end = () => { unstage(); drawAll(); openHash(); };
+  const total = needNotify() ? 3 : 2, dots = n => `<div class="steps">${Array.from({ length: total }, (_, i) => `<i class="${i < n ? "on" : ""}"></i>`).join("")}</div>`, end = () => { unstage(); drawAll(); openHash(); if (location.hash === "#engine" && supported && !EN.on) engineStart(); };   // #engine opened before the welcome steps: engine mode starts once they finish
   if (step === 0) { const o = stage(`<h2>Welcome to Holo Messenger</h2><p>No account and no password. Your identity will be a key that stays on this device. For now a key pair is made to show the step; it is not kept or used yet.</p>${acts(["create", "Create my identity"], ["restore", "I have a recovery kit"])}`);
     o.onclick = e => { const b = e.target.closest("[data-o]"); if (b) b.dataset.o === "create" ? onboard(1) : restore(); }; }
   else if (step === 1) { const o = stage(`${dots(1)}<h2>Your name</h2><p>What people will call you. You can change it later.</p><input id="nm" type="text" value="${esc(S.set.name)}" aria-label="Your name" maxlength="40">${acts(["go", "Continue"])}`);
@@ -2199,7 +2306,7 @@ document.addEventListener("click", e => {   // before the base handlers: unsaved
   if ((b = q("[data-accept]"))) { stop(); previewRoom(b.dataset.accept, "joining"); }
   else if ((b = q("[data-decline]"))) { stop(); previewRoom(b.dataset.decline, "declining"); }
   else if (q("[data-engabout]")) { stop(); settings("about"); }
-  else if (q("[data-engoff]")) { stop(); confirmDlg("Back to sample mode?", explain("Engine mode keeps its chats in this browser until you turn it off, and turning it off is what removes them.", "The engine databases in this browser are deleted: each engine's store of events and content, and this page's keys, identities and room names. Then the page reloads on sample data.", "Every engine chat, message and key in this browser is deleted and cannot be brought back. Run on the engine again from Try a situation to start fresh."), "Delete and go back", "danger", () => engWipe().then(engineOff)); }
+  else if (q("[data-engoff]")) { stop(); confirmDlg("Back to sample mode?", explain("Engine mode keeps its chats in this browser until you turn it off, and turning it off is what removes them.", ENGV.real ? "The engine databases in this browser are deleted: the engine's store of events and content, your identity and device key, the keys you hold for others, and room names. Then the page reloads on sample data." : "The engine databases in this browser are deleted: each engine's store of events and content, and this page's keys, identities and room names. Then the page reloads on sample data.", "Every engine chat, message and key in this browser is deleted and cannot be brought back." + (ENGV.real ? " The people you know can no longer reach this browser: a fresh start makes a new identity and key." : " Run on the engine again from Try a situation to start fresh.")), "Delete and go back", "danger", () => engWipe().then(engineOff)); }
   else if ((b = q("[data-avpick]"))) { stop(); pickPic(b, !!S.set.avatar, u => { S.set.avatar = u; applySet(); redraw(); }); }
 }, true);
 document.addEventListener("mousedown", e => { if (e.target.id === "scrim") guardLeave(e, closeTop); }, true);
@@ -2270,7 +2377,7 @@ document.addEventListener("click", e => {
   else if ((b = q("[data-levels]"))) levelDlg(b);
   else if (q("[data-mfind]")) { const i = $("#mq"); i.hidden = !i.hidden; if (i.hidden) { i.value = ""; memList(); $("#panel [data-mfind]").focus(); } else i.focus(); }
   else if ((b = q("[data-dm]"))) startDm(b.dataset.dm);
-  else if ((b = q("[data-nc]"))) ({ group: groupChat, room: createRoom, code: addByCode, mine: () => shareDlg("Your code", linkTo("u-" + addrOf(S.set.name)), "A sample link, made from your name. Nobody can reach you with it yet.") })[b.dataset.nc]();
+  else if ((b = q("[data-nc]"))) ({ group: groupChat, room: createRoom, code: () => ENGV.real && EN.on ? engInviteDlg() : addByCode(), mine: () => ENGV.real && EN.on ? engInviteDlg() : shareDlg("Your code", linkTo("u-" + addrOf(S.set.name)), "A sample link, made from your name. Nobody can reach you with it yet.") })[b.dataset.nc]();
   else if ((b = q("[data-goto]"))) gotoMsg(b.dataset.goto);
   else if ((b = q("[data-unpin]"))) { togglePin(r, b.dataset.unpin); card("pins"); }
   else if ((b = q("[data-sendp]"))) { r.sendPower = +b.dataset.sendp; say(r, "sendpower"); saveDraft(); drawRoom(); drawList(); card("roles"); }
