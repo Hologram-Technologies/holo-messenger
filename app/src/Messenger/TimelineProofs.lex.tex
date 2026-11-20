@@ -413,5 +413,182 @@ theorem{
   proof: linear_arithmetic{definitions: [Messenger.Timeline::offlineDialog]},
   axioms: [Quot.sound, propext]
 }
+theorem{
+  name: gapAfterInRange,
+  parameters: [nextStartsGroup : Nat, hasReactions : Nat],
+  statement: (((2 <=? (Messenger.Timeline::gapAfter nextStartsGroup hasReactions)) && ((Messenger.Timeline::gapAfter nextStartsGroup hasReactions) <=? 24)) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::gapAfter]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: reactionsNeverCrowded,
+  parameters: [nextStartsGroup : Nat, hasReactions : Nat],
+  statement: (((1 <=? hasReactions) && ((Messenger.Timeline::gapAfter nextStartsGroup hasReactions) <? 24)) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::gapAfter]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: newRunGetsRoom,
+  parameters: [nextStartsGroup : Nat, hasReactions : Nat],
+  statement: (((1 <=? nextStartsGroup) && ((Messenger.Timeline::gapAfter nextStartsGroup hasReactions) <? 6)) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::gapAfter]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: runStaysTight,
+  parameters: [],
+  statement: ((Messenger.Timeline::gapAfter 0 0) = 2),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: gapExamples,
+  parameters: [],
+  statement: ((((Messenger.Timeline::gapAfter 0 0) =? (Messenger.Timeline::gapInRun)) && (((Messenger.Timeline::gapAfter 1 0) =? (Messenger.Timeline::gapBetweenRuns)) && (((Messenger.Timeline::gapAfter 0 1) =? (Messenger.Timeline::gapUnderReactions)) && ((Messenger.Timeline::gapAfter 1 1) =? 24)))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: typingOffNeverShowsBubble,
+  parameters: [isDirect : Nat, othersTyping : Nat],
+  statement: ((Messenger.Timeline::typingBubble isDirect othersTyping 0) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::typingBubble]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: nobodyTypingNoBubble,
+  parameters: [isDirect : Nat, typingShown : Nat],
+  statement: ((Messenger.Timeline::typingBubble isDirect 0 typingShown) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::typingBubble]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: directBubbleNeverNamed,
+  parameters: [isDirect : Nat, othersTyping : Nat, typingShown : Nat],
+  statement: (((1 <=? isDirect) && (2 <=? (Messenger.Timeline::typingBubble isDirect othersTyping typingShown))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::typingBubble]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: typingBubbleInRange,
+  parameters: [isDirect : Nat, othersTyping : Nat, typingShown : Nat],
+  statement: (((Messenger.Timeline::typingBubble isDirect othersTyping typingShown) <=? 2) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::typingBubble]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: typingBubbleExamples,
+  parameters: [],
+  statement: ((((Messenger.Timeline::typingBubble 1 1 1) =? (Messenger.Timeline::typingDots)) && (((Messenger.Timeline::typingBubble 0 1 1) =? (Messenger.Timeline::typingNamed)) && (((Messenger.Timeline::typingBubble 0 3 1) =? (Messenger.Timeline::typingDots)) && (((Messenger.Timeline::typingBubble 0 1 0) =? (Messenger.Timeline::typingNone)) && ((Messenger.Timeline::typingBubble 1 0 1) =? (Messenger.Timeline::typingNone)))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: knownNeverPlaceholder,
+  parameters: [known : Nat, isMessage : Nat],
+  statement: (((1 <=? known) && (1 <=? (Messenger.Timeline::unsupportedShown known isMessage))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::unsupportedShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unknownMessageNeverVanishes,
+  parameters: [isMessage : Nat],
+  statement: (((1 <=? isMessage) && ((Messenger.Timeline::unsupportedShown 0 isMessage) =? 0)) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::unsupportedShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: unknownChangeStaysHidden,
+  parameters: [],
+  statement: ((Messenger.Timeline::unsupportedShown 0 0) = 0),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: captionKeepsTimeBelow,
+  parameters: [isMedia : Nat, hasCaption : Nat],
+  statement: (((1 <=? hasCaption) && (1 <=? (Messenger.Timeline::timeOnMedia isMedia hasCaption))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::timeOnMedia]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: textNeverOverlaid,
+  parameters: [hasCaption : Nat],
+  statement: ((Messenger.Timeline::timeOnMedia 0 hasCaption) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::timeOnMedia]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: bareMediaCarriesTime,
+  parameters: [isMedia : Nat],
+  statement: (((1 <=? isMedia) && ((Messenger.Timeline::timeOnMedia isMedia 0) =? 0)) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::timeOnMedia]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: albumNeverAboveFour,
+  parameters: [count : Nat],
+  statement: (((Messenger.Timeline::albumCells count) <=? 4) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::albumCells]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: fullAlbumBeforeMore,
+  parameters: [count : Nat],
+  statement: (((1 <=? (Messenger.Timeline::albumMoreShown count)) && ((Messenger.Timeline::albumCells count) <? 4)) = false),
+  proof: linear_arithmetic{
+    definitions: [Messenger.Timeline::albumCells, Messenger.Timeline::albumMoreShown]
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: moreOnlyPastFour,
+  parameters: [count : Nat],
+  statement: (((count <=? 4) && (1 <=? (Messenger.Timeline::albumMoreShown count))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::albumMoreShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: albumExamples,
+  parameters: [],
+  statement: ((((Messenger.Timeline::albumCells 1) =? 1) && (((Messenger.Timeline::albumCells 3) =? 3) && (((Messenger.Timeline::albumCells 7) =? (Messenger.Timeline::albumMost)) && (((Messenger.Timeline::albumMoreShown 7) =? 1) && ((Messenger.Timeline::albumMoreShown 4) =? 0))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: singleReactionNoCount,
+  parameters: [total : Nat],
+  statement: (((total <=? 1) && (1 <=? (Messenger.Timeline::reactionCountShown total))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::reactionCountShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: severalReactionsCounted,
+  parameters: [total : Nat],
+  statement: (((2 <=? total) && ((Messenger.Timeline::reactionCountShown total) =? 0)) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Timeline::reactionCountShown]},
+  axioms: [Quot.sound, propext]
+}
 \end{semanticmodule}
 \end{lexlean}

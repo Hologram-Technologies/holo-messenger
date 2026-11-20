@@ -12,6 +12,7 @@ Sources, in order of trust:
 
 - "screenshot N" means it was seen in one of the six reference screenshots (1 chats home, 2 a chat, 3 group info, 4 home overflow menu, 5 calls, 6 new call picker).
 - "help: title" means a page of that title on faq.whatsapp.com confirmed it. "blog: title" means the official blog did.
+- "wa-ui: file" means the open-source reproduction of WhatsApp Web read in section 12 does it that way in that file (froggy1014/wa-ui at commit 77518bab). It is a third party's copy of the web app, not WhatsApp, so it ranks below a screenshot or a help page and above "unverified"; where it disagrees with a screenshot, the screenshot stands.
 - "unverified" means neither confirmed it. Treat these as leads to check on a real phone before building on them.
 
 Limits of this study:
@@ -55,7 +56,7 @@ A "unit" is the screen width divided by 412. The screenshots are 923 px wide, so
 | H-26 | Chat row, line 2 | Looks | A reaction shows as a sentence: who reacted, the emoji, and the start of the message in quotes. | screenshot 1 |
 | H-27 | Chat row, line 2 | Looks | Group events (someone added someone) show as a plain sentence. | screenshot 1 |
 | H-28 | Chat row, line 2 | Looks | For a community group, line 2 starts with the community name, a small arrow, then the preview. | screenshot 1 |
-| H-29 | Chat row, line 2 | Someone is typing | The preview is replaced by a green "typing" line until they stop. | unverified |
+| H-29 | Chat row, line 2 | Someone is typing | The preview is replaced by a "typing" line in the accent colour until they stop. | wa-ui: chat-list-item.tsx |
 | H-30 | Chat row, line 2 right | Looks | A pinned chat shows a small grey pin at the far right of line 2. | screenshot 1 |
 | H-31 | Chat row | Pins a chat | The chat stays above all unpinned chats. At most three chats can be pinned. | help: How to pin or unpin a chat |
 | H-32 | Chat row (Android) | Long-presses, taps the pin in the top bar | Pins or unpins. | unverified |
@@ -110,7 +111,7 @@ A "unit" is the screen width divided by 412. The screenshots are 923 px wide, so
 | C-08 | Bubbles | Looks | Messages you receive are dark grey bubbles on the left; messages you send are dark green bubbles on the right. | screenshot 2 |
 | C-09 | Bubbles | Looks | A bubble is only as wide as its text needs, up to about four fifths of the screen. Long text wraps inside. | screenshot 2 |
 | C-10 | Bubbles | Looks | The first bubble in a run from one sender has a small tail at its top outer corner (top left for received, top right for sent). | screenshot 2 |
-| C-11 | Bubbles | Looks | Later bubbles in the same run have no tail and sit closer together; a new sender, a date change or a call event starts a new run. | unverified |
+| C-11 | Bubbles | Looks | Later bubbles in the same run have no tail and sit closer together (2 px apart on wide screens, 6 px between runs); a new sender, a date change or a call event starts a new run. | wa-ui: chat-bubble.tsx for the spacing; what starts a run unverified |
 | C-12 | Bubbles in groups | Looks | The first received bubble of a run shows the sender's name in a colour at its top, and their small picture beside the run. | unverified |
 | C-13 | Inside a bubble, bottom right | Looks | The time, small and grey, sits on the last line at the right. If the last line is full, the time drops to its own line. | screenshot 2 |
 | C-14 | Inside a sent bubble | Looks | Tick marks sit right after the time. | help: How to check read receipts |
@@ -128,9 +129,9 @@ A "unit" is the screen width divided by 412. The screenshots are 923 px wide, so
 | C-26 | A sent reply | Looks | The reply bubble carries the quoted message at its top, with a coloured bar and the sender's name. | help: How to reply to a message (bar and name unverified) |
 | C-27 | Quote in a bubble | Taps | The chat scrolls to the original message and flashes it. | unverified |
 | C-28 | A message | Long-presses | The message is selected and a row of emoji appears just above it. | help: How to react to messages |
-| C-29 | Reactions row | Looks | Six common emoji and a plus for the full picker. | unverified |
+| C-29 | Reactions row | Looks | Six common emoji and a plus for the full picker. | wa-ui: message-actions.tsx |
 | C-30 | Reactions row | Taps an emoji | A small round chip with that emoji attaches to the bubble's bottom edge, overlapping it. One reaction per person per message. | help: How to react to messages; screenshot 2 |
-| C-31 | Reaction chip | Looks | It hangs from the bottom of the bubble, on the inner side, half over the bubble and half below it. The next message is pushed down to make room. | screenshot 2 |
+| C-31 | Reaction chip | Looks | It hangs from the bottom of the bubble, on the inner side, a few pixels over the bubble's edge and the rest below it (corrected 2026-11-20: this row said half over; the size table below measured about 3 units of overlap, and wa-ui hangs a 24 px pill 20 px below a received bubble, so 4 px over). The next message is pushed down to make room. | screenshot 2; wa-ui: chat-bubble.tsx |
 | C-32 | Reaction chip | Taps | A sheet from the bottom lists who reacted with what; tapping your own removes it. | unverified |
 | C-33 | Reaction | Adds or removes | The sender is told about a new reaction, not about a removed one. | help: How to react to messages |
 | C-34 | Long-pressed message (Android) | Looks | The top bar becomes an action bar: back arrow and count on the left; reply, star, delete, forward and three dots on the right (copy, info, edit, pin, report under the dots). | help: How to delete messages; help: How to star or unstar a message (exact icon order unverified) |
@@ -175,7 +176,7 @@ A "unit" is the screen width divided by 412. The screenshots are 923 px wide, so
 | C-73 | Timeline | Is at the bottom when a message arrives | The list scrolls to show it; no button appears. | unverified |
 | C-74 | Top bar, three dots | Taps | A menu drops from the top right: search, media, mute, disappearing messages, wallpaper, more. | unverified |
 | C-75 | Chat search | Types | Matches are highlighted in the timeline with up and down arrows to step through them. | unverified |
-| C-76 | Text in a bubble | Looks | Simple marks format text: asterisks for bold, underscores for italic, tildes for strike-through, backticks for code. | unverified |
+| C-76 | Text in a bubble | Looks | Simple marks format text: asterisks for bold, underscores for italic, tildes for strike-through, backticks for code, three backticks for a block. A mark counts only when it hugs the text at a word boundary. | wa-ui: message-text.tsx |
 | C-77 | A long message | Looks | It is cut after many lines with a "read more" link. | unverified |
 | C-78 | A message of only emoji | Looks | One to three emoji alone are drawn larger. | unverified |
 | C-79 | An unsent message with no network | Looks | The clock mark stays; it sends by itself when the network returns. | help: How to check read receipts |
@@ -305,12 +306,12 @@ A "unit" is the screen width divided by 412. The screenshots are 923 px wide, so
 | W-06 | Conversation area | Nothing selected | A calm placeholder with a short note. | unverified |
 | W-07 | Chat row | Hovers | A small down-arrow appears at the right of the row; clicking it opens a menu: archive, mute, pin, mark unread, delete. | help: How to pin or unpin a chat; help: How to mark a message as read or unread |
 | W-08 | Chat row | Right-clicks | The same menu opens at the pointer. | unverified |
-| W-09 | A message | Hovers | A small down-arrow appears in the bubble's corner and an emoji button beside the bubble. | help: How to reply to a message; help: How to react to messages (emoji button unverified) |
+| W-09 | A message | Hovers | A small down-arrow appears in the bubble's corner and an emoji button beside the bubble, on the side away from it. | help: How to reply to a message; help: How to react to messages; wa-ui: message-actions.tsx (emoji button) |
 | W-10 | Message arrow | Clicks | A menu anchored to the bubble: reply, react, forward, star, pin, info, edit, delete. | help: How to reply to a message; help: How to forward messages; help: How to star or unstar a message |
 | W-11 | Conversation header | Clicks the name | Contact or group info opens as a panel on the right side, narrowing the conversation; a close button returns. | unverified |
 | W-12 | Search in chat, starred, media | Opens | These also use the right-side panel. | unverified |
-| W-13 | Composer | Looks | Plus (attach) and emoji on the left, the field in the middle, microphone on the right, changing to Send when there is text. | unverified |
-| W-14 | Composer | Presses Enter | Sends. Shift+Enter adds a line. | unverified |
+| W-13 | Composer | Looks | Plus (attach) and emoji on the left, the field in the middle, microphone on the right, changing to Send when there is text. | wa-ui: message-input.tsx and its stories |
+| W-14 | Composer | Presses Enter | Sends. Shift+Enter adds a line. Enter while an input method is composing does nothing, and on a touch screen Enter adds a line. | wa-ui: message-input.tsx |
 | W-15 | Microphone | Clicks (no holding) | Recording starts; pause, bin and send controls show; a click on send finishes. | help: How to send voice messages |
 | W-16 | Keyboard | Uses shortcuts | Shortcuts exist for mute, archive, pin, mark unread, search, new chat. Web and Windows pages list different keys for some. | help: About keyboard shortcuts |
 | W-17 | Files | Drags a file onto the conversation | A preview opens with a caption field before sending. | unverified |
@@ -421,7 +422,7 @@ The phone's text is enlarged. Comparing with WhatsApp's usual sizes (unverified:
 | Bubble padding, below time | about 11 | 5 | |
 | Bubble corner | about 27 | 12 | |
 | Bubble colours | | | Received #1F2829; sent #134A36; page #0C1214 |
-| Gap between runs of bubbles | 25 | 11 | Within a run it is smaller (not seen; about 2 to 3, unverified) |
+| Gap between runs of bubbles | 25 | 11 | Within a run it is smaller (not seen on the phone; wa-ui uses 2 px within a run and 6 px between runs on wide screens, chat-bubble.tsx) |
 | Day label | about 180 x 68 | 80 x 30 | Corner about 8; about 10 clear above and below |
 | Reaction chip | about 66 | 30 | Round; starts 9 in from the bubble's edge; overlaps the bubble by about 3 |
 | Document icon | 52 | 23 | |
@@ -479,3 +480,142 @@ The phone's text is enlarged. Comparing with WhatsApp's usual sizes (unverified:
 - Web and Desktop layout is from memory; the help centre confirms only the hover menus, voice recording controls, calling and shortcuts.
 - Default text sizes are inferred by dividing by 1.3; measure a phone at default text size to confirm.
 - Help pages disagree on the delete-for-everyone window (about two days against about an hour) and on whether archived chats stay archived by default.
+
+## 12. From wa-ui
+
+Why: the earlier sections rest on six phone screenshots and on memory for wide screens. wa-ui is a source with exact numbers for the web app, so it can settle sizes and behaviour the screenshots could not.
+How: read on 2026-11-20 at commit `77518bab6a20a92c3793408626c7d40fa5cfae33` of github.com/froggy1014/wa-ui (MIT), through the GitHub API, nothing run or installed. It is a shadcn/ui registry of chat components that says it reproduces WhatsApp Web with the web app's own CSS variables. Files read: `README.md`, `DESIGN.md`, `AGENTS.md`, `lib/registry.ts`, `lib/brand.ts`, `components/ui/whatsapp/styles/whatsapp.css`, the 35 files in `components/ui/whatsapp/` and the 18 stories in `stories/whatsapp/`. Tailwind classes are given in pixels at Tailwind 4's defaults (one step is 4 px).
+Use: the measurements and behaviour below are adopted; the brand is not. No code, asset or wording of wa-ui is copied into Holo Messenger, and each finding names the file it came from. The classification of every component, the new rules and the build order are in `docs/wa-ui-gap.md`.
+
+### 12.1 What is brand and stays out
+
+wa-ui's colour scale is WhatsApp's own: the greens and teals (`--wa-green-*`, `--wa-emerald-*`, `--wa-teal-*`), the sent-bubble greens, the unread green, the success green and the read-tick blue, plus the doodle wallpaper image, the template button icons and the logo path in `lib/brand.ts`. None of it is adopted. Where wa-ui uses one of these, Holo Messenger uses its own token, as this table says. The greys, sizes, radii, spacing, type sizes, shadows and durations are structure and are adopted.
+
+| wa-ui token or value | Where wa-ui uses it | Holo Messenger uses |
+|---|---|---|
+| `--wa-primary`, `--wa-emerald-500` and `-600` | links in system text, active icons, focus rings, buttons in bubbles, the sender name default | own colour: `--accent` |
+| `--wa-bubble-outgoing` | sent bubble | own colour: `--bubble` |
+| `--wa-bubble-incoming`, `--wa-panel-bg` | received bubble, panels | own colour: `--panel` |
+| `--wa-unread-marker`, `--wa-green-400` | unread badge, unread time, online dot | own colour: `--accent` |
+| `--wa-read`, `--wa-sky-blue-300` | two ticks when read | own colour: `--accent` (only when the engine reports read; see C-18) |
+| `--wa-green-75`, the dark reaction fill | your own reaction's pill | own colour: `--sel` with an `--accent` outline |
+| `--wa-text-critical` | failed send, danger menu items | own colour: `--bad` |
+| `--wa-conversation-bg`, `--wa-wallpaper-*`, `/wa-wallpaper.png` | chat background and doodles | own colour: `--bg`, no wallpaper |
+| `--wa-attachment-*` | file-type badges | own colours, one per file kind, chosen here |
+| avatar palette (10 colours) | initials on a colour by name | own palette (the page's `av()`) |
+| `--wa-sky-blue-400` | links in message text | own colour: `--accent` |
+| `--wa-hover`, `--wa-active`, the greys, `--wa-divider`, `--wa-border` | hover, selected, lines | own colour: `--hover`, `--sel`, `--line` |
+
+### 12.2 Measurements
+
+All are wa-ui's values for the web app on a wide screen. The phone values of section 9 stay for one pane; the model's `Budget` keeps both sets (section 12.5).
+
+| Element | Value | Source |
+|---|---|---|
+| Chat-list column | 440 px, at least 340 px; `DESIGN.md` and the preview story say 360 px | `styles/whatsapp.css` (`--wa-sidebar-width`, `--wa-sidebar-min-width`); `DESIGN.md` |
+| List and chat header height | 59 px; 16 px side padding; 10 px gaps | `chat-header.tsx`; `--wa-header-height` |
+| Header picture | 40 px round | `chat-header.tsx`; `--wa-avatar-size-sm` |
+| Header name, second line | 16 px on a 21 px line; 13 px on 20 px | `chat-header.tsx` |
+| Header buttons | 24 px icon in 8 px padding: 40 px targets | `chat-header.tsx` |
+| Chat row | 49 px picture, 10 px above and below (about 69 px tall), 15 px from picture to text, 9 px inner side padding | `chat-list-item.tsx` |
+| Chat row highlight | an inset pill: 8 px in from each side, 12 px corners, for hover and the selected chat | `chat-list-item.tsx` |
+| Chat row text | name 17 px regular on 21 px; time 12 px semi-bold on 14 px; preview 13 px on 20 px, 3 px below the name | `chat-list-item.tsx` |
+| Unread badge | at least 20 px wide and tall, 5 px side padding, 11 px bold; "999+" past 999 | `chat-list-item.tsx` |
+| Online dot | 13 px with a 2 px ring in the panel colour, bottom right of the picture | `chat-list-item.tsx` |
+| Mute and pin marks | 16 px | `chat-list-item.tsx` |
+| Bubble | 8 px corners; at most 60% of the chat's width; text bubbles at least 80 px wide | `chat-bubble.tsx`; `--wa-msg-max-width` |
+| Bubble padding | 12 px sides in a text bubble, 9 px in the others; 6 px above, 7 px below | `chat-bubble.tsx`, `contact-bubble.tsx`, `location-bubble.tsx` |
+| Tail | 8 by 13 px, outside the bubble; the corner beside it goes square (3 px on media bubbles); a faint shadow under it at 13% | `chat-bubble.tsx`, `image-bubble.tsx` |
+| Spacing between bubbles | 2 px within a run, 6 px after a run, 24 px under a bubble with reactions | `chat-bubble.tsx` |
+| Message text | 14.2 px on a 19 px line | `chat-bubble.tsx` |
+| Sender name in groups | 12.8 px medium on 22 px, 2 px above the text | `chat-bubble.tsx` |
+| Time and ticks | 11 px on 15 px, 2 px under the text, 3 px between time and ticks; ticks 16 by 11 px | `chat-bubble.tsx`, `message-status.tsx` |
+| Day label | a pill, 12 px sides, 4 px top and bottom, 12.5 px on 20 px (28 px tall), 8 px clear above and below | `date-separator.tsx` |
+| System line | a pill at most 70% wide, 12 px sides, 5 px top and bottom, 12.5 px on 18 px, 6 px clear | `system-message-bubble.tsx` |
+| Reaction pill | 6 px sides, 2 px top and bottom, 13 px emoji, count 12 px: 24 px tall; several emoji stack in 20 px circles overlapping by 5 px with one total | `reaction.tsx`, `reaction-pill.tsx` |
+| Reaction position | 8 px in from the bubble's inner corner; 20 px below a received bubble's bottom, 16 px below a sent one (`DESIGN.md` says 14) | `chat-bubble.tsx`, `message-bubble.tsx` |
+| Quick reactions | six 38 px cells with 24 px emoji, then a 34 px "more" button; the more grid is 8 columns of 34 px with 20 px emoji, at most 180 px tall | `message-actions.tsx` |
+| Message action button | 32 px round, 20 px icon, beside the bubble, faded in on hover or focus | `message-actions.tsx` |
+| Menus | at least 200 px wide, 8 px corners; items 16 px sides, 13 px top and bottom, 15 px text, 12 px icon gap; 4 px from the button | `chat-menu.tsx` |
+| Message menu actions | 16 px sides, 10 px top and bottom, 14.5 px text | `message-actions.tsx` |
+| Composer | a 21 px-cornered field in a strip, 10 px sides; text 15 px on 24 px; the field grows to 120 px (five lines) and then scrolls | `message-input.tsx` |
+| Composer height | the token says 62 px; the component as written gives about 44 px | `styles/whatsapp.css` (`--wa-compose-height`); `message-input.tsx` |
+| Emoji picker | 340 px wide, or the screen less 16 px; at most 300 px tall; 8 columns of 36 px cells with 22 px emoji; 12 px corners; 10 px above the button | `emoji-picker.tsx` |
+| Reply bar | slides up 8 px and fades in over 150 ms; 32 px close button | `reply-bar.tsx` |
+| Quoted message | at least 42 px tall, 3 px accent bar, 4 px corners, name and text 12.5 px on 17 px, text cut after two lines, 52 px thumbnail | `reply-preview.tsx` |
+| Media bubble | at most 336 px wide; one picture at most 330 px tall; an album of 165 px cells 2 px apart, three items as one tall cell and two small ones | `image-bubble.tsx`; `DESIGN.md` |
+| Time on media | a dark pill 6 px from the bottom and 8 px from the right, 11 px white text, when there is no caption | `image-bubble.tsx`, `video-bubble.tsx` |
+| Video | a 48 px round play button; length 6 px in from the bottom left; 200 px tall while loading (`DESIGN.md` says 171 px, found nowhere in the code) | `video-bubble.tsx` |
+| Voice note | 40 px round play button; 30 bars, 3 px wide, 2 px apart, up to 20 px tall; length 12 px | `voice-message-bubble.tsx` |
+| Document | 46 px file-type badge with the extension in 8 px bold; name 14 px; size and type 12 px; a 32 px download ring; a 2 px progress line | `file-attachment-bubble.tsx` |
+| Location | 280 px wide; a 160 px map area; name 14.2 px semi-bold, address 13 px | `location-bubble.tsx` |
+| Contact card | 280 px wide; 40 px picture; name 14.2 px; Message and Add buttons under a line | `contact-bubble.tsx` |
+| Sticker | 160 px square, no bubble | `sticker-bubble.tsx` |
+| Unsupported message | a dashed outline bubble with a 16 px info mark and 13 px text | `unsupported-message-bubble.tsx` |
+| Typing bubble | three 8 px dots, 4 px apart, rising 4 px, one cycle 1.2 s, each 0.2 s after the last | `typing-indicator.tsx`; `styles/whatsapp.css` |
+| Media viewer | a full-screen dark page; 40 px round buttons; previous and next 8 px from the sides | `media-viewer.tsx` |
+| Motion | menus and popovers fade and grow from 95% in 150 ms, ease-out; bottom sheets slide 300 ms; pictures fade in over 300 ms | `chat-menu.tsx`, `emoji-picker.tsx`, `list-message-bubble.tsx`, `image-bubble.tsx` |
+| Shadow of floating surfaces | 0 4px 20px at 30% of a near-black | `chat-menu.tsx`, `emoji-picker.tsx` |
+| Type face | the system's own sans-serif, Segoe UI first | `styles/whatsapp.css` (`--font-wa`) |
+
+### 12.3 Behaviour
+
+| ID | Where | User does | What happens | Source |
+|---|---|---|---|---|
+| U-01 | Chat row | Has unread messages | The time takes the accent colour and the badge shows the count; ticks never show on the preview while there are unread messages. | wa-ui: chat-list-item.tsx |
+| U-02 | Chat row | Is muted | The badge turns grey. | wa-ui: chat-list-item.tsx |
+| U-03 | Chat row | Someone types | The preview line becomes "typing" in the accent colour. | wa-ui: chat-list-item.tsx |
+| U-04 | Bubble | Looks | The tail sits on the bottom outer corner of the last bubble of a run. | wa-ui: chat-bubble.tsx and the preview story (disagrees with C-10; see 12.4) |
+| U-05 | Bubble with reactions | Looks | The pill hangs from the inner bottom corner; the next bubble moves down 24 px to make room. | wa-ui: chat-bubble.tsx |
+| U-06 | Reactions | Two or more people react | One pill shows the emoji stacked and one total; a single reaction shows no number. | wa-ui: reaction.tsx; DESIGN.md |
+| U-07 | Message | Hovers or focuses it (wide screen) | A round smiley button fades in beside the bubble, on the side away from it. It is never shown on a screen without hover. | wa-ui: message-actions.tsx |
+| U-08 | Message | Right-clicks or long-presses | The same panel opens: six quick reactions, a plus for 40 more, then the actions. | wa-ui: message-actions.tsx |
+| U-09 | Reaction panel | Picks the reaction already given | It is taken back. Picking another replaces it: one per person. | wa-ui: message-actions.tsx; help: How to react to messages (C-30) |
+| U-10 | Emoji picker | Picks emoji for the text | The picker stays open, so several can be picked in a row. | wa-ui: emoji-picker.tsx |
+| U-11 | Composer | Presses Enter while an input method is composing | Nothing is sent; the input method takes the key. | wa-ui: message-input.tsx |
+| U-12 | Composer | Presses Enter on a touch screen | A line is added; only the send button sends. | wa-ui: message-input.tsx |
+| U-13 | Composer | Sends | The field empties, shrinks to one line and keeps focus. | wa-ui: message-input.tsx |
+| U-14 | Reply bar | Presses Escape | The reply is cancelled. | wa-ui: reply-bar.tsx |
+| U-15 | Quoted message | Clicks or presses Enter on it | The chat jumps to the original. | wa-ui: reply-preview.tsx |
+| U-16 | Picture without a caption | Looks | The time sits in a dark pill on the picture; with a caption it sits in the caption line. | wa-ui: image-bubble.tsx |
+| U-17 | Album of five or more | Looks | Four cells show; the fourth is darkened with "+n", the number not shown. | wa-ui: image-bubble.tsx |
+| U-18 | Media viewer | Presses the arrows | With several items, left and right step through them and wrap at both ends; an "n / m" counter shows. Escape or a click beside the picture closes it. | wa-ui: media-viewer.tsx |
+| U-19 | A message of a kind the app cannot show | Looks | A dashed bubble says it cannot be shown, with its time; nothing is hidden. | wa-ui: unsupported-message-bubble.tsx |
+| U-20 | Typing | Someone types in a group | A received bubble with three moving dots shows at the foot of the chat, with the typist's name in a group. | wa-ui: typing-indicator.tsx |
+| U-21 | Voice note | Plays it | The bars fill as it plays and the length counts up; with a picture, the picture takes the play button's place while playing. | wa-ui: voice-message-bubble.tsx |
+| U-22 | Header | Looks | The second line says "online", or a status, or nothing; the icons show only for actions that exist. | wa-ui: chat-header.tsx |
+| U-23 | Text | Contains a web address | It becomes a link that opens in a new tab; trailing full stops, commas, brackets and quotes stay outside the link. | wa-ui: message-text.tsx |
+| U-24 | Forwarded message | Looks | An italic "Forwarded" line with an arrow sits above the text. | wa-ui: forwarded-label.tsx (C-38) |
+| U-25 | Labels for screen readers | Uses one | Every icon-only button is named (back, search, menu, emoji, more reactions, cancel reply, download, close, previous, next); each reaction button says "React with" or "Remove reaction"; the sending clock says "Sending". | wa-ui: chat-header.tsx, emoji-picker.tsx, message-actions.tsx, reply-bar.tsx, media-viewer.tsx, message-status.tsx |
+
+### 12.4 Where wa-ui and this study disagree
+
+| Point | This study | wa-ui | Which stands |
+|---|---|---|---|
+| Where the tail goes (C-10) | top outer corner of the first bubble of a run, screenshot 2 | bottom outer corner of the last bubble of a run, `chat-bubble.tsx` and the preview story | the screenshot: it shows WhatsApp itself; `Timeline.tailShown` keeps first of group |
+| How far a reaction overlaps (C-31) | half over the bubble | 4 px over a received bubble, 8 px over a sent one | wa-ui, which agrees with this study's own size table (about 3 units); C-31 is corrected |
+| Bubble corner | 12 units on the phone | 8 px on the web | both: phone and wide screen differ |
+| Bubble width | 80% of the phone screen | 60% of the chat on the web | both, by number of panes (`Budget.bubbleMaxPercent`, `Budget.wideBubbleMaxPercent`) |
+| Gap between runs | 11 units on the phone | 6 px on the web | both, by platform |
+| Menus never slide from the bottom (W-20) | wide screens | bottom sheets for the call-permission and list-message pieces | the study: those pieces are WhatsApp Business messages, not adopted |
+| Read ticks | blue when read (C-18) | `--wa-read` blue | the behaviour is kept, not the colour; and two ticks or the accent never show until the engine reports delivery or read (`Timeline.tickShown`) |
+
+wa-ui also disagrees with itself in six places, and the code is taken over `DESIGN.md`: the list column (440 px in the CSS, 360 px in `DESIGN.md`), the bubble corner (a 7.5 px token, 8 px in every bubble), the sent reaction offset (16 px, not 14), the video height (171 px appears nowhere), the header name weight (no weight set, not 600) and the dark wallpaper (a blend, not an inversion). The 15 px chat spacing and 62 px composer tokens are not used by any component.
+
+### 12.5 Where it lands in the model
+
+| Module | What it takes from here |
+|---|---|
+| `Budget` | the wide-screen sizes of 12.2 as `wide*` names (text in whole pixels; message text as `wideMessageTenths`, 142); media, album, composer, badge and pill sizes; the emoji sizes of `docs/emoji.md` |
+| `Timeline` | `gapAfter` (U-05, 2, 6 or 24 px), `typingBubble` (U-20), `unsupportedShown` (U-19), `timeOnMedia` (U-16), `albumCells` and `albumMoreShown` (U-17), `reactionCountShown` (U-06) |
+| `Menu` | `quickReactions` (six) and `reactionAfterPick` (U-09) |
+| `Composer` | `enterWith` (U-11, U-12), `composerRows` (one to five lines), `pickerStaysOpen` (U-10), `pickerFull` (the 340 px picker) |
+| `Render` | `emojiOnlyLarge` and `emojiForm` (`docs/emoji.md`), `viewerNext`, `viewerPreviousWraps` and `viewerArrowsShown` (U-18) |
+| `Layout` | `onlineShown`: the online line and dot only when the engine reports presence and the person shares it (U-22) |
+| `RoomList` | `badgeNumber` and `badgePlus` (999+), `previewTicks` (U-01) |
+
+Not modelled: the sizes themselves are named, not derived; motion and shadows are recorded here and in `Budget.motionMs`, which every duration above meets except the 300 ms bottom sheets, which belong to the Business pieces not adopted.
+
+### 12.6 Emoji
+
+How emoji are drawn, which graphic set to pin and how it is delivered are in `docs/emoji.md`.

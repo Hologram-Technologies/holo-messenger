@@ -115,5 +115,27 @@ definition{
   result: Nat,
   body: (if (saved <=? 3) then saved else 0)
 }
+definition{name: badgeMost, parameters: [], result: Nat, body: 999}
+
+definition{
+  name: badgeNumber,
+  parameters: [count : Nat],
+  result: Nat,
+  body: (if (999 <? count) then 999 else count)
+}
+
+definition{
+  name: badgePlus,
+  parameters: [count : Nat, earlierUnknown : Nat],
+  result: Nat,
+  body: (if (999 <? count) then 1 else (if (1 <=? earlierUnknown) then 1 else 0))
+}
+
+definition{
+  name: previewTicks,
+  parameters: [lastIsOwn : Nat, unread : Nat],
+  result: Nat,
+  body: (if (lastIsOwn =? 0) then 0 else (if (1 <=? unread) then 0 else 1))
+}
 \end{semanticmodule}
 \end{lexlean}

@@ -195,5 +195,67 @@ definition{
   result: Nat,
   body: (if (1 <=? connected) then 0 else (if (1 <=? tried) then 2 else 1))
 }
+definition{name: gapInRun, parameters: [], result: Nat, body: 2}
+
+definition{name: gapBetweenRuns, parameters: [], result: Nat, body: 6}
+
+definition{name: gapUnderReactions, parameters: [], result: Nat, body: 24}
+
+definition{
+  name: gapAfter,
+  parameters: [nextStartsGroup : Nat, hasReactions : Nat],
+  result: Nat,
+  body: (if (1 <=? hasReactions) then 24 else (if (1 <=? nextStartsGroup) then 6 else 2))
+}
+
+definition{name: typingNone, parameters: [], result: Nat, body: 0}
+
+definition{name: typingDots, parameters: [], result: Nat, body: 1}
+
+definition{name: typingNamed, parameters: [], result: Nat, body: 2}
+
+definition{
+  name: typingBubble,
+  parameters: [isDirect : Nat, othersTyping : Nat, typingShown : Nat],
+  result: Nat,
+  body: (if (typingShown =? 0) then 0 else (if (othersTyping =? 0) then 0 else (if (1 <=? isDirect) then 1 else (if (othersTyping =? 1) then 2 else 1))))
+}
+
+definition{
+  name: unsupportedShown,
+  parameters: [known : Nat, isMessage : Nat],
+  result: Nat,
+  body: (if (1 <=? known) then 0 else (if (1 <=? isMessage) then 1 else 0))
+}
+
+definition{
+  name: timeOnMedia,
+  parameters: [isMedia : Nat, hasCaption : Nat],
+  result: Nat,
+  body: (if (isMedia =? 0) then 0 else (if (1 <=? hasCaption) then 0 else 1))
+}
+
+definition{name: albumMost, parameters: [], result: Nat, body: 4}
+
+definition{
+  name: albumCells,
+  parameters: [count : Nat],
+  result: Nat,
+  body: (if (4 <? count) then 4 else count)
+}
+
+definition{
+  name: albumMoreShown,
+  parameters: [count : Nat],
+  result: Nat,
+  body: (if (4 <? count) then 1 else 0)
+}
+
+definition{
+  name: reactionCountShown,
+  parameters: [total : Nat],
+  result: Nat,
+  body: (if (2 <=? total) then 1 else 0)
+}
 \end{semanticmodule}
 \end{lexlean}

@@ -83,5 +83,84 @@ theorem{
   proof: reflexivity{},
   axioms: []
 }
+theorem{
+  name: wideTextNeverSmallerThanMeta,
+  parameters: [],
+  statement: ((((Messenger.Budget::wideMetaSize) <=? (Messenger.Budget::widePreviewSize)) && (((Messenger.Budget::wideMetaSize) <=? (Messenger.Budget::wideListTimeSize)) && (((Messenger.Budget::wideMetaSize) <=? (Messenger.Budget::wideNameSize)) && (((Messenger.Budget::wideMetaSize) <=? (Messenger.Budget::wideHeaderNameSize)) && (((Messenger.Budget::wideMetaSize) + ((Messenger.Budget::wideMetaSize) + ((Messenger.Budget::wideMetaSize) + ((Messenger.Budget::wideMetaSize) + ((Messenger.Budget::wideMetaSize) + ((Messenger.Budget::wideMetaSize) + ((Messenger.Budget::wideMetaSize) + ((Messenger.Budget::wideMetaSize) + ((Messenger.Budget::wideMetaSize) + (Messenger.Budget::wideMetaSize)))))))))) <=? (Messenger.Budget::wideMessageTenths)))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: wideMetaReadable,
+  parameters: [],
+  statement: ((11 <=? (Messenger.Budget::wideMetaSize)) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: wideBubbleNarrowerThanPhone,
+  parameters: [],
+  statement: (((Messenger.Budget::wideBubbleMaxPercent) <=? (Messenger.Budget::bubbleMaxPercent)) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: wideRowFitsTouchTarget,
+  parameters: [],
+  statement: (((Messenger.Budget::touchTarget) <=? ((Messenger.Budget::wideRowPicture) + ((Messenger.Budget::wideRowPadding) + (Messenger.Budget::wideRowPadding)))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: albumFitsMedia,
+  parameters: [],
+  statement: ((((Messenger.Budget::albumCell) + ((Messenger.Budget::albumGap) + (Messenger.Budget::albumCell))) <=? (Messenger.Budget::mediaMaxWidth)) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: composerGrowsFiveLines,
+  parameters: [],
+  statement: (((Messenger.Budget::composerMaxHeight) =? ((Messenger.Budget::composerLineHeight) + ((Messenger.Budget::composerLineHeight) + ((Messenger.Budget::composerLineHeight) + ((Messenger.Budget::composerLineHeight) + (Messenger.Budget::composerLineHeight)))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: emojiCellsHoldEmoji,
+  parameters: [],
+  statement: ((((Messenger.Budget::pickerEmojiSize) <? (Messenger.Budget::pickerCellSize)) && (((Messenger.Budget::quickReactionSize) <? (Messenger.Budget::quickReactionCell)) && (((Messenger.Budget::moreReactionSize) <? (Messenger.Budget::moreReactionCell)) && (((Messenger.Budget::stackedEmojiSize) <? (Messenger.Budget::stackedEmojiCircle)) && ((Messenger.Budget::pillEmojiSize) <? (Messenger.Budget::reactionPillHeight)))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: emojiOnlyLargerThanText,
+  parameters: [],
+  statement: ((((Messenger.Budget::messageSize) <? (Messenger.Budget::emojiOnlySize)) && ((Messenger.Budget::wideMessageTenths) <? ((Messenger.Budget::emojiOnlySize) + ((Messenger.Budget::emojiOnlySize) + ((Messenger.Budget::emojiOnlySize) + ((Messenger.Budget::emojiOnlySize) + ((Messenger.Budget::emojiOnlySize) + ((Messenger.Budget::emojiOnlySize) + ((Messenger.Budget::emojiOnlySize) + ((Messenger.Budget::emojiOnlySize) + ((Messenger.Budget::emojiOnlySize) + (Messenger.Budget::emojiOnlySize)))))))))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: wideSizeExamples,
+  parameters: [],
+  statement: ((((Messenger.Budget::wideHeaderHeight) =? 59) && (((Messenger.Budget::wideHeaderPicture) =? 40) && (((Messenger.Budget::wideRowPicture) =? 49) && (((Messenger.Budget::wideRowPadding) =? 10) && (((Messenger.Budget::wideNameSize) =? 17) && (((Messenger.Budget::widePreviewSize) =? 13) && (((Messenger.Budget::wideListTimeSize) =? 12) && (((Messenger.Budget::wideHeaderNameSize) =? 16) && (((Messenger.Budget::wideMessageTenths) =? 142) && (((Messenger.Budget::wideMetaSize) =? 11) && (((Messenger.Budget::wideBubbleMaxPercent) =? 60) && (((Messenger.Budget::wideBubbleCorner) =? 8) && (((Messenger.Budget::tailWidth) =? 8) && (((Messenger.Budget::tailHeight) =? 13) && (((Messenger.Budget::mediaMaxWidth) =? 336) && (((Messenger.Budget::mediaMaxHeight) =? 330) && (((Messenger.Budget::albumCell) =? 165) && (((Messenger.Budget::albumGap) =? 2) && (((Messenger.Budget::composerTextSize) =? 15) && (((Messenger.Budget::composerLineHeight) =? 24) && (((Messenger.Budget::composerMaxHeight) =? 120) && (((Messenger.Budget::unreadBadgeHeight) =? 20) && ((Messenger.Budget::reactionPillHeight) =? 24))))))))))))))))))))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: emojiSizeExamples,
+  parameters: [],
+  statement: ((((Messenger.Budget::pickerEmojiSize) =? 22) && (((Messenger.Budget::pickerCellSize) =? 36) && (((Messenger.Budget::pickerColumns) =? 8) && (((Messenger.Budget::pickerMaxHeight) =? 300) && (((Messenger.Budget::quickReactionSize) =? 24) && (((Messenger.Budget::quickReactionCell) =? 38) && (((Messenger.Budget::moreReactionSize) =? 20) && (((Messenger.Budget::moreReactionCell) =? 34) && (((Messenger.Budget::pillEmojiSize) =? 13) && (((Messenger.Budget::stackedEmojiSize) =? 12) && (((Messenger.Budget::stackedEmojiCircle) =? 20) && ((Messenger.Budget::emojiOnlySize) =? 32)))))))))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
 \end{semanticmodule}
 \end{lexlean}

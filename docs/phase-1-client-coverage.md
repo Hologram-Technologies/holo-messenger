@@ -1,8 +1,8 @@
 # Client-only Phase 1 coverage
 
-Recounted 2026-11-19 against the modules as they are: 161 of 171 items have a rule, 10 have none and say why.
+Recounted 2026-11-19 against the modules as they are: 161 of 171 items had a rule, 10 have none and say why. The wa-ui pass of 2026-11-20 added two client-only Phase 1 items, each with a rule, and named its new rules beside seven rows they also decide: 163 of 173.
 
-Scope: the 171 Phase 1 items whose engine standing is "not needed" or "proved rule".
+Scope: the 173 Phase 1 items whose engine standing is "not needed" or "proved rule".
 A spec item is a definition in `app/src/Messenger/*.lex.tex`; every one named here exists there. A rule often decides part of an item, not all of it.
 "no rule" means the item has nothing a rule could decide, for one of three reasons: fixed content (a frame, a text or a list that is always the same, or a report of facts the page found at run time), code structure (how the client is built, not what a person sees), or the engine's to decide (it waits on uor-comms).
 
@@ -11,7 +11,7 @@ A spec item is a definition in `app/src/Messenger/*.lex.tex`; every one named he
 | identity and devices | 4 | 4 | 0 |
 | onboarding and recovery | 6 | 5 | 1: fixed content 1 |
 | rooms and membership | 21 | 21 | 0 |
-| timeline and events | 22 | 22 | 0 |
+| timeline and events | 24 | 24 | 0 |
 | composer | 18 | 18 | 0 |
 | encryption and verification | 2 | 0 | 2: the engine's to decide 1, fixed content 1 |
 | media and attachments | 4 | 4 | 0 |
@@ -19,7 +19,7 @@ A spec item is a definition in `app/src/Messenger/*.lex.tex`; every one named he
 | notifications | 8 | 8 | 0 |
 | settings | 19 | 16 | 3: fixed content 3 |
 | navigation and layout | 54 | 50 | 4: the engine's to decide 1, code structure 3 |
-| Total | 171 | 161 | 10: fixed content 5, the engine's to decide 2, code structure 3 |
+| Total | 173 | 163 | 10: fixed content 5, the engine's to decide 2, code structure 3 |
 
 | HM ID | domain | name | engine standing | spec item |
 |---|---|---|---|---|
@@ -58,7 +58,7 @@ A spec item is a definition in `app/src/Messenger/*.lex.tex`; every one named he
 | HM-CAP-067 | timeline and events | Decide which events are visible | not needed | Timeline.shown |
 | HM-CAP-068 | timeline and events | Describe state changes as text | proved rule | Timeline.systemLine |
 | HM-CAP-069 | timeline and events | Mention pills | not needed | Render.mentionPill |
-| HM-CAP-070 | timeline and events | Safe rich text rendering | not needed | Render.markupAllowed, Render.schemeAllowed |
+| HM-CAP-070 | timeline and events | Safe rich text rendering | not needed | Render.markupAllowed, Render.schemeAllowed, Render.emojiOnlyLarge |
 | HM-CAP-079 | timeline and events | Timeline grouping engine | not needed | Timeline.collapses |
 | HM-CAP-081 | timeline and events | Virtual timeline items | not needed | Timeline.dividerBefore |
 | HM-FEA-074 | timeline and events | Setting: timestamps | not needed | Timeline.hourShown, Timeline.timestampShown |
@@ -70,23 +70,25 @@ A spec item is a definition in `app/src/Messenger/*.lex.tex`; every one named he
 | HM-SUR-068 | timeline and events | State and system event tiles | proved rule | Timeline.systemLine |
 | HM-SUR-069 | timeline and events | Event summaries | not needed | Timeline.collapses |
 | HM-SUR-070 | timeline and events | New room intro | not needed | Timeline.systemLine |
-| HM-SUR-071 | timeline and events | Date separator | not needed | Timeline.dividerBefore |
+| HM-SUR-071 | timeline and events | Date separator | not needed | Timeline.dividerBefore, Timeline.gapAfter |
 | HM-SUR-078 | timeline and events | Room status bar | proved rule | Timeline.statusBar |
 | HM-SUR-088 | timeline and events | Shortcut: timeline scrolling | not needed | Keys.timelineKey |
 | HM-SUR-089 | timeline and events | Shortcut: read marker | not needed | Keys.timelineKey |
 | HM-SUR-091 | timeline and events | Swipe to reply | not needed | Timeline.startsReply |
 | HM-SUR-092 | timeline and events | Double-tap / tap behaviours | not needed | Timeline.tapAction |
+| HM-CAP-228 | timeline and events | Emoji drawn as pinned graphics | not needed | Render.emojiForm, Render.emojiOnlyLarge |
+| HM-SUR-318 | timeline and events | Reaction button beside a message | not needed | Menu.quickReactions, Menu.reactionAfterPick |
 | HM-CAP-089 | composer | Draft persistence | not needed | Composer.draftKept |
 | HM-CAP-090 | composer | Structured editor model | not needed | Composer.redoAvailable, Composer.lengthAfterEdit |
 | HM-CAP-091 | composer | Markdown and HTML serialisation | not needed | Render.formatApplied |
 | HM-CAP-092 | composer | Autocomplete | not needed | Composer.suggestKind |
-| HM-FEA-098 | composer | Emoji picker | not needed | Composer.pickerSection, Composer.recentsAfterPick, Composer.toneApplied |
+| HM-FEA-098 | composer | Emoji picker | not needed | Composer.pickerSection, Composer.recentsAfterPick, Composer.toneApplied, Composer.pickerStaysOpen |
 | HM-FEA-105 | composer | Setting: modifier+Enter to send | not needed | Composer.enterAction |
 | HM-FEA-119 | composer | Draft restore | not needed | Composer.draftKept |
 | HM-SUR-099 | composer | Plain composer editor | not needed | Composer.sendable |
 | HM-SUR-102 | composer | Autocomplete popup | proved rule | Composer.suggestKind |
-| HM-SUR-104 | composer | Emoji picker | not needed | Composer.pickerSection, Composer.recentsAfterPick, Composer.toneApplied |
-| HM-SUR-106 | composer | Shortcut: send and new line | not needed | Composer.enterAction |
+| HM-SUR-104 | composer | Emoji picker | not needed | Composer.pickerSection, Composer.recentsAfterPick, Composer.toneApplied, Composer.pickerStaysOpen, Composer.pickerFull |
+| HM-SUR-106 | composer | Shortcut: send and new line | not needed | Composer.enterAction, Composer.enterWith |
 | HM-SUR-107 | composer | Shortcut: formatting | not needed | Keys.composerKey |
 | HM-SUR-108 | composer | Shortcut: undo and redo | not needed | Keys.composerKey |
 | HM-SUR-109 | composer | Shortcut: composer cursor | not needed | Keys.composerKey |
@@ -169,9 +171,9 @@ A spec item is a definition in `app/src/Messenger/*.lex.tex`; every one named he
 | HM-SUR-282 | navigation and layout | User menu | not needed | Layout.overflowItem, Layout.tabShown |
 | HM-SUR-283 | navigation and layout | Room list header | not needed | Layout.overflowItem, RoomList.chipMatches |
 | HM-SUR-284 | navigation and layout | Room list | not needed | RoomList.sortsBefore, RoomList.listState |
-| HM-SUR-285 | navigation and layout | Room list item | not needed | RoomList.itemBadge |
+| HM-SUR-285 | navigation and layout | Room list item | not needed | RoomList.itemBadge, RoomList.badgeNumber, RoomList.badgePlus, RoomList.previewTicks |
 | HM-SUR-289 | navigation and layout | Home page | not needed | Navigation.centreView |
-| HM-SUR-290 | navigation and layout | Room header | not needed | Layout.headerLine, Layout.callButtonsShown |
+| HM-SUR-290 | navigation and layout | Room header | not needed | Layout.headerLine, Layout.callButtonsShown, Layout.onlineShown |
 | HM-SUR-291 | navigation and layout | Right panel container | not needed | Layout.rightPanelMode |
 | HM-SUR-292 | navigation and layout | Right panel empty state | not needed | Layout.panelShows |
 | HM-SUR-293 | navigation and layout | Room context menu | not needed | Menu.roomMenuItem |

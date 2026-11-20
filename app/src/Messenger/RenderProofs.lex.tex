@@ -131,5 +131,124 @@ theorem{
   proof: reflexivity{},
   axioms: []
 }
+theorem{
+  name: textNeverEnlarged,
+  parameters: [emojiCount : Nat, otherCharacters : Nat],
+  statement: (((1 <=? otherCharacters) && (1 <=? (Messenger.Render::emojiOnlyLarge emojiCount otherCharacters))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Render::emojiOnlyLarge]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: manyEmojiStayNormal,
+  parameters: [emojiCount : Nat, otherCharacters : Nat],
+  statement: (((4 <=? emojiCount) && (1 <=? (Messenger.Render::emojiOnlyLarge emojiCount otherCharacters))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Render::emojiOnlyLarge]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: fewEmojiEnlarged,
+  parameters: [emojiCount : Nat],
+  statement: (((1 <=? emojiCount) && ((emojiCount <=? 3) && ((Messenger.Render::emojiOnlyLarge emojiCount 0) =? 0))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Render::emojiOnlyLarge]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: emojiOnlyExamples,
+  parameters: [],
+  statement: ((((Messenger.Render::emojiOnlyLarge 1 0) =? 1) && (((Messenger.Render::emojiOnlyLarge (Messenger.Render::emojiOnlyMost) 0) =? 1) && (((Messenger.Render::emojiOnlyLarge 4 0) =? 0) && (((Messenger.Render::emojiOnlyLarge 1 5) =? 0) && ((Messenger.Render::emojiOnlyLarge 0 0) =? 0))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: failedHashNeverDrawn,
+  parameters: [selector : Nat, presentation : Nat, graphic : Nat],
+  statement: ((Messenger.Render::emojiForm selector presentation graphic 0) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Render::emojiForm]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: missingGraphicFallsToText,
+  parameters: [selector : Nat, presentation : Nat, hashOk : Nat],
+  statement: ((Messenger.Render::emojiForm selector presentation 0 hashOk) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Render::emojiForm]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: textSelectorStaysText,
+  parameters: [presentation : Nat, graphic : Nat, hashOk : Nat],
+  statement: ((Messenger.Render::emojiForm 1 presentation graphic hashOk) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Render::emojiForm]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: textDefaultStaysText,
+  parameters: [graphic : Nat, hashOk : Nat],
+  statement: ((Messenger.Render::emojiForm 0 0 graphic hashOk) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Render::emojiForm]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: checkedGraphicDrawn,
+  parameters: [presentation : Nat, graphic : Nat, hashOk : Nat],
+  statement: (((1 <=? graphic) && ((1 <=? hashOk) && ((Messenger.Render::emojiForm 2 presentation graphic hashOk) =? 0))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Render::emojiForm]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: emojiFormInRange,
+  parameters: [selector : Nat, presentation : Nat, graphic : Nat, hashOk : Nat],
+  statement: (((Messenger.Render::emojiForm selector presentation graphic hashOk) <=? 1) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Render::emojiForm]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: emojiFormExamples,
+  parameters: [],
+  statement: ((((Messenger.Render::emojiForm (Messenger.Render::selectorNone) 1 1 1) =? (Messenger.Render::formGraphic)) && (((Messenger.Render::emojiForm (Messenger.Render::selectorEmoji) 0 1 1) =? (Messenger.Render::formGraphic)) && (((Messenger.Render::emojiForm (Messenger.Render::selectorText) 1 1 1) =? (Messenger.Render::formText)) && (((Messenger.Render::emojiForm (Messenger.Render::selectorNone) 1 1 0) =? (Messenger.Render::formText)) && ((Messenger.Render::emojiForm (Messenger.Render::selectorNone) 1 0 1) =? (Messenger.Render::formText)))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: nextStaysInside,
+  parameters: [index : Nat, count : Nat],
+  statement: (((1 <=? count) && (count <=? (Messenger.Render::viewerNext index count))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Render::viewerNext]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: previousWrapsOnlyFromFirst,
+  parameters: [index : Nat],
+  statement: (((1 <=? index) && (1 <=? (Messenger.Render::viewerPreviousWraps index))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Render::viewerPreviousWraps]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: oneItemNoArrows,
+  parameters: [count : Nat],
+  statement: (((count <=? 1) && (1 <=? (Messenger.Render::viewerArrowsShown count))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Render::viewerArrowsShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: viewerExamples,
+  parameters: [],
+  statement: ((((Messenger.Render::viewerNext 0 3) =? 1) && (((Messenger.Render::viewerNext 2 3) =? 0) && (((Messenger.Render::viewerPreviousWraps 0) =? 1) && (((Messenger.Render::viewerPreviousWraps 2) =? 0) && (((Messenger.Render::viewerArrowsShown 1) =? 0) && ((Messenger.Render::viewerArrowsShown 2) =? 1)))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
 \end{semanticmodule}
 \end{lexlean}

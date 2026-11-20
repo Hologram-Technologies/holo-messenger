@@ -57,8 +57,10 @@ On the page only, and sample in engine mode: room names, pictures and descriptio
 | `app/src/MessengerRules.lex.tex` | The application: one request in, one answer out, with 63 acceptance vectors |
 | `client/` | The interface: one static page with no dependencies. See `client/README.md` |
 | `features/suites/rules.feature` | The pinned statements for `MR-01` to `MR-08` |
-| `docs/phase-1-client-coverage.md` | Which inventory items each definition covers (161 of 171), and why the other ten have no rule |
-| `docs/inventory/holo-messenger-inventory.md` | 885 items from Element Web, Element X and Element Call, each with keep, adapt or drop, a phase and an acceptance check |
+| `docs/phase-1-client-coverage.md` | Which inventory items each definition covers (163 of 173), and why the other ten have no rule |
+| `docs/inventory/holo-messenger-inventory.md` | 890 items: 885 from Element Web, Element X and Element Call and 5 from the wa-ui pass, each with keep, adapt or drop, a phase and an acceptance check |
+| `docs/wa-ui-gap.md` | Every wa-ui component classified against Holo Messenger, the build order to feel like WhatsApp, and the needs sent to uor-comms |
+| `docs/emoji.md` | How emoji are drawn from a pinned graphic set, which set, and how it is delivered |
 | `docs/inventory/matrix-to-uor-comms-map.md` | Each Matrix concept and its standing in uor-comms |
 | `docs/inventory/sources/` | The per-client inventories and parity passes the merge was built from |
 | `docs/reading/` | Reading reports on uor-comms and Hologram |
@@ -103,6 +105,8 @@ Lean accepted all 337 theorems and the application module on the hosted LexLean 
 
 The hosted formatter accepts all 33 files as canonical, and the hosted build of the application module succeeds.
 
+On 2026-11-20 the wa-ui pass (`docs/wa-ui-gap.md`) added 76 definitions (35 of them named sizes in `Budget`) and 76 theorems to `Budget`, `Composer`, `Layout`, `Menu`, `Render`, `RoomList` and `Timeline`, 413 theorems in all. The hosted verifier refused every project that day (`project-refused`), unchanged modules and a one-line module included, so they were proved locally instead: `prism-code verify --lean --all` (prism-code 0.10.1), Lean's kernel as WebAssembly, on a scratch copy of the modules in a project that names `leanprover/lean4:v4.32.2`, the only toolchain that prism-code accepts; this repository pins v4.32.1. All 76 new theorems were proved in that run. 26 of the 337 earlier theorems were not, each because it rests on `Quot.sound` and declares only `propext`; they verified under the pinned toolchain on 2026-11-19 and are unchanged. No attestation covers the new theorems; the gate's `prismpm verify` on GitHub, under the pinned toolchain, is the run that would. The new declarations follow the layout the formatter wrote for the existing ones and were not passed through `lexlean fmt`.
+
 The hosted profile supplies its own copy of the two `Foundation` modules and its own module prefix; the files under `app/src/Foundation/` and `app/lexlean.toml` were not sent.
 
 A proof shows a definition has the stated property. It does not show the property is the right behaviour.
@@ -112,7 +116,7 @@ The acceptance vectors are tested, not proved, and only when `prismpm verify` ru
 ## Known limits
 
 - Thresholds and budgets in the modules are the accepted Phase 1 values (2026-11-18). None is measured in a gate. Against the 150 KB first load, `client/index.html` on 2026-11-20, with engine mode and without the earlier in-tab mode, is 390,069 bytes raw and 125,420 gzipped at level 9 (125,690 at the default level), measured by hand; the holo and its loader are not counted, nor the 201,549 bytes of engine files fetched only when engine mode starts.
-- The named sizes in `Budget` come from `docs/whatsapp-study.md`, with text sizes divided by the 1.3 text enlargement of the phone measured. The interface carries 15 of the 16 as CSS tokens with the same values, written by hand, not read from the model; `textScaleNoted` has no token.
+- The named sizes in `Budget` come from `docs/whatsapp-study.md`, with text sizes divided by the 1.3 text enlargement of the phone measured. The `wide*`, media, composer and emoji sizes added on 2026-11-20 come from wa-ui (section 12 of the study) and are not in the interface yet; `emojiOnlySize` is this specification's own value. The interface carries 15 of the 16 as CSS tokens with the same values, written by hand, not read from the model; `textScaleNoted` has no token.
 - Membership status numbers match `Comms.Rules` in uor-comms by inspection; nothing imports that module.
 - 10 client-side Phase 1 items have no formal rule: five are fixed content, three are code structure and two wait on the engine. `docs/phase-1-client-coverage.md` gives the reason for each.
 - A rule often decides part of an item, not all of it. The new room intro has a rule for its "created" line only, and the list panel has rules for its keys and widths, not for what it remembers.
