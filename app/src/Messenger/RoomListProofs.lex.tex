@@ -287,5 +287,61 @@ theorem{
   proof: linear_arithmetic{definitions: [Messenger.RoomList::restoredChip]},
   axioms: [Quot.sound, propext]
 }
+
+theorem{
+  name: badgeNeverAboveCap,
+  parameters: [count : Nat],
+  statement: (((Messenger.RoomList::badgeNumber count) <=? 999) = true),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::badgeNumber]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: badgeExactBelowCap,
+  parameters: [count : Nat],
+  statement: (((count <=? 999) && (((Messenger.RoomList::badgeNumber count) <? count) || (count <? (Messenger.RoomList::badgeNumber count)))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::badgeNumber]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: cappedBadgeSaysPlus,
+  parameters: [count : Nat, earlierUnknown : Nat],
+  statement: (((999 <? count) && ((Messenger.RoomList::badgePlus count earlierUnknown) =? 0)) = false),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::badgePlus]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: exactBadgeHasNoPlus,
+  parameters: [count : Nat],
+  statement: (((count <=? 999) && (1 <=? (Messenger.RoomList::badgePlus count 0))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::badgePlus]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: othersMessageHasNoTicks,
+  parameters: [unread : Nat],
+  statement: ((Messenger.RoomList::previewTicks 0 unread) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::previewTicks]},
+  axioms: [propext]
+}
+
+theorem{
+  name: unreadHidesTicks,
+  parameters: [lastIsOwn : Nat, unread : Nat],
+  statement: (((1 <=? unread) && (1 <=? (Messenger.RoomList::previewTicks lastIsOwn unread))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.RoomList::previewTicks]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: badgeExamples,
+  parameters: [],
+  statement: ((((Messenger.RoomList::badgeNumber 7) =? 7) && (((Messenger.RoomList::badgeNumber 1500) =? (Messenger.RoomList::badgeMost)) && (((Messenger.RoomList::badgePlus 1500 0) =? 1) && (((Messenger.RoomList::badgePlus 50 1) =? 1) && (((Messenger.RoomList::badgePlus 50 0) =? 0) && (((Messenger.RoomList::previewTicks 1 0) =? 1) && ((Messenger.RoomList::previewTicks 1 2) =? 0))))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
 \end{semanticmodule}
 \end{lexlean}

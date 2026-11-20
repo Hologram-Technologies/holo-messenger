@@ -67,5 +67,37 @@ theorem{
   proof: reflexivity{},
   axioms: []
 }
+
+theorem{
+  name: samePickTakesBack,
+  parameters: [picked : Nat],
+  statement: ((Messenger.Menu::reactionAfterPick picked picked) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Menu::reactionAfterPick]},
+  axioms: [propext]
+}
+
+theorem{
+  name: otherPickReplaces,
+  parameters: [current : Nat, picked : Nat],
+  statement: ((((current <? picked) || (picked <? current)) && (((Messenger.Menu::reactionAfterPick current picked) <? picked) || (picked <? (Messenger.Menu::reactionAfterPick current picked)))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Menu::reactionAfterPick]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: atMostOneReaction,
+  parameters: [current : Nat, picked : Nat],
+  statement: (((1 <=? (Messenger.Menu::reactionAfterPick current picked)) && (((Messenger.Menu::reactionAfterPick current picked) <? picked) || (picked <? (Messenger.Menu::reactionAfterPick current picked)))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Menu::reactionAfterPick]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: reactionExamples,
+  parameters: [],
+  statement: ((((Messenger.Menu::quickReactions) =? 6) && (((Messenger.Menu::reactionAfterPick 0 3) =? 3) && (((Messenger.Menu::reactionAfterPick 3 3) =? 0) && ((Messenger.Menu::reactionAfterPick 2 5) =? 5)))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
 \end{semanticmodule}
 \end{lexlean}

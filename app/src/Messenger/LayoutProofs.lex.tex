@@ -445,5 +445,37 @@ theorem{
   proof: reflexivity{},
   axioms: []
 }
+
+theorem{
+  name: neverOnlineWithoutEngine,
+  parameters: [sharesPresence : Nat, online : Nat],
+  statement: ((Messenger.Layout::onlineShown 0 sharesPresence online) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::onlineShown]},
+  axioms: [propext]
+}
+
+theorem{
+  name: neverOnlineWithoutConsent,
+  parameters: [engineReportsPresence : Nat, online : Nat],
+  statement: ((Messenger.Layout::onlineShown engineReportsPresence 0 online) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::onlineShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: offlineNeverShownOnline,
+  parameters: [engineReportsPresence : Nat, sharesPresence : Nat],
+  statement: ((Messenger.Layout::onlineShown engineReportsPresence sharesPresence 0) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Layout::onlineShown]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: onlineExamples,
+  parameters: [],
+  statement: ((((Messenger.Layout::onlineShown 1 1 1) =? 1) && (((Messenger.Layout::onlineShown 0 1 1) =? 0) && ((Messenger.Layout::onlineShown 1 0 1) =? 0))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
 \end{semanticmodule}
 \end{lexlean}

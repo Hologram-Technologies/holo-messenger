@@ -28,11 +28,13 @@ Feature: rules
     And viewedRoomNeverNotifies in Messenger/NotifyProofs.lex.tex states ((Messenger.Notify::notifyLevel enabled mode mention 1 isOwn) = 0)
 
   @MR-03 @build
-  Scenario: A non-member is offered only copy, and edit is offered only on an own message
+  Scenario: A non-member is offered only copy, edit is offered only on an own message, and picking your own reaction again takes it back
     Given the menu rules in app/src/Messenger/Menu.lex.tex
     When the Lean kernel checks the theorems of MenuProofs during prismpm verify
     Then nonMemberOnlyCopies in Messenger/MenuProofs.lex.tex states ((((status <? 2) || (2 <? status)) && ((1 <=? (Messenger.Menu::messageAction action isOwn status moderator failed)) && ((action <? 3) || (3 <? action)))) = false)
     And editOnlyOwnMessage in Messenger/MenuProofs.lex.tex states ((Messenger.Menu::messageAction 2 0 status moderator failed) = 0)
+    And samePickTakesBack in Messenger/MenuProofs.lex.tex states ((Messenger.Menu::reactionAfterPick picked picked) = 0)
+    And atMostOneReaction in Messenger/MenuProofs.lex.tex states (((1 <=? (Messenger.Menu::reactionAfterPick current picked)) && (((Messenger.Menu::reactionAfterPick current picked) <? picked) || (picked <? (Messenger.Menu::reactionAfterPick current picked)))) = false)
 
   @MR-04 @build
   Scenario: A link never lands a non-member in a timeline, and an unknown link goes home
@@ -42,7 +44,7 @@ Feature: rules
     And unknownLinkGoesHome in Messenger/NavigationProofs.lex.tex states ((Messenger.Navigation::routeTarget kind 0 status) = 0)
 
   @MR-05 @build
-  Scenario: Shift and Enter never sends, and Enter completes a suggestion while the popup is open
+  Scenario: Shift and Enter never sends, Enter completes a suggestion while the popup is open, and Enter never sends while an input method is composing or on a touch screen
     Given the composer rules in app/src/Messenger/Composer.lex.tex
     When the Lean kernel checks the theorems of ComposerProofs during prismpm verify
     Then shiftEnterNeverSends in Messenger/ComposerProofs.lex.tex states (((Messenger.Composer::enterAction 1 modifier requireModifier popupOpen) =? 1) = false)
@@ -53,9 +55,15 @@ Feature: rules
     And searchHidesRecents in Messenger/ComposerProofs.lex.tex states (((1 <=? queryLength) && ((Messenger.Composer::pickerSection queryLength recentCount hits) <=? 2)) = false)
     And recentsNeverAboveCap in Messenger/ComposerProofs.lex.tex states (((Messenger.Composer::recentsAfterPick count wasRecent) <=? 8) = true)
     And toneOnlyOnHands in Messenger/ComposerProofs.lex.tex states ((Messenger.Composer::toneApplied 0 tone) = 0)
+    And composingNeverSends in Messenger/ComposerProofs.lex.tex states ((Messenger.Composer::enterWith 1 coarse shift modifier requireModifier popupOpen) = 0)
+    And touchEnterNeverSends in Messenger/ComposerProofs.lex.tex states (((Messenger.Composer::enterWith 0 1 shift modifier requireModifier popupOpen) =? 1) = false)
+    And keyboardEnterUnchanged in Messenger/ComposerProofs.lex.tex states ((Messenger.Composer::enterWith 0 0 shift modifier requireModifier popupOpen) = (Messenger.Composer::enterAction shift modifier requireModifier popupOpen))
+    And shortTextNeverScrolls in Messenger/ComposerProofs.lex.tex states (((1 <=? lines) && ((lines <=? 5) && (((Messenger.Composer::composerRows lines) <? lines) || (lines <? (Messenger.Composer::composerRows lines))))) = false)
+    And reactionPickCloses in Messenger/ComposerProofs.lex.tex states (((1 <=? target) && (1 <=? (Messenger.Composer::pickerStaysOpen target))) = false)
+    And pickerFullOnlyWithMargin in Messenger/ComposerProofs.lex.tex states (((screen <? ((Messenger.Composer::pickerMostWidth) + 16)) && (1 <=? (Messenger.Composer::pickerFull screen))) = false)
 
   @MR-06 @build
-  Scenario: Unknown markup never renders and an unsafe link scheme never opens
+  Scenario: Unknown markup never renders, an unsafe link scheme never opens, and an emoji is drawn as a graphic only when its pinned graphic passed its hash check
     Given the rendering rules in app/src/Messenger/Render.lex.tex
     When the Lean kernel checks the theorems of RenderProofs during prismpm verify
     Then unknownMarkupNeverRenders in Messenger/RenderProofs.lex.tex states (((4 <=? kind) && (1 <=? (Messenger.Render::markupAllowed kind))) = false)
@@ -64,9 +72,17 @@ Feature: rules
     And roomWordNeverPillsInDirect in Messenger/RenderProofs.lex.tex states (((1 <=? isDirect) && (1 <=? (Messenger.Render::mentionPill 0 isRoomWord isDirect))) = false)
     And unclosedMarkStaysText in Messenger/RenderProofs.lex.tex states (((mark <=? 5) && (1 <=? (Messenger.Render::formatApplied mark 0))) = false)
     And unknownMarkStaysText in Messenger/RenderProofs.lex.tex states (((8 <=? mark) && (1 <=? (Messenger.Render::formatApplied mark closed))) = false)
+    And failedHashNeverDrawn in Messenger/RenderProofs.lex.tex states ((Messenger.Render::emojiForm selector presentation graphic 0) = 0)
+    And missingGraphicFallsToText in Messenger/RenderProofs.lex.tex states ((Messenger.Render::emojiForm selector presentation 0 hashOk) = 0)
+    And textSelectorStaysText in Messenger/RenderProofs.lex.tex states ((Messenger.Render::emojiForm 1 presentation graphic hashOk) = 0)
+    And textDefaultStaysText in Messenger/RenderProofs.lex.tex states ((Messenger.Render::emojiForm 0 0 graphic hashOk) = 0)
+    And textNeverEnlarged in Messenger/RenderProofs.lex.tex states (((1 <=? otherCharacters) && (1 <=? (Messenger.Render::emojiOnlyLarge emojiCount otherCharacters))) = false)
+    And manyEmojiStayNormal in Messenger/RenderProofs.lex.tex states (((4 <=? emojiCount) && (1 <=? (Messenger.Render::emojiOnlyLarge emojiCount otherCharacters))) = false)
+    And nextStaysInside in Messenger/RenderProofs.lex.tex states (((1 <=? count) && (count <=? (Messenger.Render::viewerNext index count))) = false)
+    And previousWrapsOnlyFromFirst in Messenger/RenderProofs.lex.tex states (((1 <=? index) && (1 <=? (Messenger.Render::viewerPreviousWraps index))) = false)
 
   @MR-07 @build
-  Scenario: The layout has one to three panes, and a phone never shows the list and the timeline together
+  Scenario: The layout has one to three panes, a phone never shows the list and the timeline together, and nobody is shown online unless the engine reports it
     Given the layout rules in app/src/Messenger/Layout.lex.tex
     When the Lean kernel checks the theorems of LayoutProofs during prismpm verify
     Then atLeastOnePane in Messenger/LayoutProofs.lex.tex states ((1 <=? (Messenger.Layout::panes width)) = true)
@@ -130,6 +146,24 @@ Feature: rules
     And keyboardRowWideOnly in Messenger/SettingsProofs.lex.tex states (((panes <=? 1) && (1 <=? (Messenger.Settings::rowShown 7 panes))) = false)
     And unknownRowNeverShown in Messenger/SettingsProofs.lex.tex states (((9 <=? row) && (1 <=? (Messenger.Settings::rowShown row panes))) = false)
     And subScreenAlwaysHasBack in Messenger/SettingsProofs.lex.tex states (((1 <=? onSubScreen) && ((Messenger.Settings::settingsBack onSubScreen openedFromChats) =? 0)) = false)
+    And neverOnlineWithoutEngine in Messenger/LayoutProofs.lex.tex states ((Messenger.Layout::onlineShown 0 sharesPresence online) = 0)
+    And neverOnlineWithoutConsent in Messenger/LayoutProofs.lex.tex states ((Messenger.Layout::onlineShown engineReportsPresence 0 online) = 0)
+    And reactionsNeverCrowded in Messenger/TimelineProofs.lex.tex states (((1 <=? hasReactions) && ((Messenger.Timeline::gapAfter nextStartsGroup hasReactions) <? 24)) = false)
+    And typingOffNeverShowsBubble in Messenger/TimelineProofs.lex.tex states ((Messenger.Timeline::typingBubble isDirect othersTyping 0) = 0)
+    And directBubbleNeverNamed in Messenger/TimelineProofs.lex.tex states (((1 <=? isDirect) && (2 <=? (Messenger.Timeline::typingBubble isDirect othersTyping typingShown))) = false)
+    And knownNeverPlaceholder in Messenger/TimelineProofs.lex.tex states (((1 <=? known) && (1 <=? (Messenger.Timeline::unsupportedShown known isMessage))) = false)
+    And unknownMessageNeverVanishes in Messenger/TimelineProofs.lex.tex states (((1 <=? isMessage) && ((Messenger.Timeline::unsupportedShown 0 isMessage) =? 0)) = false)
+    And captionKeepsTimeBelow in Messenger/TimelineProofs.lex.tex states (((1 <=? hasCaption) && (1 <=? (Messenger.Timeline::timeOnMedia isMedia hasCaption))) = false)
+    And fullAlbumBeforeMore in Messenger/TimelineProofs.lex.tex states (((1 <=? (Messenger.Timeline::albumMoreShown count)) && ((Messenger.Timeline::albumCells count) <? 4)) = false)
+    And singleReactionNoCount in Messenger/TimelineProofs.lex.tex states (((total <=? 1) && (1 <=? (Messenger.Timeline::reactionCountShown total))) = false)
+    And badgeNeverAboveCap in Messenger/RoomListProofs.lex.tex states (((Messenger.RoomList::badgeNumber count) <=? 999) = true)
+    And cappedBadgeSaysPlus in Messenger/RoomListProofs.lex.tex states (((999 <? count) && ((Messenger.RoomList::badgePlus count earlierUnknown) =? 0)) = false)
+    And unreadHidesTicks in Messenger/RoomListProofs.lex.tex states (((1 <=? unread) && (1 <=? (Messenger.RoomList::previewTicks lastIsOwn unread))) = false)
+    And wideMetaReadable in Messenger/BudgetProofs.lex.tex states ((11 <=? (Messenger.Budget::wideMetaSize)) = true)
+    And wideBubbleNarrowerThanPhone in Messenger/BudgetProofs.lex.tex states (((Messenger.Budget::wideBubbleMaxPercent) <=? (Messenger.Budget::bubbleMaxPercent)) = true)
+    And albumFitsMedia in Messenger/BudgetProofs.lex.tex states ((((Messenger.Budget::albumCell) + ((Messenger.Budget::albumGap) + (Messenger.Budget::albumCell))) <=? (Messenger.Budget::mediaMaxWidth)) = true)
+    And emojiCellsHoldEmoji in Messenger/BudgetProofs.lex.tex states ((((Messenger.Budget::pickerEmojiSize) <? (Messenger.Budget::pickerCellSize)) && (((Messenger.Budget::quickReactionSize) <? (Messenger.Budget::quickReactionCell)) && (((Messenger.Budget::moreReactionSize) <? (Messenger.Budget::moreReactionCell)) && (((Messenger.Budget::stackedEmojiSize) <? (Messenger.Budget::stackedEmojiCircle)) && ((Messenger.Budget::pillEmojiSize) <? (Messenger.Budget::reactionPillHeight)))))) = true)
+    And wideSizeExamples in Messenger/BudgetProofs.lex.tex states ((((Messenger.Budget::wideHeaderHeight) =? 59) && (((Messenger.Budget::wideHeaderPicture) =? 40) && (((Messenger.Budget::wideRowPicture) =? 49) && (((Messenger.Budget::wideRowPadding) =? 10) && (((Messenger.Budget::wideNameSize) =? 17) && (((Messenger.Budget::widePreviewSize) =? 13) && (((Messenger.Budget::wideListTimeSize) =? 12) && (((Messenger.Budget::wideHeaderNameSize) =? 16) && (((Messenger.Budget::wideMessageTenths) =? 142) && (((Messenger.Budget::wideMetaSize) =? 11) && (((Messenger.Budget::wideBubbleMaxPercent) =? 60) && (((Messenger.Budget::wideBubbleCorner) =? 8) && (((Messenger.Budget::tailWidth) =? 8) && (((Messenger.Budget::tailHeight) =? 13) && (((Messenger.Budget::mediaMaxWidth) =? 336) && (((Messenger.Budget::mediaMaxHeight) =? 330) && (((Messenger.Budget::albumCell) =? 165) && (((Messenger.Budget::albumGap) =? 2) && (((Messenger.Budget::composerTextSize) =? 15) && (((Messenger.Budget::composerLineHeight) =? 24) && (((Messenger.Budget::composerMaxHeight) =? 120) && (((Messenger.Budget::unreadBadgeHeight) =? 20) && ((Messenger.Budget::reactionPillHeight) =? 24))))))))))))))))))))))) = true)
 
   @MR-08 @build
   Scenario: The application answers each of its eleven questions with the function the theorems are about, and invalid request for anything else

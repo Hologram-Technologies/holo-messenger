@@ -110,5 +110,52 @@ definition{
   result: Nat,
   body: (if (mark <=? 5) then (if (1 <=? closed) then 1 else 0) else (if (mark <=? 7) then 1 else 0))
 }
+
+definition{name: emojiOnlyMost, parameters: [], result: Nat, body: 3}
+
+definition{
+  name: emojiOnlyLarge,
+  parameters: [emojiCount : Nat, otherCharacters : Nat],
+  result: Nat,
+  body: (if (1 <=? otherCharacters) then 0 else (if (emojiCount =? 0) then 0 else (if (emojiCount <=? 3) then 1 else 0)))
+}
+
+definition{name: formText, parameters: [], result: Nat, body: 0}
+
+definition{name: formGraphic, parameters: [], result: Nat, body: 1}
+
+definition{name: selectorNone, parameters: [], result: Nat, body: 0}
+
+definition{name: selectorText, parameters: [], result: Nat, body: 1}
+
+definition{name: selectorEmoji, parameters: [], result: Nat, body: 2}
+
+definition{
+  name: emojiForm,
+  parameters: [selector : Nat, presentation : Nat, graphic : Nat, hashOk : Nat],
+  result: Nat,
+  body: (if (graphic =? 0) then 0 else (if (hashOk =? 0) then 0 else (if (selector =? 1) then 0 else (if (selector =? 2) then 1 else (if (1 <=? presentation) then 1 else 0)))))
+}
+
+definition{
+  name: viewerNext,
+  parameters: [index : Nat, count : Nat],
+  result: Nat,
+  body: (if ((index + 1) <? count) then (index + 1) else 0)
+}
+
+definition{
+  name: viewerPreviousWraps,
+  parameters: [index : Nat],
+  result: Nat,
+  body: (if (index =? 0) then 1 else 0)
+}
+
+definition{
+  name: viewerArrowsShown,
+  parameters: [count : Nat],
+  result: Nat,
+  body: (if (2 <=? count) then 1 else 0)
+}
 \end{semanticmodule}
 \end{lexlean}

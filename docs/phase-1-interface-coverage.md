@@ -6,7 +6,7 @@ Verifying another person moved to Phase 2 on 2026-11-19: HM-SUR-119 left this li
 
 2026-11-19, verdicts unchanged: in the opt-in engine mode (README, "Engine") these rows also run on the uor-comms engine in the browser tab, with sample people: HM-FEA-021, HM-FEA-037, HM-FEA-039, HM-FEA-041, HM-FEA-042, HM-FEA-046, HM-FEA-047, HM-FEA-048, HM-FEA-050, HM-FEA-056, HM-FEA-085, HM-FEA-097, HM-JRN-025, HM-JRN-026, HM-JRN-027, HM-JRN-028, HM-JRN-032, HM-JRN-038, HM-SUR-005, HM-SUR-041, HM-SUR-061, HM-SUR-068, HM-SUR-096. Edits, reactions and deletion stay on sample data there.
 
-Scope: the 226 Phase 1 items a person can see or use (features, journeys and surfaces; capabilities are left out), judged against `client/index.html` at the commit that last changed this file, on 2026-11-19.
+Scope: the 228 Phase 1 items (226 judged on 2026-11-19, and two added on 2026-11-20 by the wa-ui pass, `docs/wa-ui-gap.md`, as not built) a person can see or use (features, journeys and surfaces; capabilities are left out), judged against `client/index.html` at the commit that last changed this file, on 2026-11-19.
 
 How it was judged: each item was read against the page's code and given the lower verdict when torn. A first pass judged all 227. The items it did not mark built were then built out and judged again by reviewers who had not written the code. Six items were fixed after their second review; their rows say so, and those fixes were checked in a browser by the builder or by the session lead, not reviewed a third time. The page uses sample data: nothing is stored beyond this browser, encrypted or sent, and that does not count against an item. A strip at the top of the page says so at all times. Items marked adapt in the inventory were judged on their adapted intent. Where a static page cannot do the real thing, it offers a substitute that says what it is.
 
@@ -23,14 +23,14 @@ Not exercised by anyone: scanning a code with a camera, camera capture, real tou
 | rooms and membership | 28 | 28 | 0 | 0 |
 | encryption and verification | 15 | 14 | 1 | 0 |
 | moderation | 2 | 2 | 0 | 0 |
-| timeline and events | 34 | 34 | 0 | 0 |
-| composer | 24 | 24 | 0 | 0 |
+| timeline and events | 35 | 34 | 0 | 1 |
+| composer | 25 | 24 | 0 | 1 |
 | media and attachments | 16 | 16 | 0 | 0 |
 | search | 12 | 12 | 0 | 0 |
 | notifications | 11 | 11 | 0 | 0 |
 | settings | 18 | 18 | 0 | 0 |
 | navigation and layout | 41 | 41 | 0 | 0 |
-| Total | 226 | 225 | 1 | 0 |
+| Total | 228 | 225 | 1 | 2 |
 
 | HM ID | domain | name | verdict | where in the page | absent |
 |---|---|---|---|---|---|
@@ -138,6 +138,7 @@ Not exercised by anyone: scanning a code with a camera, camera capture, real tou
 | HM-SUR-092 | timeline and events | Double-tap / tap behaviours | built | data-why on the tick button (.tkb) and on the "Not encrypted yet" pill opens whyDlg() | - |
 | HM-SUR-093 | timeline and events | Reaction summary sheet | built | whoReacted() tabs per emoji; a time shows beside your own reaction | - |
 | HM-SUR-096 | timeline and events | Send-failure dialog | built | "!" (.tkb.bad, data-why) opens whyDlg(): cause, "Try again", "Remove" | - |
+| HM-SUR-318 | timeline and events | Reaction button beside a message | not built | - | added 2026-11-20 from wa-ui, recorded as not built without a new reading of the page |
 | HM-FEA-095 | composer | Message editing | built | doAct "edit" runs startEdit(), which fills #ta; #send then saveEdit(); .ed click opens histDlg(); Reply or Edit elsewhere while an edit holds changed text keeps the edit and says "Finish your edit first" | - |
 | HM-FEA-096 | composer | Typing notifications | built | typingText() from S.typing: the #sub line under the chat name (drawSub) and the chat's row in the list; set by setTyping() from deliver() and from typingDemo() | - |
 | HM-FEA-097 | composer | Mentions and pills | built | suggest() "@room" and "#Room"; rich() pills; mentionsMe() matches @room | - |
@@ -162,6 +163,7 @@ Not exercised by anyone: scanning a code with a camera, camera capture, real tou
 | HM-SUR-111 | composer | Shortcut: edit previous or next message | built | #ta keydown while S.edit: Up and Down step through ownMsgs(), Down past the last returns to the draft | - |
 | HM-SUR-114 | composer | Shortcut: autocomplete | built | keydown: Enter and Tab complete(), arrows move, Escape closes #pop | - |
 | HM-SUR-116 | composer | Attachment menu | built | attachMenu(): "Photo or video", "Camera", "Record a video", "File" | - |
+| HM-SUR-317 | composer | Typing bubble | not built | - | added 2026-11-20 from wa-ui, recorded as not built without a new reading of the page |
 | HM-FEA-138 | media and attachments | File and media sharing | built | previewSend() confirm; img, rowMedia video, audio, file download link | - |
 | HM-FEA-139 | media and attachments | Image viewer | built | viewer(): .full screen, "More" menu with "Show in chat" and Forward | - |
 | HM-FEA-145 | media and attachments | Attach photo or video from library | built | inMedia multiple picker then previewSend() with caption field | - |

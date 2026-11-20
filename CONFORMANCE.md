@@ -34,11 +34,11 @@ model does not sanction.
 | --- | --- | --- |
 | `MR-01` | `build` | The main screen shows only with an identity and the tab lock, and an unsupported browser always gets the fatal page |
 | `MR-02` | `build` | A muted room, an own message and the room being viewed never notify |
-| `MR-03` | `build` | A non-member is offered only copy, and edit is offered only on an own message |
+| `MR-03` | `build` | A non-member is offered only copy, edit is offered only on an own message, and picking your own reaction again takes it back |
 | `MR-04` | `build` | A link never lands a non-member in a timeline, and an unknown link goes home |
-| `MR-05` | `build` | Shift and Enter never sends, and Enter completes a suggestion while the popup is open |
-| `MR-06` | `build` | Unknown markup never renders and an unsafe link scheme never opens |
-| `MR-07` | `build` | The layout has one to three panes, and a phone never shows the list and the timeline together |
+| `MR-05` | `build` | Shift and Enter never sends, Enter completes a suggestion while the popup is open, and Enter never sends while an input method is composing or on a touch screen |
+| `MR-06` | `build` | Unknown markup never renders, an unsafe link scheme never opens, and an emoji is drawn as a graphic only when its pinned graphic passed its hash check |
+| `MR-07` | `build` | The layout has one to three panes, a phone never shows the list and the timeline together, and nobody is shown online unless the engine reports it |
 | `MR-08` | `build` | The application answers each of its eleven questions with the function the theorems are about, and invalid request for anything else |
 
 ## Cited authorities

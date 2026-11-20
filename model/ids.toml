@@ -47,7 +47,7 @@ statement = "A muted room, an own message and the room being viewed never notify
 id = "MR-03"
 level = "build"
 suite = "rules"
-statement = "A non-member is offered only copy, and edit is offered only on an own message"
+statement = "A non-member is offered only copy, edit is offered only on an own message, and picking your own reaction again takes it back"
 
 [[id]]
 id = "MR-04"
@@ -59,19 +59,19 @@ statement = "A link never lands a non-member in a timeline, and an unknown link 
 id = "MR-05"
 level = "build"
 suite = "rules"
-statement = "Shift and Enter never sends, and Enter completes a suggestion while the popup is open"
+statement = "Shift and Enter never sends, Enter completes a suggestion while the popup is open, and Enter never sends while an input method is composing or on a touch screen"
 
 [[id]]
 id = "MR-06"
 level = "build"
 suite = "rules"
-statement = "Unknown markup never renders and an unsafe link scheme never opens"
+statement = "Unknown markup never renders, an unsafe link scheme never opens, and an emoji is drawn as a graphic only when its pinned graphic passed its hash check"
 
 [[id]]
 id = "MR-07"
 level = "build"
 suite = "rules"
-statement = "The layout has one to three panes, and a phone never shows the list and the timeline together"
+statement = "The layout has one to three panes, a phone never shows the list and the timeline together, and nobody is shown online unless the engine reports it"
 
 [[id]]
 id = "MR-08"

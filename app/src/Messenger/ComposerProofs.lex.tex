@@ -269,5 +269,130 @@ theorem{
   proof: reflexivity{},
   axioms: []
 }
+
+theorem{
+  name: composingNeverSends,
+  parameters: [coarse : Nat, shift : Nat, modifier : Nat, requireModifier : Nat, popupOpen : Nat],
+  statement: ((Messenger.Composer::enterWith 1 coarse shift modifier requireModifier popupOpen) = 0),
+  proof: linear_arithmetic{definitions: [Messenger.Composer::enterWith]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: touchEnterNeverSends,
+  parameters: [shift : Nat, modifier : Nat, requireModifier : Nat, popupOpen : Nat],
+  statement: (((Messenger.Composer::enterWith 0 1 shift modifier requireModifier popupOpen) =? 1) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Composer::enterWith]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: touchEnterCompletesInPopup,
+  parameters: [shift : Nat, modifier : Nat, requireModifier : Nat],
+  statement: ((Messenger.Composer::enterWith 0 1 shift modifier requireModifier 1) = 3),
+  proof: linear_arithmetic{definitions: [Messenger.Composer::enterWith]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: keyboardEnterUnchanged,
+  parameters: [shift : Nat, modifier : Nat, requireModifier : Nat, popupOpen : Nat],
+  statement: ((Messenger.Composer::enterWith 0 0 shift modifier requireModifier popupOpen) = (Messenger.Composer::enterAction shift modifier requireModifier popupOpen)),
+  proof: linear_arithmetic{
+    definitions: [Messenger.Composer::enterAction, Messenger.Composer::enterWith]
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: enterWithInRange,
+  parameters: [
+    composing : Nat,
+    coarse : Nat,
+    shift : Nat,
+    modifier : Nat,
+    requireModifier : Nat,
+    popupOpen : Nat
+  ],
+  statement: (((Messenger.Composer::enterWith composing coarse shift modifier requireModifier popupOpen) <=? 3) = true),
+  proof: linear_arithmetic{
+    definitions: [Messenger.Composer::enterAction, Messenger.Composer::enterWith]
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: enterWithExamples,
+  parameters: [],
+  statement: ((((Messenger.Composer::enterWith 1 0 0 0 0 0) =? (Messenger.Composer::enterNothing)) && (((Messenger.Composer::enterWith 0 1 0 0 0 0) =? (Messenger.Composer::enterNewLine)) && (((Messenger.Composer::enterWith 0 0 0 0 0 0) =? (Messenger.Composer::enterSend)) && ((Messenger.Composer::enterWith 0 0 1 0 0 0) =? (Messenger.Composer::enterNewLine))))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: composerRowsInRange,
+  parameters: [lines : Nat],
+  statement: (((1 <=? (Messenger.Composer::composerRows lines)) && ((Messenger.Composer::composerRows lines) <=? 5)) = true),
+  proof: linear_arithmetic{definitions: [Messenger.Composer::composerRows]},
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+theorem{
+  name: shortTextNeverScrolls,
+  parameters: [lines : Nat],
+  statement: (((1 <=? lines) && ((lines <=? 5) && (((Messenger.Composer::composerRows lines) <? lines) || (lines <? (Messenger.Composer::composerRows lines))))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Composer::composerRows]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: composerRowsExamples,
+  parameters: [],
+  statement: ((((Messenger.Composer::composerRows 0) =? 1) && (((Messenger.Composer::composerRows 3) =? 3) && ((Messenger.Composer::composerRows 9) =? (Messenger.Composer::composerMostRows)))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: reactionPickCloses,
+  parameters: [target : Nat],
+  statement: (((1 <=? target) && (1 <=? (Messenger.Composer::pickerStaysOpen target))) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Composer::pickerStaysOpen]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: textPickKeepsPickerOpen,
+  parameters: [],
+  statement: ((Messenger.Composer::pickerStaysOpen (Messenger.Composer::pickForText)) = 1),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: pickerFullOnlyWithMargin,
+  parameters: [screen : Nat],
+  statement: (((screen <? ((Messenger.Composer::pickerMostWidth) + 16)) && (1 <=? (Messenger.Composer::pickerFull screen))) = false),
+  proof: linear_arithmetic{
+    definitions: [Messenger.Composer::pickerFull, Messenger.Composer::pickerMostWidth]
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: pickerFullWhenRoom,
+  parameters: [screen : Nat],
+  statement: (((356 <=? screen) && ((Messenger.Composer::pickerFull screen) =? 0)) = false),
+  proof: linear_arithmetic{definitions: [Messenger.Composer::pickerFull]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: pickerWidthExamples,
+  parameters: [],
+  statement: ((((Messenger.Composer::pickerFull 320) =? 0) && (((Messenger.Composer::pickerFull 412) =? 1) && (((Messenger.Composer::pickerFull 1280) =? 1) && ((Messenger.Composer::pickerMostWidth) =? 340)))) = true),
+  proof: reflexivity{},
+  axioms: []
+}
 \end{semanticmodule}
 \end{lexlean}
