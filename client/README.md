@@ -24,4 +24,4 @@ On 2026-11-18, in one desktop browser, script time including layout, for a room 
 
 150 KB, counted as sent: the page's size after compression, which is what a browser downloads. Decided by Ilya on 2026-11-19. The raw size is not the budget.
 
-At commit e4e976d the page is 258,930 bytes raw and 81,072 bytes compressed (`gzip -c client/index.html | wc -c`), so about 69 KB of the budget is left.
+On 2026-11-20, with the earlier in-tab engine mode removed, the page is 390,069 bytes raw and 125,690 bytes compressed (`gzip -c client/index.html | wc -c`), so about 24 KB of the budget is left.
