@@ -12,7 +12,7 @@ First run: a welcome, Create my identity (the identity and a non-extractable dev
 
 > Why: Holo Messenger sends real messages between real browsers, and no server keeps them. It is early: nothing is encrypted yet, so send nothing sensitive.
 > How: Connection setup goes through ntfy.sh, a public server; the people you connect to and a public STUN server (Google's) see your network address. Both people must be online at the same time.
-> What: Test with someone on the same network for now: a relay is coming, and until then two people on different networks may not connect. Invite someone with your link, or open an invite someone sent you.
+> What: Test with someone on the same network: until the relay exists, two people on different networks may not connect. Invite someone with your link, or open an invite someone sent you.
 
 Then the empty chat list, with Invite someone and Open an invite.
 
